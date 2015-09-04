@@ -20,7 +20,7 @@ namespace SimpleMigrations
         }
 
         /// <summary>
-        /// Instantiates a new instance of the <see cref="ConnectionProvider/> class
+        /// Instantiates a new instance of the <see cref="ConnectionProvider"/> class
         /// </summary>
         public ConnectionProvider(IDbConnection connection)
         {

@@ -56,7 +56,7 @@ namespace SimpleMigrations
         /// <param name="connection">Connection to use to perform this action</param>
         /// <param name="oldVersion">Version being upgraded from</param>
         /// <param name="newVersion">Version being upgraded to</param>
-        /// <param name="newDescription">Description to associate with the new version</para
+        /// <param name="newDescription">Description to associate with the new version</param>
         public void UpgradeVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
         {
             this.SetVersionTo(connection, newVersion, newDescription);
