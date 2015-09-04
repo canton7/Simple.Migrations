@@ -71,14 +71,14 @@ namespace SimpleMigrations
                              select new MigrationData(attribute.Version, attribute.Description ?? type.Name, type, attribute.UseTransaction)).ToList();
 
             if (migrations.Any(x => x.Version <= 0))
-                throw new Exception("Migrations must all have a version >= 0");
+                throw new MigrationException("Migrations must all have a version >= 0");
 
             var initialMigration = new MigrationData(0, "Empty Schema", null, false);
             this.Migrations = new[] { initialMigration }.Concat(migrations).ToList().AsReadOnly();
 
             this.CurrentMigration = this.Migrations.SingleOrDefault(x => x.Version == currentVersion);
             if (this.CurrentMigration == null)
-                throw new Exception(String.Format("Unable to find migration with the current version: {0}", currentVersion));
+                throw new MigrationException(String.Format("Unable to find migration with the current version: {0}", currentVersion));
 
             this.LatestMigration = this.Migrations.Last();
         }

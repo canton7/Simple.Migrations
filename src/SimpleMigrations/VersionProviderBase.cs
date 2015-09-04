@@ -27,10 +27,16 @@ namespace SimpleMigrations
                 if (result == null)
                     return 0;
 
-                if (!(result is long))
-                    throw new Exception("Version Provider returns a value for the current version which isn't a long");
+                long version;
+                try
+                {
+                    version = Convert.ToInt64(result);
+                }
+                catch
+                {
+                    throw new MigrationException("Version Provider returns a value for the current version which isn't a long");
+                }   
 
-                var version = (long)result;
                 return version;
             }
         }

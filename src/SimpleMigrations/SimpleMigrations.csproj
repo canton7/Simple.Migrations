@@ -47,6 +47,7 @@
     <Compile Include="ILogger.cs" />
     <Compile Include="IMigrationLogger.cs" />
     <Compile Include="MigrationData.cs" />
+    <Compile Include="MigrationException.cs" />
     <Compile Include="NullLogger.cs" />
     <Compile Include="SqliteVersionProvider.cs" />
     <Compile Include="VersionProviderBase.cs" />
