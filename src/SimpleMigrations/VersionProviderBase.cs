@@ -8,6 +8,10 @@ namespace SimpleMigrations
     /// </summary>
     public abstract class VersionProviderBase : IVersionProvider<IDbConnection>
     {
+        /// <summary>
+        /// Ensure that the version table exists, creating it if necessary
+        /// </summary>
+        /// <param name="connection">Connection to use to perform this action</param>
         public void EnsureCreated(IDbConnection connection)
         {
             using (var cmd = connection.CreateCommand())
@@ -17,6 +21,11 @@ namespace SimpleMigrations
             }
         }
 
+        /// <summary>
+        /// Return the current version from the version table
+        /// </summary>
+        /// <param name="connection">Connection to use to perform this action</param>
+        /// <returns>Current version</returns>
         public long GetCurrentVersion(IDbConnection connection)
         {
             using (var cmd = connection.CreateCommand())
@@ -41,11 +50,25 @@ namespace SimpleMigrations
             }
         }
 
+        /// <summary>
+        /// Upgrade the current version in the version table
+        /// </summary>
+        /// <param name="connection">Connection to use to perform this action</param>
+        /// <param name="oldVersion">Version being upgraded from</param>
+        /// <param name="newVersion">Version being upgraded to</param>
+        /// <param name="newDescription">Description to associate with the new version</para
         public void UpgradeVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
         {
             this.SetVersionTo(connection, newVersion, newDescription);
         }
 
+        /// <summary>
+        /// Downgrade the current version in the version table
+        /// </summary>
+        /// <param name="connection">Connection to use to perform this action</param>
+        /// <param name="oldVersion">Version being upgraded from</param>
+        /// <param name="newVersion">Version being upgraded to</param>
+        /// <param name="newDescription">Description to associate with the new version</param>
         public void DowngradeVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
         {
             this.SetVersionTo(connection, newVersion, newDescription);
