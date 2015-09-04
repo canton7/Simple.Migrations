@@ -51,6 +51,7 @@
     <Compile Include="MigrationData.cs" />
     <Compile Include="MigrationException.cs" />
     <Compile Include="NullLogger.cs" />
+    <Compile Include="PostgresqlVersionProvider.cs" />
     <Compile Include="SqliteVersionProvider.cs" />
     <Compile Include="VersionProviderBase.cs" />
     <Compile Include="IConnectionProvider.cs" />
