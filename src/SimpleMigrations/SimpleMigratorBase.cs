@@ -71,7 +71,7 @@ namespace SimpleMigrations
                              select new MigrationData(attribute.Version, attribute.Description ?? type.Name, type, attribute.UseTransaction)).ToList();
 
             if (migrations.Any(x => x.Version <= 0))
-                throw new MigrationException("Migrations must all have a version >= 0");
+                throw new MigrationException("Migrations must all have a version > 0");
 
             var initialMigration = new MigrationData(0, "Empty Schema", null, false);
             this.Migrations = new[] { initialMigration }.Concat(migrations).ToList().AsReadOnly();
