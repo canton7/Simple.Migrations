@@ -25,7 +25,8 @@ namespace SimpleMigrations
         public ConnectionProvider(IDbConnection connection)
         {
             this.connection = connection;
-            this.connection.Open();
+            if (this.connection.State == ConnectionState.Closed)
+                this.connection.Open();
         }
 
         /// <summary>
