@@ -3,29 +3,29 @@
 namespace SimpleMigrations
 {
     /// <summary>
-    /// Class representing data about a migration
+    /// Struct representing data about a migration
     /// </summary>
-    public class MigrationData
+    public struct MigrationData
     {
         /// <summary>
         /// Version of this migration
         /// </summary>
-        public readonly long Version;
+        public long Version { get; private set; }
 
         /// <summary>
         /// Description of this migration
         /// </summary>
-        public readonly string Description;
+        public string Description { get; private set; }
 
         /// <summary>
         /// Type of class implementing this migration
         /// </summary>
-        public readonly Type Type;
+        public Type Type { get; private set; }
 
         /// <summary>
         /// Whether or not this migration should be run inside a transaction
         /// </summary>
-        public readonly bool UseTransaction;
+        public bool UseTransaction { get; private set; }
 
         internal MigrationData(long version, string description, Type type, bool useTransaction)
         {

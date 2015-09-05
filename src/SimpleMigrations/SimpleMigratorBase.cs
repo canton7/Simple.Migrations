@@ -97,11 +97,11 @@ namespace SimpleMigrations
         protected virtual void SetCurrentVersion()
         {
             var currentVersion = this.versionProvider.GetCurrentVersion(this.connectionProvider.Connection);
-            var currentMigration = this.Migrations.SingleOrDefault(x => x.Version == currentVersion);
-            if (currentMigration == null)
+            var currentMigrationCandidates = this.Migrations.Where(x => x.Version == currentVersion);
+            if (!currentMigrationCandidates.Any())
                 throw new MigrationException(String.Format("Unable to find migration with the current version: {0}", currentVersion));
 
-            this.CurrentMigration = currentMigration;
+            this.CurrentMigration = currentMigrationCandidates.First();
         }
 
         /// <summary>
