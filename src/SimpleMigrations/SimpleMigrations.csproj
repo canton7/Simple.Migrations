@@ -44,8 +44,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionProvider.cs" />
-    <Compile Include="ConsoleLogger.cs" />
-    <Compile Include="ConsoleRunner.cs" />
+    <Compile Include="Console\ConsoleLogger.cs" />
+    <Compile Include="Console\ConsoleRunner.cs" />
+    <Compile Include="Console\HelpNeededException.cs" />
+    <Compile Include="Console\SubCommand.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="IMigrationLogger.cs" />
     <Compile Include="MigrationData.cs" />

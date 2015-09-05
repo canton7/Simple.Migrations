@@ -1,7 +1,8 @@
-﻿using System;
-
-namespace SimpleMigrations
+﻿namespace SimpleMigrations.Console
 {
+    // Avoid pain with Console.XXX being assumed to be in SimpleMigrations.Console
+    using System;
+
     /// <summary>
     /// <see cref="ILogger"/> implementation which logs to the console
     /// </summary>
