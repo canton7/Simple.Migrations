@@ -65,6 +65,8 @@ namespace SimpleMigrations
             };
 
             var migrator = new SimpleMigrator(Assembly.GetExecutingAssembly(), this.database, this.versionProvider, logger);
+            migrator.Load();
+
             var currentVersion = migrator.CurrentMigration.Version;
 
             try

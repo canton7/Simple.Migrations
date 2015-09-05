@@ -30,42 +30,26 @@ namespace SimpleMigrations
         public void EndSequenceWithError(Exception exception, MigrationData from, MigrationData currentVersion) { }
 
         /// <summary>
-        /// Invoked when an individual "up" migration is started
+        /// Invoked when an individual migration is started
         /// </summary>
         /// <param name="migration">Migration being started</param>
-        public void BeginUp(MigrationData migration) { }
+        /// <param name="direction">Direction of the migration</param>
+        public void BeginMigration(MigrationData migration, MigrationDirection direction) { }
 
         /// <summary>
-        /// Invoked when an individual "up" migration is completed successfully
+        /// Invoked when an individual migration is completed successfully
         /// </summary>
         /// <param name="migration">Migration which completed</param>
-        public void EndUp(MigrationData migration) { }
+        /// <param name="direction">Direction of the migration</param>
+        public void EndMigration(MigrationData migration, MigrationDirection direction) { }
 
         /// <summary>
-        /// Invoked when an individual "up" migration fails with an error
+        /// Invoked when an individual migration fails with an error
         /// </summary>
         /// <param name="exception">Exception which was encountered</param>
         /// <param name="migration">Migration which failed</param>
-        public void EndUpWithError(Exception exception, MigrationData migration) { }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration is started
-        /// </summary>
-        /// <param name="migration">Migration being started</param>
-        public void BeginDown(MigrationData migration) { }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration is completed successfully
-        /// </summary>
-        /// <param name="migration">Migration which completed</param>
-        public void EndDown(MigrationData migration) { }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration fails with an error
-        /// </summary>
-        /// <param name="exception">Exception which was encountered</param>
-        /// <param name="migration">Migration which failed</param>
-        public void EndDownWithError(Exception exception, MigrationData migration) { }
+        /// <param name="direction">Direction of the migration</param>
+        public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction) { }
 
         /// <summary>
         /// Invoked when another informative message should be logged

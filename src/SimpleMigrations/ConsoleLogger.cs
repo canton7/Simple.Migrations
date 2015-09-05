@@ -59,57 +59,33 @@ namespace SimpleMigrations
         }
 
         /// <summary>
-        /// Invoked when an individual "up" migration is started
+        /// Invoked when an individual migration is started
         /// </summary>
         /// <param name="migration">Migration being started</param>
-        public void BeginUp(MigrationData migration)
+        /// <param name="direction">Direction of the migration</param>
+        public void BeginMigration(MigrationData migration, MigrationDirection direction)
         {
-            this.WriteHeader("{0}: {1} migrating", migration.Version, migration.Description);
+            var term = direction == MigrationDirection.Up ? "migrating" : "reverting";
+            this.WriteHeader("{0}: {1} {2}", migration.Version, migration.Description, term);
         }
 
         /// <summary>
-        /// Invoked when an individual "up" migration is completed successfully
+        /// Invoked when an individual migration is completed successfully
         /// </summary>
         /// <param name="migration">Migration which completed</param>
-        public void EndUp(MigrationData migration)
+        /// <param name="direction">Direction of the migration</param>
+        public void EndMigration(MigrationData migration, MigrationDirection direction)
         {
             Console.WriteLine();
         }
 
         /// <summary>
-        /// Invoked when an individual "up" migration fails with an error
+        /// Invoked when an individual migration fails with an error
         /// </summary>
         /// <param name="exception">Exception which was encountered</param>
         /// <param name="migration">Migration which failed</param>
-        public void EndUpWithError(Exception exception, MigrationData migration)
-        {
-            this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.Description, exception.Message);
-        }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration is started
-        /// </summary>
-        /// <param name="migration">Migration being started</param>
-        public void BeginDown(MigrationData migration)
-        {
-            this.WriteHeader("{0}: {1} reverting", migration.Version, migration.Description);
-        }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration is completed successfully
-        /// </summary>
-        /// <param name="migration">Migration which completed</param>
-        public void EndDown(MigrationData migration)
-        {
-            Console.WriteLine();
-        }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration fails with an error
-        /// </summary>
-        /// <param name="exception">Exception which was encountered</param>
-        /// <param name="migration">Migration which failed</param>
-        public void EndDownWithError(Exception exception, MigrationData migration)
+        /// <param name="direction">Direction of the migration</param>
+        public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction)
         {
             this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.Description, exception.Message);
         }
