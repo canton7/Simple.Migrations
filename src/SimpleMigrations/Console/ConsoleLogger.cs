@@ -55,7 +55,7 @@
         {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Database is curently on version {0}: {1}", currentVersion.Version, currentVersion.Description);
+            Console.WriteLine("Database is currently on version {0}: {1}", currentVersion.Version, currentVersion.Description);
             Console.ForegroundColor = this.foregroundColor;
         }
 

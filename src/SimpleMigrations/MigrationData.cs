@@ -3,9 +3,9 @@
 namespace SimpleMigrations
 {
     /// <summary>
-    /// Struct representing data about a migration
+    /// Class representing data about a migration
     /// </summary>
-    public struct MigrationData
+    public class MigrationData
     {
         /// <summary>
         /// Version of this migration

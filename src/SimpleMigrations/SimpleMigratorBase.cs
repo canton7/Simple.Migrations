@@ -80,12 +80,22 @@ namespace SimpleMigrations
             var migrations = (from type in this.migrationAssembly.GetTypes()
                               let attribute = type.GetCustomAttribute<MigrationAttribute>()
                               where attribute != null
-                              where typeof(TMigrationBase).IsAssignableFrom(type)
                               orderby attribute.Version
                               select new MigrationData(attribute.Version, attribute.Description ?? type.Name, type, attribute.UseTransaction)).ToList();
 
+            if (!migrations.Any())
+                throw new MigrationException("Could not find any migrations in the assembly you listed. Migrations must be decorated with [Migration]");
+
+            if (migrations.Any(x => !typeof(TMigrationBase).IsAssignableFrom(x.Type)))
+                throw new MigrationException(String.Format("All migrations must derive from / implement {0}", typeof(TMigrationBase).Name));
+
             if (migrations.Any(x => x.Version <= 0))
                 throw new MigrationException("Migrations must all have a version > 0");
+
+            var versionLookup = migrations.ToLookup(x => x.Version);
+            var firstDuplicate = versionLookup.FirstOrDefault(x => x.Count() > 1);
+            if (firstDuplicate != null)
+                throw new MigrationException(String.Format("Found more than one migration with version {0}", firstDuplicate.Key));
 
             var initialMigration = new MigrationData(0, "Empty Schema", null, false);
             this.Migrations = new[] { initialMigration }.Concat(migrations).ToList().AsReadOnly();
@@ -97,11 +107,11 @@ namespace SimpleMigrations
         protected virtual void SetCurrentVersion()
         {
             var currentVersion = this.versionProvider.GetCurrentVersion(this.connectionProvider.Connection);
-            var currentMigrationCandidates = this.Migrations.Where(x => x.Version == currentVersion);
-            if (!currentMigrationCandidates.Any())
+            var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
+            if (currentMigration == null)
                 throw new MigrationException(String.Format("Unable to find migration with the current version: {0}", currentVersion));
 
-            this.CurrentMigration = currentMigrationCandidates.First();
+            this.CurrentMigration = currentMigration;
         }
 
         /// <summary>
