@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SimpleMigrations
+namespace SimpleMigrations.VersionProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an PostgreSQL database

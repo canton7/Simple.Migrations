@@ -54,8 +54,8 @@
     <Compile Include="MigrationDirection.cs" />
     <Compile Include="MigrationException.cs" />
     <Compile Include="NullLogger.cs" />
-    <Compile Include="PostgresqlVersionProvider.cs" />
-    <Compile Include="SqliteVersionProvider.cs" />
+    <Compile Include="VersionProvider\PostgresqlVersionProvider.cs" />
+    <Compile Include="VersionProvider\SqliteVersionProvider.cs" />
     <Compile Include="VersionProviderBase.cs" />
     <Compile Include="IConnectionProvider.cs" />
     <Compile Include="IMigration.cs" />
