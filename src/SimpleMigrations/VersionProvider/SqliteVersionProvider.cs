@@ -50,7 +50,7 @@ namespace SimpleMigrations.VersionProvider
         /// <returns>SQL to update the current version in the version table</returns>
         public override string GetSetVersionSql()
         {
-            return String.Format(@"INSERT INTO {0} (Version, AppliedOn, Description) VALUES (@Version, date('now'), @Description)", this.TableName);
+            return String.Format(@"INSERT INTO {0} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)", this.TableName);
         }
     }
 }
