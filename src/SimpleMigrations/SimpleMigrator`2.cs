@@ -276,7 +276,7 @@ namespace SimpleMigrations
         {
             var instance = (TMigrationBase)Activator.CreateInstance(migrationData.Type);
 
-            instance.Database = this.ConnectionProvider.Connection;
+            instance.DB = this.ConnectionProvider.Connection;
             instance.Logger = this.NotNullLogger;
 
             return instance;
