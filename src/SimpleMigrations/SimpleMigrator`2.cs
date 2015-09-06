@@ -58,6 +58,8 @@ namespace SimpleMigrations
             get { return this.Logger ?? this.nullLogger; }
         }
 
+        private bool isLoaded;
+
         /// <summary>
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
@@ -82,7 +84,7 @@ namespace SimpleMigrations
         /// </summary>
         protected void EnsureLoaded()
         {
-            if (this.Migrations == null)
+            if (!this.isLoaded)
                 throw new InvalidOperationException("You must call .Load() before calling this method");
         }
 
@@ -91,11 +93,16 @@ namespace SimpleMigrations
         /// </summary>
         public virtual void Load()
         {
+            if (this.isLoaded)
+                return;
+
             this.VersionProvider.EnsureCreated(this.ConnectionProvider.Connection);
 
             this.SetMigrations();
             this.SetCurrentVersion();
             this.LatestMigration = this.Migrations.Last();
+
+            this.isLoaded = true;
         }
 
         /// <summary>
