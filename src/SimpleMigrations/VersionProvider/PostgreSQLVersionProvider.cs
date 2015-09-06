@@ -5,7 +5,7 @@ namespace SimpleMigrations.VersionProvider
     /// <summary>
     /// Class which can read from / write to a version table in an PostgreSQL database
     /// </summary>
-    public class PostgresqlVersionProvider : VersionProviderBase
+    public class PostgreSQLVersionProvider : VersionProviderBase
     {
         /// <summary>
         /// Gets or sets the name of the table to use. Defaults to 'VersionInfo'
@@ -13,9 +13,9 @@ namespace SimpleMigrations.VersionProvider
         public string TableName { get; set; }
 
         /// <summary>
-        /// Instantiates a new instance of the <see cref="SqliteVersionProvider"/> class
+        /// Instantiates a new instance of the <see cref="SQLiteVersionProvider"/> class
         /// </summary>
-        public PostgresqlVersionProvider()
+        public PostgreSQLVersionProvider()
         {
             this.TableName = "VersionInfo";
         }
