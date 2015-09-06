@@ -1,5 +1,4 @@
-﻿using System.Data;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
@@ -14,9 +13,7 @@ namespace SimpleMigrations.Console
     /// </summary>
     public class ConsoleRunner
     {
-        private readonly Assembly migrationsAssembly;
-        private readonly IDbConnection database;
-        private readonly IVersionProvider<IDbConnection> versionProvider;
+        private readonly ISimpleMigrator migrator;
 
         /// <summary>
         /// Gets or sets the subcommand to run if no subcommand is given. If null, help will be printed
@@ -31,14 +28,14 @@ namespace SimpleMigrations.Console
         /// <summary>
         /// Instantiates a new instance of the <see cref="ConsoleLogger"/> class
         /// </summary>
-        /// <param name="migrationsAssembly">Assembly to search for migrations in</param>
-        /// <param name="database">Connection to the database to use</param>
-        /// <param name="versionProvider">Version provider to use to fetch/set the current database version</param>
-        public ConsoleRunner(Assembly migrationsAssembly, IDbConnection database, IVersionProvider<IDbConnection> versionProvider)
+        /// <param name="migrator">Migrator to use</param>
+        public ConsoleRunner(SimpleMigrator migrator)
         {
-            this.migrationsAssembly = migrationsAssembly;
-            this.database = database;
-            this.versionProvider = versionProvider;
+            this.migrator = migrator;
+
+            // If they haven't assigned a logger, do so now
+            if (this.migrator.Logger == null)
+                this.migrator.Logger = new ConsoleLogger();
 
             this.CreateSubCommands();
         }
@@ -110,23 +107,6 @@ namespace SimpleMigrations.Console
         }
 
         /// <summary>
-        /// Create a new <see cref="SimpleMigrator"/>
-        /// </summary>
-        /// <param name="args">Command-line args, which may be mutated</param>
-        /// <returns>The instantiated migrator</returns>
-        protected virtual SimpleMigrator CreateMigrator(List<string> args)
-        {
-            bool quiet = args.Remove("-q");
-
-            var logger = new ConsoleLogger()
-            {
-                EnableSqlLogging = !quiet,
-            };
-
-            return new SimpleMigrator(this.migrationsAssembly, this.database, this.versionProvider, logger);
-        }
-
-        /// <summary>
         /// Run the <see cref="ConsoleRunner"/> with the given command-line arguments
         /// </summary>
         /// <param name="args">Command-line arguments to use</param>
@@ -134,18 +114,16 @@ namespace SimpleMigrations.Console
         {
             var argsList = args.ToList();
 
-            var migrator = this.CreateMigrator(argsList);
-
             try
             {
-                migrator.Load();
+                this.migrator.Load();
 
                 if (argsList.Count == 0)
                 {
                     if (this.DefaultSubCommand == null)
                         throw new HelpNeededException();
                     else
-                        this.DefaultSubCommand.Action(migrator, argsList);
+                        this.DefaultSubCommand.Action(argsList);
                 }
                 else
                 {
@@ -156,7 +134,7 @@ namespace SimpleMigrations.Console
                     if (subCommand == null)
                         throw new HelpNeededException();
 
-                    subCommand.Action(migrator, argsList);
+                    subCommand.Action(argsList);
                 }
             }
             catch (HelpNeededException)
@@ -170,53 +148,53 @@ namespace SimpleMigrations.Console
             }
         }
 
-        private void MigrateUp(SimpleMigrator migrator, List<string> args)
+        private void MigrateUp(List<string> args)
         {
             if (args.Count != 0)
                 throw new HelpNeededException();
 
-            if (migrator.CurrentMigration.Version == migrator.LatestMigration.Version)
+            if (this.migrator.CurrentMigration.Version == this.migrator.LatestMigration.Version)
                 Console.WriteLine("Nothing to do");
             else
-                migrator.MigrateUp();
+                this.migrator.MigrateToLatest();
         }
 
-        private void MigrateTo(SimpleMigrator migrator, List<string> args)
+        private void MigrateTo(List<string> args)
         {
             if (args.Count != 1)
                 throw new HelpNeededException();
 
             long version = ParseVersion(args[0]);
-            if (version == migrator.CurrentMigration.Version)
+            if (version == this.migrator.CurrentMigration.Version)
                 Console.WriteLine("Nothing to do");
             else
-                migrator.MigrateTo(version);
+                this.migrator.MigrateTo(version);
         }
 
-        private void ReApply(SimpleMigrator migrator, List<string> args)
+        private void ReApply(List<string> args)
         {
             if (args.Count != 0)
                 throw new HelpNeededException();
 
-            if (migrator.CurrentMigration == null)
+            if (this.migrator.CurrentMigration == null)
                 throw new Exception("No migrations have been applied");
 
-            var currentVersion = migrator.CurrentMigration.Version;
+            var currentVersion = this.migrator.CurrentMigration.Version;
 
-            migrator.MigrateTo(currentVersion - 1);
-            migrator.MigrateTo(currentVersion);
+            this.migrator.MigrateTo(currentVersion - 1);
+            this.migrator.MigrateTo(currentVersion);
         }
 
-        private void ListMigrations(SimpleMigrator migrator, List<string> args)
+        private void ListMigrations(List<string> args)
         {
             if (args.Count != 0)
                 throw new HelpNeededException();
 
             Console.WriteLine("Available migrations:");
 
-            foreach (var migration in migrator.Migrations)
+            foreach (var migration in this.migrator.Migrations)
             {
-                var marker = (migration == migrator.CurrentMigration) ? "*" : " ";
+                var marker = (migration == this.migrator.CurrentMigration) ? "*" : " ";
                 Console.WriteLine(" {0} {1}: {2}", marker, migration.Version, migration.Description);
             }
         }

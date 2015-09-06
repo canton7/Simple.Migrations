@@ -50,6 +50,7 @@
     <Compile Include="Console\SubCommand.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="IMigrationLogger.cs" />
+    <Compile Include="ISimpleMigrator.cs" />
     <Compile Include="MigrationData.cs" />
     <Compile Include="MigrationDirection.cs" />
     <Compile Include="MigrationException.cs" />
@@ -64,7 +65,7 @@
     <Compile Include="Migration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleMigrator.cs" />
-    <Compile Include="SimpleMigratorBase.cs" />
+    <Compile Include="SimpleMigrator`2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMigrations.ruleset" />

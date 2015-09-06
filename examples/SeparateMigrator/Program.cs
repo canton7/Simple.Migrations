@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SQLite;
-using System.Linq;
+﻿using System.Data.SQLite;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using SimpleMigrations;
 using SimpleMigrations.Console;
 using SimpleMigrations.VersionProvider;
 
@@ -15,7 +11,8 @@ namespace SeparateMigrator
         static void Main(string[] args)
         {
             var db = new SQLiteConnection("DataSource=database.sqlite");
-            var runner = new ConsoleRunner(Assembly.GetExecutingAssembly(), db, new SqliteVersionProvider());
+            var migrator = new SimpleMigrator(Assembly.GetEntryAssembly(), db, new SqliteVersionProvider());
+            var runner = new ConsoleRunner(migrator);
             runner.Run(args);
         }
     }
