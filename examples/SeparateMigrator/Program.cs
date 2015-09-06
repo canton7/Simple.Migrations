@@ -10,8 +10,12 @@ namespace SeparateMigrator
     {
         static void Main(string[] args)
         {
+            var migrationsAssembly = typeof(Program).Assembly;
             var db = new SQLiteConnection("DataSource=database.sqlite");
-            var migrator = new SimpleMigrator(Assembly.GetEntryAssembly(), db, new SqliteVersionProvider());
+            var versionProvider = new SQLiteVersionProvider();
+
+            var migrator = new SimpleMigrator(migrationsAssembly, db, versionProvider);
+
             var runner = new ConsoleRunner(migrator);
             runner.Run(args);
         }
