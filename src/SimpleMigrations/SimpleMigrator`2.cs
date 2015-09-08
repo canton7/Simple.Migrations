@@ -254,7 +254,7 @@ namespace SimpleMigrations
                 else
                     migration.Down();
 
-                this.VersionProvider.UpgradeVersion(this.ConnectionProvider.Connection, oldMigration.Version, newMigration.Version, newMigration.Description);
+                this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, oldMigration.Version, newMigration.Version, newMigration.Description);
 
                 this.NotNullLogger.EndMigration(migrationToRun, direction);
 
