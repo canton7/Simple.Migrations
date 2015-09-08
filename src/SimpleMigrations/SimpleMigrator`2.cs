@@ -10,7 +10,7 @@ namespace SimpleMigrations
     /// </summary>
     /// <typeparam name="TDatabase">Type of database connection to use</typeparam>
     /// <typeparam name="TMigrationBase">Type of migration base class</typeparam>
-    public abstract class SimpleMigrator<TDatabase, TMigrationBase>  : ISimpleMigrator
+    public class SimpleMigrator<TDatabase, TMigrationBase>  : ISimpleMigrator
         where TMigrationBase : IMigration<TDatabase>
     {
         /// <summary>
