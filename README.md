@@ -105,7 +105,74 @@ A migration is a class which implement `IMigration<TDatabase>`, and is decorated
 `IMigration<TDatabase>` is database-agnostic: it doesn't care what sort of database you're talking to.
 All migrations have an `Up` and `Down` method, a `DB` property to access the database connection, and a `Logger` property to log the SQL which is being run and any other messages.
 
-`Migration` is an abstract class which implement `IMigration<IDbConnection>`, providing a base class for all migrations which use an ADO.NET database connection.
+`Migration` is an abstract class which implements `IMigration<IDbConnection>`, providing a base class for all migrations which use an ADO.NET database connection.
 It adds an `Execute` method, which logs the SQL it's given (using the `Logger`) and runs it (using the `DB`).
 
 Migrations are executed inside a transaction by default.
+This means that either the migration is applied in full, or not at all.
+If you need to disable this (some SQL statements in some databases cannot be run inside a transaction, for example), specify `UseTransaction=false` in the `[Migration]` attribute.
+It is strongly recommended that migrations which do not execute inside of a transaction do only a single thing: use multiple migrations if necessary.
+
+If you want to perform more complicated operations on the database (e.g selecting data, or inserting variable data) you'll have to use the `DB` property directly.
+[`Dapper`](https://github.com/StackExchange/dapper-dot-net) may make your life easier here, or you can create your own migration base class which uses a specific type of database connection, and add your own helpers methods to it.
+See TODO below for more details on how to do this.
+
+
+Version Providers
+-----------------
+
+SimpleMigrations aims to be as database-agnostic as possible.
+However, there is one place where SimpleMigrations needs to talk to the database directly: the schema version table.
+SimpleMigrations uses a table inside of your database to track which version the database is at, i.e. which migration was most recently applied.
+In order to manipulate this, it needs to communicate with your database.
+It does this using version providers.
+
+A version provider is a class which implements `IVersionProvider<TDatabase>`.
+This interface describes methods which:
+
+ - Ensure that the version table is created
+ - Fetch the current schema version from the database
+ - Update the current schema version (up and down)
+
+A helper class, `VersionProviderBase`, assumes an ADO.NET connection and implements `IVersionProvider<IDbConnection>`.
+This class provides methods for executing SQL to perform the operations required by `IVersionProvider`, and has abstract methods which child classes can use to provide that SQL.
+
+A few implementations of `VersionProviderBase` have been provided, which provide access to the schema version table for a small number of database engines.
+If you're not using one of these database engines, you'll have to write your own version provider.
+Subissions to support more database engines are readily accepted!
+
+The currently supported database engines are:
+
+ - SQLite (`VersionProviders.SQLiteVersionProvider`)
+ - PostgreSQL (`VersionProviders.PostgresSQLVersionProvider`)
+
+
+Connection Providers
+--------------------
+
+SimpleMigrations needs to be able to create, commit, and rollback transactions.
+In order to encapsulate this functionality, the interface `IConnectionProvider<TDatabase>` exists.
+This is implemented by `ConnectionProvider` for ADO.NET.
+
+Most of the time you won't need to think about this.
+However, if you're using a database connection which is not based on ADO.NET, you'll need to write your own connection provider, TODO see below.
+
+
+`SimpleMigrator`
+----------------
+
+`SimpleMigrator` is where it all kicks off.
+This class provides access to the list of all migrations, the current migration, and methods to migrate to a particular version (or straight to the latest version).
+It is also responsible for finding migrations, and for instantiating and configuring each migration.
+
+`SimpleMigrator` comes in two flavours: `SimpleMigrator<TDatabase, TMigrationBase>` which allows you to use any sort of database connection (not just ADO.NET) and any migration base class, and `SimpleMigrator`, which assumes you're using ADO.NET and `Migration`.
+
+
+`ConsoleRunner`
+---------------
+
+`ConsoleRunner` is a little helper class which aims to be useful if you're writing a command-line application to perform your migirations.
+It uses a `SimpleMigrator`, takes your command-line arguments, and uses the latter to decide what methods on the former to execute.
+
+You can use it, extend it (look at the `SubCommands` property), or write your own version: it's not critical in any way.
+
