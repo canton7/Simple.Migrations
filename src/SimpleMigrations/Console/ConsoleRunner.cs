@@ -201,7 +201,7 @@ namespace SimpleMigrations.Console
             foreach (var migration in this.migrator.Migrations)
             {
                 var marker = (migration == this.migrator.CurrentMigration) ? "*" : " ";
-                Console.WriteLine(" {0} {1}: {2}", marker, migration.Version, migration.Description);
+                Console.WriteLine(" {0} {1}: {2}", marker, migration.Version, migration.FullName);
             }
         }
 

@@ -32,7 +32,7 @@
         {
             this.foregroundColor = Console.ForegroundColor;
 
-            this.WriteHeader("Migrating from {0}: {1} to {2}: {3}", from.Version, from.Description, to.Version, to.Description);
+            this.WriteHeader("Migrating from {0}: {1} to {2}: {3}", from.Version, from.FullName, to.Version, to.FullName);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@
         {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Database is currently on version {0}: {1}", currentVersion.Version, currentVersion.Description);
+            Console.WriteLine("Database is currently on version {0}: {1}", currentVersion.Version, currentVersion.FullName);
             Console.ForegroundColor = this.foregroundColor;
         }
 
@@ -67,7 +67,7 @@
         public void BeginMigration(MigrationData migration, MigrationDirection direction)
         {
             var term = direction == MigrationDirection.Up ? "migrating" : "reverting";
-            this.WriteHeader("{0}: {1} {2}", migration.Version, migration.Description, term);
+            this.WriteHeader("{0}: {1} {2}", migration.Version, migration.FullName, term);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@
         /// <param name="direction">Direction of the migration</param>
         public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction)
         {
-            this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.Description, exception.Message);
+            this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.FullName, exception.Message);
         }
 
         /// <summary>

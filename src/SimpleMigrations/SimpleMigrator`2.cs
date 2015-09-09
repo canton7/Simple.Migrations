@@ -114,7 +114,7 @@ namespace SimpleMigrations
                               let attribute = type.GetCustomAttribute<MigrationAttribute>()
                               where attribute != null
                               orderby attribute.Version
-                              select new MigrationData(attribute.Version, attribute.Description ?? type.Name, type, attribute.UseTransaction)).ToList();
+                              select new MigrationData(attribute.Version, attribute.Description, type, attribute.UseTransaction)).ToList();
 
             if (!migrations.Any())
                 throw new MigrationException("Could not find any migrations in the assembly you listed. Migrations must be decorated with [Migration]");
@@ -194,7 +194,7 @@ namespace SimpleMigrations
             if (migration == null)
                 throw new ArgumentException(String.Format("Could not find migration with version {0}", version));
 
-            this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, 0, version, migration.Description);
+            this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, 0, version, migration.FullName);
             this.CurrentMigration = migration;
 
         }
@@ -275,7 +275,7 @@ namespace SimpleMigrations
                 else
                     migration.Down();
 
-                this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, oldMigration.Version, newMigration.Version, newMigration.Description);
+                this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, oldMigration.Version, newMigration.Version, newMigration.FullName);
 
                 this.NotNullLogger.EndMigration(migrationToRun, direction);
 
