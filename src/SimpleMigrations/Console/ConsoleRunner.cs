@@ -29,7 +29,7 @@ namespace SimpleMigrations.Console
         /// Instantiates a new instance of the <see cref="ConsoleLogger"/> class
         /// </summary>
         /// <param name="migrator">Migrator to use</param>
-        public ConsoleRunner(SimpleMigrator migrator)
+        public ConsoleRunner(ISimpleMigrator migrator)
         {
             this.migrator = migrator;
 

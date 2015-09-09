@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeparateMigrator", "Separat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleMigrations", "..\src\SimpleMigrations\SimpleMigrations.csproj", "{352D9BE8-3506-4F85-AD9A-7E5FB86BA5A8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLiteNet", "SQLiteNet\SQLiteNet.csproj", "{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{352D9BE8-3506-4F85-AD9A-7E5FB86BA5A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{352D9BE8-3506-4F85-AD9A-7E5FB86BA5A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{352D9BE8-3506-4F85-AD9A-7E5FB86BA5A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
