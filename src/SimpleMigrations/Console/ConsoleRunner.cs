@@ -71,6 +71,12 @@ namespace SimpleMigrations.Console
                     Description = "list: List all available migrations",
                     Action = this.ListMigrations
                 },
+                new SubCommand()
+                {
+                    Command = "baseline",
+                    Description = "baseline <n>: Move the database to version n, without apply migrations",
+                    Action = this.Baseline
+                },
             };
 
             this.DefaultSubCommand = this.SubCommands[0];
@@ -197,6 +203,17 @@ namespace SimpleMigrations.Console
                 var marker = (migration == this.migrator.CurrentMigration) ? "*" : " ";
                 Console.WriteLine(" {0} {1}: {2}", marker, migration.Version, migration.Description);
             }
+        }
+
+        private void Baseline(List<string> args)
+        {
+            if (args.Count != 1)
+                throw new HelpNeededException();
+
+            long version = ParseVersion(args[0]);
+
+            this.migrator.Baseline(version);
+            Console.WriteLine("Database versioned at version {0}", version);
         }
     }
 }

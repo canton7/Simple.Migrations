@@ -179,6 +179,27 @@ namespace SimpleMigrations
         }
 
         /// <summary>
+        /// Pretend that the database is at the given version, without running any migrations.
+        /// This is useful for introducing SimpleMigrations to an existing database.
+        /// </summary>
+        /// <param name="version">Version to introduce</param>
+        public virtual void Baseline(long version)
+        {
+            this.EnsureLoaded();
+
+            if (this.CurrentMigration.Version != 0 && version != 0)
+                throw new InvalidOperationException("Cannot baseline a database which has had migrations applied to it");
+
+            var migration = this.Migrations.FirstOrDefault(x => x.Version == version);
+            if (migration == null)
+                throw new ArgumentException(String.Format("Could not find migration with version {0}", version));
+
+            this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, 0, version, migration.Description);
+            this.CurrentMigration = migration;
+
+        }
+
+        /// <summary>
         /// Find a list of migrations to run, to bring the database up to the given version
         /// </summary>
         /// <param name="newVersion">Version to bring the database to</param>

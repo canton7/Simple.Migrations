@@ -42,5 +42,12 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="newVersion">Version to migrate to</param>
         void MigrateTo(long newVersion);
+
+        /// <summary>
+        /// Pretend that the database is at the given version, without running any migrations.
+        /// This is useful for introducing SimpleMigrations to an existing database.
+        /// </summary>
+        /// <param name="version">Version to introduce</param>
+        void Baseline(long version);
     }
 }
