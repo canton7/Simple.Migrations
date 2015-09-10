@@ -20,7 +20,7 @@ Quick Start
 I'll introduce SimpleMigrator by walking through a basic example.
 
 Here, we'll create a separate console application, which contains all of our migrations and can be invoked in order to migrate the database between different versions.
-If you want your application to automatically migrate to the latest version when it's started, or you want to put your migrations in another library, etc, that's easy too: we'll get on to those at the end.
+If you want your application to automatically migrate to the latest version when it's started, or you want to put your migrations in another library, etc, that's easy too: we'll get on to those TODO a bit later.
 
 First, create a new Console Application.
 
@@ -167,6 +167,42 @@ It is also responsible for finding migrations, and for instantiating and configu
 
 `SimpleMigrator` comes in two flavours: `SimpleMigrator<TDatabase, TMigrationBase>` which allows you to use any sort of database connection (not just ADO.NET) and any migration base class, and `SimpleMigrator`, which assumes you're using ADO.NET and `Migration`.
 
+You'll want to use this class directly in any scenario where you're not using the `ConsoleRunner` to provide a command-line interface for you (TODO see below).
+
+For example, if you want to migrate to the latest version on startup (not particularly recommended):
+
+```csharp
+var migrationsAssembly = Assembly.GetEntryAssembly9);
+var connection = new ConnectionProvider(/* fetch the connection you normally use in your application */);
+var versionProvider = new SQLiteVersionProvider();
+
+var migrator = new SimpleMigrator(migrationsAssembly, connection, versionProvider);
+migrator.Load();
+
+migrator.MigrateToLatest();
+```
+
+Or, if you wanted to assert that your database was at the latest migration:
+
+```csharp
+var migrator = new SimpleMigrator(migrationsAssembly, connection, versionProvider);
+migrator.Load();
+
+if (migrator.CurrentMigration.Version != migrator.LatestMigration.Version)
+{
+    // Throw a 'you must migrate' exception
+}
+```
+
+You can, of course, migrate to a specific version this way as well, if you want:
+
+```csharp
+var migrator = new SimpleMigrator(migrationsAssembly, connection, versionProvider);
+migrator.Load();
+
+migrator.MigrateTo(3);
+```
+
 
 `ConsoleRunner`
 ---------------
@@ -176,3 +212,167 @@ It uses a `SimpleMigrator`, takes your command-line arguments, and uses the latt
 
 You can use it, extend it (look at the `SubCommands` property), or write your own version: it's not critical in any way.
 
+
+Example: Using sqlite-net
+-------------------------
+
+[sqlite-net](https://github.com/praeclarum/sqlite-net) is a little SQLite driver and micro-ORM.
+It is not an ADO.NET implementation, and so makes a good example for seeing how SimpleMigrations work with drivers which don't implement ADO.NET.
+
+First off, create a new Console Application, and install the sqlite-net NuGet package.
+You'll also need to download `sqlite.dll` and add it to your project.
+
+Next, we'll need to create a number of classes to tell SimpleMigrations how to work with sqlite-net: we'll need a version provider, connection provider, and a base class for the migrations.
+
+### `IConnectionProvider`
+
+Let's start with the `IConnectionProvider implementation.
+This is a class which knows how to work with transactions.
+As you can see, there's not very much to it:
+
+```csharp
+public class SQLiteNetConnectionProvider : IConnectionProvider<SQLiteConnection>
+{
+    public SQLiteConnection Connection { get; private set }; 
+
+    public SQLiteNetConnectionProvider(SQLiteConnection connection)
+    {
+        this.Connection = connection;
+    }
+
+    public void BeginTransaction()
+    {
+        this.Connection.BeginTransaction();
+    }
+
+    public void CommitTransaction()
+    {
+        this.Connection.Commit();
+    }
+
+    public void RollbackTransaction()
+    {
+        this.Connection.Rollback();
+    }
+}
+```
+
+### `IVersionProvider`
+
+Next, the `IVersionProvider` implementation.
+This is the class which lets SimpleMigrations work with the 'SchemaVersion' table in your database.
+Since sqlite-net includes a micro-ORM, let's use that to create, read, and modify the SchemaVersion table, rather than executing raw SQL.
+
+Note that it's not normally advisable to write migrations using C# models: migrations by definition work with lots of different versions of a table, whereas a C# class can only encapsulate one version of a table.
+However, since our SchemaVersion table is never going to change, it's an acceptable shortcut here.
+
+Our table model:
+
+```csharp
+public class SchemaVersion
+{
+    [PrimaryKey, AutoIncrement]
+    public int Id { get; set; }
+    public long Version { get; set; }
+    public DateTime AppliedOn { get; set; }
+    public string Description { get; set; }
+}
+```
+
+And our `IVersionProvider` implementation:
+
+```csharp
+public class SQLiteNetVersionProvider : IVersionProvider<SQLiteConnection>
+{
+    public void EnsureCreated(SQLiteConnection connection)
+    {
+        connection.CreateTable<SchemaVersion>();
+    }
+
+    public long GetCurrentVersion(SQLiteConnection connection)
+    {
+        // Return 0 if the table has no entries
+        var latestOrNull = connection.Table<SchemaVersion>().OrderByDescending(x => x.Id).FirstOrDefault();
+        return latestOrNull == null ? 0 : latestOrNull.Version;
+    }
+
+    public void UpdateVersion(SQLiteConnection connection, long oldVersion, long newVersion, string newDescription)
+    {
+        connection.Insert(new SchemaVersion()
+        {
+            Version = newVersion,
+            AppliedOn = DateTime.Now,
+            Description = newDescription,
+        });
+    }
+}
+```
+
+### Migration base class
+
+Now we don't strictly need to create a migration base class: we could have each migration implement `IMigration<SQLiteConnection>`.
+However, if we do create one we can automatically log all executed SQL, which would be nice...
+
+```csharp
+public abstract class SQLiteNetMigration : IMigration<SQLiteConnection>
+{
+    public SQLiteConnection DB { get; set; }
+
+    public IMigrationLogger Logger { get; set; }
+
+    public abstract void Down();
+
+    public abstract void Up();
+
+    public void Execute(string sql)
+    {
+        this.Logger.LogSql(sql);
+        this.DB.Execute(sql);
+    }
+}
+``` 
+
+### Migrations
+
+We can then create migrations like this:
+
+```csharp
+[Migration(1)]
+public class CreateUsers : SQLiteNetMigration
+{
+    public override void Up()
+    {
+        Execute(@"CREATE TABLE Users (
+            Id SERIAL NOT NULL PRIMARY KEY,
+            Name TEXT NOT NULL
+        );");
+    }
+
+    public override void Down()
+    {
+        Execute("DROP TABLE Users");
+    }
+}
+```
+
+### Putting it all together
+
+Finally, let's use all of our components to actually run some migrations.
+
+Note how we have to use `SimpleMigrator<TDatabase, TMigrationBase>` here:
+
+```csharp
+using (var connection = new SQLiteConnection("SQLiteNetDatabase.sqlite"))
+{
+    var migrationsAssembly = Assembly.GetExecutingAssembly();
+    var connectionProvider = new SQLiteNetConnectionProvider(connection);
+    var versionProvider = new SQLiteNetVersionProvider();
+
+    var migrator = new SimpleMigrator<SQLiteConnection, SQLiteNetMigration>(
+        migrationsAssembly, connectionProvider, versionProvider
+    );
+    migrator.Load();
+
+    migrator.MigrateToLatest();
+}
+```
