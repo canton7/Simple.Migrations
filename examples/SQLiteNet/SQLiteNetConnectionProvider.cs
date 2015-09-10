@@ -10,7 +10,7 @@ namespace SQLiteNet
 {
     public class SQLiteNetConnectionProvider : IConnectionProvider<SQLiteConnection>
     {
-        public SQLiteConnection Connection { get; }
+        public SQLiteConnection Connection { get; private set; }
 
         public SQLiteNetConnectionProvider(SQLiteConnection connection)
         {

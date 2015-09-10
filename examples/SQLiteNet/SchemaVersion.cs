@@ -7,7 +7,7 @@ using SQLite;
 
 namespace SQLiteNet
 {
-    public class VersionInfo
+    public class SchemaVersion
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
