@@ -7,20 +7,20 @@ SimpleMigrations is a simple bare-bones migration framework.
 It doesn't provide SQL generation, or an out-of-the-box command-line tool, or other fancy features.
 It does however provide a set of simple, extendable, and composable tools for integrating migrations into your application.
 
-**WARNING: Until SimpleMigrations reaches versoin 1.0, I reserve the right to make minor backwards-incompatible changes to the API.**
+**WARNING: Until SimpleMigrations reaches version 1.0, I reserve the right to make minor backwards-incompatible changes to the API.**
 
 Installation
 ------------
 
-[SimpleMigrations is available on NuGet](https://www.nuget.org/packages/SimpleMigrations).
+[Simple.Migrations is available on NuGet](https://www.nuget.org/packages/Simple.Migrations).
 
 Either open the package console and type:
 
 ```
-PM> Install-Package SimpleMigrations
+PM> Install-Package Simple.Migrations
 ```
 
-Or right-click your project -> Manage NuGet Packages... -> Online -> search for SimpleMigrations in the top right.
+Or right-click your project -> Manage NuGet Packages... -> Online -> search for Simple.Migrations in the top right.
 
 The source is also available when you are debugging, using [GitLink](https://github.com/GitTools/GitLink).
 Go to Debug -> Options and Settings -> General, and make the following changes:
