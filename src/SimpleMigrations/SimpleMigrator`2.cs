@@ -300,7 +300,7 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="migrationData">Data to create the migration for</param>
         /// <returns>An instantiated and configured migration</returns>
-        protected virtual IMigration<TDatabase> CreateMigration(MigrationData migrationData)
+        protected virtual TMigrationBase CreateMigration(MigrationData migrationData)
         {
             var instance = (TMigrationBase)Activator.CreateInstance(migrationData.Type);
 
