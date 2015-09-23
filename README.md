@@ -10,8 +10,24 @@ It does however provide a set of simple, extendable, and composable tools for in
 Installation
 ------------
 
-... will be possible when this is on NuGet. 
-If you're super-keen, you can grab packages from AppVeyor, see the badge above.
+[SimpleMigrations is available on NuGet](https://www.nuget.org/packages/SimpleMigrations).
+
+Either open the package console and type:
+
+```
+PM> Install-Package SimpleMigrations
+```
+
+Or right-click your project -> Manage NuGet Packages... -> Online -> search for SimpleMigrations in the top right.
+
+The source is also available when you are debugging, using [GitLink](https://github.com/GitTools/GitLink).
+Go to Debug -> Options and Settings -> General, and make the following changes:
+
+ - Turn **off** "Enable Just My Code"
+ - Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
+ - Turn **on** "Enable source server support". You may have to OK a security warning.
+
+See also [GitLink troubleshooting](https://github.com/GitTools/GitLink#troubleshooting)
 
 
 Quick Start
@@ -20,7 +36,7 @@ Quick Start
 I'll introduce SimpleMigrator by walking through a basic example.
 
 Here, we'll create a separate console application, which contains all of our migrations and can be invoked in order to migrate the database between different versions.
-If you want your application to automatically migrate to the latest version when it's started, or you want to put your migrations in another library, etc, that's easy too: we'll get on to those TODO a bit later.
+If you want your application to automatically migrate to the latest version when it's started, or you want to put your migrations in another library, etc, that's easy too: we'll get on to those [a bit later](#finding-migrations).
 
 First, create a new Console Application.
 
@@ -114,8 +130,7 @@ If you need to disable this (some SQL statements in some databases cannot be run
 It is strongly recommended that migrations which do not execute inside of a transaction do only a single thing: use multiple migrations if necessary.
 
 If you want to perform more complicated operations on the database (e.g selecting data, or inserting variable data) you'll have to use the `DB` property directly.
-[`Dapper`](https://github.com/StackExchange/dapper-dot-net) may make your life easier here, or you can create your own migration base class which uses a specific type of database connection, and add your own helpers methods to it.
-See TODO below for more details on how to do this.
+[`Dapper`](https://github.com/StackExchange/dapper-dot-net) may make your life easier here (it works by providing extension methods on `IDbConnection`), or you can create your own migration base class which uses a specific type of database connection, and add your own helpers methods to it.
 
 
 Version Providers
@@ -155,7 +170,7 @@ In order to encapsulate this functionality, the interface `IConnectionProvider<T
 This is implemented by `ConnectionProvider` for ADO.NET.
 
 Most of the time you won't need to think about this.
-However, if you're using a database connection which is not based on ADO.NET, you'll need to write your own connection provider, TODO see below.
+However, if you're using a database connection which is not based on ADO.NET, you'll need to write your own connection provider, see the [sqlite-net example below](#example-using-sqlite-net).
 
 
 `SimpleMigrator`
@@ -167,7 +182,7 @@ It is also responsible for finding migrations, and for instantiating and configu
 
 `SimpleMigrator` comes in two flavours: `SimpleMigrator<TDatabase, TMigrationBase>` which allows you to use any sort of database connection (not just ADO.NET) and any migration base class, and `SimpleMigrator`, which assumes you're using ADO.NET and `Migration`.
 
-You'll want to use this class directly in any scenario where you're not using the `ConsoleRunner` to provide a command-line interface for you (TODO see below).
+You'll want to use this class directly in any scenario where you're not using the `ConsoleRunner` to provide a command-line interface for you [see below](#consolerunner).
 
 For example, if you want to migrate to the latest version on startup (not particularly recommended):
 
@@ -211,6 +226,21 @@ migrator.MigrateTo(3);
 It uses a `SimpleMigrator`, takes your command-line arguments, and uses the latter to decide what methods on the former to execute.
 
 You can use it, extend it (look at the `SubCommands` property), or write your own version: it's not critical in any way.
+
+
+Finding Migrations
+------------------
+
+`SimpleMigrator` will find migrations to run by searching through an assembly you specify for classes which implement `IMigration<TDatabase>`.
+This means you can put your migrations inside any assembly you want, and reference that assembly from your code which uses `SimpleMigrator`.
+
+Some common configurations are:
+
+ - Main application contains the migrations, and uses SimpleMigrations to automatically migrate on startup.
+ - Main application contains the migrations, and there is a separate executable to run migrations. This executable references the main application.
+ - Dedicated DLL contains the migrations, which is used by both the main application and a separate executable (used to run migrations).
+
+If you want to customize how migrations are found, subclass `SimpleMigrator` and override `FindAndSetMigrations`.
 
 
 Example: Using sqlite-net

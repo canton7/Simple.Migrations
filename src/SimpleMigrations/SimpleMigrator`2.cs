@@ -98,7 +98,7 @@ namespace SimpleMigrations
 
             this.VersionProvider.EnsureCreated(this.ConnectionProvider.Connection);
 
-            this.SetMigrations();
+            this.FindAndSetMigrations();
             this.SetCurrentVersion();
             this.LatestMigration = this.Migrations.Last();
 
@@ -108,7 +108,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Set this.Migrations, by scanning this.migrationAssembly for migrations
         /// </summary>
-        protected virtual void SetMigrations()
+        protected virtual void FindAndSetMigrations()
         {
             var migrations = (from type in this.MigrationAssembly.GetTypes()
                               let attribute = type.GetCustomAttribute<MigrationAttribute>()
