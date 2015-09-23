@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace SimpleMigrations
+namespace SimpleMigrations.VersionProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an SQLite database
     /// </summary>
-    public class SqliteVersionProvider : VersionProviderBase
+    public class SQLiteVersionProvider : VersionProviderBase
     {
         /// <summary>
         /// Gets or sets the name of the table to use. Defaults to 'VersionInfo'
@@ -13,9 +13,9 @@ namespace SimpleMigrations
         public string TableName { get; set; }
 
         /// <summary>
-        /// Instantiates a new instance of the <see cref="SqliteVersionProvider"/> class
+        /// Instantiates a new instance of the <see cref="SQLiteVersionProvider"/> class
         /// </summary>
-        public SqliteVersionProvider()
+        public SQLiteVersionProvider()
         {
             this.TableName = "VersionInfo";
         }
@@ -50,7 +50,7 @@ namespace SimpleMigrations
         /// <returns>SQL to update the current version in the version table</returns>
         public override string GetSetVersionSql()
         {
-            return String.Format(@"INSERT INTO {0} (Version, AppliedOn, Description) VALUES (@Version, date('now'), @Description)", this.TableName);
+            return String.Format(@"INSERT INTO {0} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)", this.TableName);
         }
     }
 }

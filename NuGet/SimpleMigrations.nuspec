@@ -2,12 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
     <id>SimpleMigrations</id>
-    <version>0.9.0</version>
+    <version>0.9.1</version>
     <title>SimpleMigrations</title>
     <authors>Antony Male</authors>
     <owners>Antony Male</owners>
-    <licenseUrl>http://github.com/canton7/SimpleMigrations/blob/master/LICENSE.txt</licenseUrl>
-    <projectUrl>http://github.com/canton7/SimpleMigrations</projectUrl>
+    <licenseUrl>https://github.com/canton7/SimpleMigrations/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/canton7/SimpleMigrations</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/canton7/SimpleMigrations/master/icon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Simple but flexible migrations library</description>
     <copyright>Copyright 2015 Antony Male</copyright>

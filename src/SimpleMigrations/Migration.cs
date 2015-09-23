@@ -11,7 +11,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Gets or sets the database to be used by this migration
         /// </summary>
-        public IDbConnection Database { get; set; }
+        public IDbConnection DB { get; set; }
 
         /// <summary>
         /// Gets or sets the logger to be used by this migration
@@ -36,7 +36,7 @@ namespace SimpleMigrations
         {
             this.Logger.LogSql(sql);
 
-            using (var command = this.Database.CreateCommand())
+            using (var command = this.DB.CreateCommand())
             {
                 command.CommandText = sql;
                 command.ExecuteNonQuery();

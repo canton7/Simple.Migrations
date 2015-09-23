@@ -57,24 +57,7 @@ namespace SimpleMigrations
         /// <param name="oldVersion">Version being upgraded from</param>
         /// <param name="newVersion">Version being upgraded to</param>
         /// <param name="newDescription">Description to associate with the new version</param>
-        public void UpgradeVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
-        {
-            this.SetVersionTo(connection, newVersion, newDescription);
-        }
-
-        /// <summary>
-        /// Downgrade the current version in the version table
-        /// </summary>
-        /// <param name="connection">Connection to use to perform this action</param>
-        /// <param name="oldVersion">Version being upgraded from</param>
-        /// <param name="newVersion">Version being upgraded to</param>
-        /// <param name="newDescription">Description to associate with the new version</param>
-        public void DowngradeVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
-        {
-            this.SetVersionTo(connection, newVersion, newDescription);
-        }
-
-        private void SetVersionTo(IDbConnection connection, long version, string description)
+        public void UpdateVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
         {
             using (var cmd = connection.CreateCommand())
             {
@@ -82,12 +65,12 @@ namespace SimpleMigrations
 
                 var versionParam = cmd.CreateParameter();
                 versionParam.ParameterName = "Version";
-                versionParam.Value = version;
+                versionParam.Value = newVersion;
                 cmd.Parameters.Add(versionParam);
 
                 var nameParam = cmd.CreateParameter();
                 nameParam.ParameterName = "Description";
-                nameParam.Value = description;
+                nameParam.Value = newDescription;
                 cmd.Parameters.Add(nameParam);
 
                 cmd.ExecuteNonQuery();

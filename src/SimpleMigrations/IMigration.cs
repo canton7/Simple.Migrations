@@ -9,7 +9,7 @@
         /// <summary>
         /// Gets or sets the database to be used by this migration
         /// </summary>
-        TDatabase Database { get; set; }
+        TDatabase DB { get; set; }
 
         /// <summary>
         /// Gets or sets the logger to be used by this migration

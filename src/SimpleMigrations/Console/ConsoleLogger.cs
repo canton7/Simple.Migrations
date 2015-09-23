@@ -1,7 +1,8 @@
-﻿using System;
-
-namespace SimpleMigrations
+﻿namespace SimpleMigrations.Console
 {
+    // Avoid pain with Console.XXX being assumed to be in SimpleMigrations.Console
+    using System;
+
     /// <summary>
     /// <see cref="ILogger"/> implementation which logs to the console
     /// </summary>
@@ -31,7 +32,7 @@ namespace SimpleMigrations
         {
             this.foregroundColor = Console.ForegroundColor;
 
-            this.WriteHeader("Migrating from {0}: {1} to {2}: {3}", from.Version, from.Description, to.Version, to.Description);
+            this.WriteHeader("Migrating from {0}: {1} to {2}: {3}", from.Version, from.FullName, to.Version, to.FullName);
         }
 
         /// <summary>
@@ -54,64 +55,40 @@ namespace SimpleMigrations
         {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Database is curently on version {0}: {1}", currentVersion.Version, currentVersion.Description);
+            Console.WriteLine("Database is currently on version {0}: {1}", currentVersion.Version, currentVersion.FullName);
             Console.ForegroundColor = this.foregroundColor;
         }
 
         /// <summary>
-        /// Invoked when an individual "up" migration is started
+        /// Invoked when an individual migration is started
         /// </summary>
         /// <param name="migration">Migration being started</param>
-        public void BeginUp(MigrationData migration)
+        /// <param name="direction">Direction of the migration</param>
+        public void BeginMigration(MigrationData migration, MigrationDirection direction)
         {
-            this.WriteHeader("{0}: {1} migrating", migration.Version, migration.Description);
+            var term = direction == MigrationDirection.Up ? "migrating" : "reverting";
+            this.WriteHeader("{0}: {1} {2}", migration.Version, migration.FullName, term);
         }
 
         /// <summary>
-        /// Invoked when an individual "up" migration is completed successfully
+        /// Invoked when an individual migration is completed successfully
         /// </summary>
         /// <param name="migration">Migration which completed</param>
-        public void EndUp(MigrationData migration)
+        /// <param name="direction">Direction of the migration</param>
+        public void EndMigration(MigrationData migration, MigrationDirection direction)
         {
             Console.WriteLine();
         }
 
         /// <summary>
-        /// Invoked when an individual "up" migration fails with an error
+        /// Invoked when an individual migration fails with an error
         /// </summary>
         /// <param name="exception">Exception which was encountered</param>
         /// <param name="migration">Migration which failed</param>
-        public void EndUpWithError(Exception exception, MigrationData migration)
+        /// <param name="direction">Direction of the migration</param>
+        public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction)
         {
-            this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.Description, exception.Message);
-        }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration is started
-        /// </summary>
-        /// <param name="migration">Migration being started</param>
-        public void BeginDown(MigrationData migration)
-        {
-            this.WriteHeader("{0}: {1} reverting", migration.Version, migration.Description);
-        }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration is completed successfully
-        /// </summary>
-        /// <param name="migration">Migration which completed</param>
-        public void EndDown(MigrationData migration)
-        {
-            Console.WriteLine();
-        }
-
-        /// <summary>
-        /// Invoked when an individual "down" migration fails with an error
-        /// </summary>
-        /// <param name="exception">Exception which was encountered</param>
-        /// <param name="migration">Migration which failed</param>
-        public void EndDownWithError(Exception exception, MigrationData migration)
-        {
-            this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.Description, exception.Message);
+            this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.FullName, exception.Message);
         }
 
         /// <summary>

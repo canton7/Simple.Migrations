@@ -20,21 +20,12 @@
         long GetCurrentVersion(TDatabase connection);
 
         /// <summary>
-        /// Upgrade the current version in the version table
+        /// Update the current version in the version table
         /// </summary>
         /// <param name="connection">Connection to use to perform this action</param>
         /// <param name="oldVersion">Version being upgraded from</param>
         /// <param name="newVersion">Version being upgraded to</param>
         /// <param name="newDescription">Description to associate with the new version</param>
-        void UpgradeVersion(TDatabase connection, long oldVersion, long newVersion, string newDescription);
-
-        /// <summary>
-        /// Downgrade the current version in the version table
-        /// </summary>
-        /// <param name="connection">Connection to use to perform this action</param>
-        /// <param name="oldVersion">Version being upgraded from</param>
-        /// <param name="newVersion">Version being upgraded to</param>
-        /// <param name="newDescription">Description to associate with the new version</param>
-        void DowngradeVersion(TDatabase connection, long oldVersion, long newVersion, string newDescription);
+        void UpdateVersion(TDatabase connection, long oldVersion, long newVersion, string newDescription);
     }
 }
