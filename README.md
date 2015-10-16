@@ -258,7 +258,7 @@ Next, we'll need to create a number of classes to tell SimpleMigrations how to w
 
 ### `IConnectionProvider`
 
-Let's start with the `IConnectionProvider implementation.
+Let's start with the `IConnectionProvider` implementation.
 This is a class which knows how to work with transactions.
 As you can see, there's not very much to it:
 
