@@ -1,6 +1,7 @@
 SimpleMigrations
 ================
 
+[![NuGet](https://img.shields.io/nuget/v/Simple.Migrations.svg)](https://www.nuget.org/packages/Simple.Migrations/)
 [![Build status](https://ci.appveyor.com/api/projects/status/iub4g6p0qs7onn2b?svg=true)](https://ci.appveyor.com/project/canton7/simplemigrations)
 
 SimpleMigrations is a simple bare-bones migration framework. 
