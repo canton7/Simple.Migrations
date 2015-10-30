@@ -117,7 +117,7 @@ namespace SimpleMigrations
                               select new MigrationData(attribute.Version, attribute.Description, type, attribute.UseTransaction)).ToList();
 
             if (!migrations.Any())
-                throw new MigrationException("Could not find any migrations in the assembly you listed. Migrations must be decorated with [Migration]");
+                throw new MigrationException(String.Format("Could not find any migrations in the assembly you provided ({0}). Migrations must be decorated with [Migration]", this.MigrationAssembly.GetName().Name));
 
             if (migrations.Any(x => !typeof(TMigrationBase).IsAssignableFrom(x.Type)))
                 throw new MigrationException(String.Format("All migrations must derive from / implement {0}", typeof(TMigrationBase).Name));
