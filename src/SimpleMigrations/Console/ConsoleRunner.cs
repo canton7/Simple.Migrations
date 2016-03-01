@@ -149,8 +149,10 @@ namespace SimpleMigrations.Console
             }
             catch (Exception e)
             {
+                var foregroundColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("An error occurred: {0}", e.Message);
+                Console.ForegroundColor = foregroundColor;
             }
         }
 
