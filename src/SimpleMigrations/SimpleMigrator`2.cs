@@ -110,7 +110,7 @@ namespace SimpleMigrations
         /// </summary>
         protected virtual void FindAndSetMigrations()
         {
-            var migrations = (from type in this.MigrationAssembly.GetTypes()
+            var migrations = (from type in this.MigrationAssembly.DefinedTypes
                               let attribute = type.GetCustomAttribute<MigrationAttribute>()
                               where attribute != null
                               orderby attribute.Version
@@ -119,7 +119,8 @@ namespace SimpleMigrations
             if (!migrations.Any())
                 throw new MigrationException(String.Format("Could not find any migrations in the assembly you provided ({0}). Migrations must be decorated with [Migration]", this.MigrationAssembly.GetName().Name));
 
-            if (migrations.Any(x => !typeof(TMigrationBase).IsAssignableFrom(x.Type)))
+            var migrationBaseTypeInfo = typeof(TMigrationBase).GetTypeInfo();
+            if (migrations.Any(x => !migrationBaseTypeInfo.IsAssignableFrom(x.TypeInfo)))
                 throw new MigrationException(String.Format("All migrations must derive from / implement {0}", typeof(TMigrationBase).Name));
 
             if (migrations.Any(x => x.Version <= 0))
@@ -131,7 +132,7 @@ namespace SimpleMigrations
                 throw new MigrationException(String.Format("Found more than one migration with version {0}", firstDuplicate.Key));
 
             var initialMigration = new MigrationData(0, "Empty Schema", null, false);
-            this.Migrations = new[] { initialMigration }.Concat(migrations).ToList().AsReadOnly();
+            this.Migrations = new[] { initialMigration }.Concat(migrations).ToList();
         }
 
         /// <summary>
@@ -302,7 +303,7 @@ namespace SimpleMigrations
         /// <returns>An instantiated and configured migration</returns>
         protected virtual TMigrationBase CreateMigration(MigrationData migrationData)
         {
-            var instance = (TMigrationBase)Activator.CreateInstance(migrationData.Type);
+            var instance = (TMigrationBase)Activator.CreateInstance(migrationData.TypeInfo.GetType());
 
             instance.DB = this.ConnectionProvider.Connection;
             instance.Logger = this.NotNullLogger;

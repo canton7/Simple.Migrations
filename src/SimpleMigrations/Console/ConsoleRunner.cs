@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿#if SUPPORTS_CONSOLE
+
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
@@ -87,7 +89,7 @@ namespace SimpleMigrations.Console
         /// </summary>
         public virtual void ShowHelp()
         {
-            Console.WriteLine("Usage: {0} Subcommand [-q]", Path.GetFileName(Assembly.GetEntryAssembly().Location));
+            Console.WriteLine("Usage: <executable> Subcommand [-q]");
             Console.WriteLine();
             Console.WriteLine("Subcommand can be one of:");
             foreach (var subCommand in this.SubCommands)
@@ -219,3 +221,5 @@ namespace SimpleMigrations.Console
         }
     }
 }
+
+#endif

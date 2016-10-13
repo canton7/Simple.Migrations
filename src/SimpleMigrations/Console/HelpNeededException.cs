@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if SUPPORTS_CONSOLE
+
+using System;
 
 namespace SimpleMigrations.Console
 {
@@ -15,3 +17,5 @@ namespace SimpleMigrations.Console
         }
     }
 }
+
+#endif
