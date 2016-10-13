@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleMigrations", "src\SimpleMigrations\SimpleMigrations.csproj", "{352D9BE8-3506-4F85-AD9A-7E5FB86BA5A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleMigratorTests", "SimpleMigratorTests\SimpleMigratorTests.csproj", "{C3E6A43B-64C6-453E-AAAB-09EBA93D549C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{352D9BE8-3506-4F85-AD9A-7E5FB86BA5A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{352D9BE8-3506-4F85-AD9A-7E5FB86BA5A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{352D9BE8-3506-4F85-AD9A-7E5FB86BA5A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3E6A43B-64C6-453E-AAAB-09EBA93D549C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3E6A43B-64C6-453E-AAAB-09EBA93D549C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3E6A43B-64C6-453E-AAAB-09EBA93D549C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3E6A43B-64C6-453E-AAAB-09EBA93D549C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
