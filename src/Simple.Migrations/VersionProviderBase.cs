@@ -9,6 +9,11 @@ namespace SimpleMigrations
     public abstract class VersionProviderBase : IVersionProvider<IDbConnection>
     {
         /// <summary>
+        /// Default table name used to store version info
+        /// </summary>
+        public const string DefaultTableName = "VersionInfo";
+
+        /// <summary>
         /// Ensure that the version table exists, creating it if necessary
         /// </summary>
         /// <param name="connection">Connection to use to perform this action</param>

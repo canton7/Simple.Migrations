@@ -8,7 +8,7 @@
         /// <summary>
         /// Gets or sets the name of the table to use. Defaults to 'VersionInfo'
         /// </summary>
-        public string TableName { get; set; } = "VersionInfo";
+        public string TableName { get; set; } = DefaultTableName;
 
         /// <summary>
         /// Returns SQL to create the version table
