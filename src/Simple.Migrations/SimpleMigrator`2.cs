@@ -16,17 +16,17 @@ namespace SimpleMigrations
         /// <summary>
         /// Assembly to search for migrations
         /// </summary>
-        protected readonly IMigrationProvider MigrationProvider;
+        protected IMigrationProvider MigrationProvider { get; }
 
         /// <summary>
         /// Connection provider
         /// </summary>
-        protected readonly IConnectionProvider<TDatabase> ConnectionProvider;
+        protected IConnectionProvider<TDatabase> ConnectionProvider { get; }
 
         /// <summary>
         /// Version provider, providing access to the version table
         /// </summary>
-        protected readonly IVersionProvider<TDatabase> VersionProvider;
+        protected IVersionProvider<TDatabase> VersionProvider { get; }
 
         /// <summary>
         /// Gets and sets the logger to use. May be null
@@ -48,15 +48,10 @@ namespace SimpleMigrations
         /// </summary>
         public IReadOnlyList<MigrationData> Migrations { get; private set; }
 
-        private readonly NullLogger nullLogger = new NullLogger();
-
         /// <summary>
         /// Gets a logger which is not null
         /// </summary>
-        protected ILogger NotNullLogger
-        {
-            get { return this.Logger ?? this.nullLogger; }
-        }
+        protected ILogger NotNullLogger => this.Logger ?? NullLogger.Instance;
 
         private bool isLoaded;
 
@@ -73,6 +68,13 @@ namespace SimpleMigrations
             IVersionProvider<TDatabase> versionProvider,
             ILogger logger = null)
         {
+            if (migrationProvider == null)
+                throw new ArgumentNullException(nameof(migrationProvider));
+            if (connectionProvider == null)
+                throw new ArgumentNullException(nameof(connectionProvider));
+            if (versionProvider == null)
+                throw new ArgumentNullException(nameof(versionProvider));
+
             this.MigrationProvider = migrationProvider;
             this.ConnectionProvider = connectionProvider;
             this.VersionProvider = versionProvider;
@@ -132,16 +134,18 @@ namespace SimpleMigrations
                 throw new MigrationException("The configured MigrationProvider did not find any migrations");
 
             var migrationBaseTypeInfo = typeof(TMigrationBase).GetTypeInfo();
-            if (migrations.Any(x => !migrationBaseTypeInfo.IsAssignableFrom(x.TypeInfo)))
-                throw new MigrationException(String.Format("All migrations must derive from / implement {0}", typeof(TMigrationBase).Name));
+            var firstNotImplementingTMigrationBase = migrations.FirstOrDefault(x => !migrationBaseTypeInfo.IsAssignableFrom(x.TypeInfo));
+            if (firstNotImplementingTMigrationBase != null)
+                throw new MigrationException($"Migration {firstNotImplementingTMigrationBase.FullName} must derive from / implement {typeof(TMigrationBase).Name}");
 
-            if (migrations.Any(x => x.Version <= 0))
-                throw new MigrationException("Migrations must all have a version > 0");
+            var firstWithInvalidVersion = migrations.FirstOrDefault(x => x.Version <= 0);
+            if (firstWithInvalidVersion != null)
+                throw new MigrationException($"Migration {firstWithInvalidVersion.FullName} must have a version > 0");
 
             var versionLookup = migrations.ToLookup(x => x.Version);
             var firstDuplicate = versionLookup.FirstOrDefault(x => x.Count() > 1);
             if (firstDuplicate != null)
-                throw new MigrationException(String.Format("Found more than one migration with version {0}", firstDuplicate.Key));
+                throw new MigrationException($"Found more than one migration with version {firstDuplicate.Key} ({String.Join(", ", firstDuplicate)})");
 
             var initialMigration = new MigrationData(0, "Empty Schema", null, false);
             this.Migrations = new[] { initialMigration }.Concat(migrations.OrderBy(x => x.Version)).ToList();
@@ -155,7 +159,7 @@ namespace SimpleMigrations
             var currentVersion = this.VersionProvider.GetCurrentVersion(this.ConnectionProvider.Connection);
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             if (currentMigration == null)
-                throw new MigrationException(String.Format("Unable to find migration with the current version: {0}", currentVersion));
+                throw new MigrationException($"Unable to find migration with the current version: {currentVersion}");
 
             this.CurrentMigration = currentMigration;
         }
@@ -179,7 +183,7 @@ namespace SimpleMigrations
             this.EnsureLoaded();
 
             if (!this.Migrations.Any(x => x.Version == newVersion))
-                throw new ArgumentException(String.Format("Could not find migration with version {0}", newVersion));
+                throw new ArgumentException($"Could not find migration with version {newVersion}");
 
             var direction = newVersion > this.CurrentMigration.Version ? MigrationDirection.Up : MigrationDirection.Down;
             var migrations = this.FindMigrationsToRun(newVersion, direction).ToList();
@@ -205,7 +209,7 @@ namespace SimpleMigrations
 
             var migration = this.Migrations.FirstOrDefault(x => x.Version == version);
             if (migration == null)
-                throw new ArgumentException(String.Format("Could not find migration with version {0}", version));
+                throw new ArgumentException($"Could not find migration with version {version}");
 
             this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, 0, version, migration.FullName);
             this.CurrentMigration = migration;
@@ -240,6 +244,9 @@ namespace SimpleMigrations
         /// <param name="direction">Direction of mgirations</param>
         protected virtual void RunMigrations(IEnumerable<MigrationData> migrations, MigrationDirection direction)
         {
+            if (migrations == null)
+                throw new ArgumentNullException(nameof(migrations));
+
             // Migrations must be sorted
 
             // this.CurrentMigration is updated by MigrateStep
@@ -272,6 +279,11 @@ namespace SimpleMigrations
         /// <param name="direction">Direction of the migration</param>
         protected virtual void MigrateStep(MigrationData oldMigration, MigrationData newMigration, MigrationDirection direction)
         {
+            if (oldMigration == null)
+                throw new ArgumentNullException(nameof(oldMigration));
+            if (newMigration == null)
+                throw new ArgumentNullException(nameof(newMigration));
+
             var migrationToRun = direction == MigrationDirection.Up ? newMigration : oldMigration;
 
             try
@@ -315,6 +327,9 @@ namespace SimpleMigrations
         /// <returns>An instantiated and configured migration</returns>
         protected virtual TMigrationBase CreateMigration(MigrationData migrationData)
         {
+            if (migrationData == null)
+                throw new ArgumentNullException(nameof(migrationData));
+
             TMigrationBase instance;
             try
             {

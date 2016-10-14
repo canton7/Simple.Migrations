@@ -14,6 +14,9 @@ namespace SimpleMigrations
         /// <param name="connection">Connection to use to perform this action</param>
         public void EnsureCreated(IDbConnection connection)
         {
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
+
             using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandText = this.GetCreateVersionTableSql();
@@ -28,6 +31,9 @@ namespace SimpleMigrations
         /// <returns>Current version</returns>
         public long GetCurrentVersion(IDbConnection connection)
         {
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
+
             using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandText = this.GetCurrentVersionSql();
@@ -59,6 +65,9 @@ namespace SimpleMigrations
         /// <param name="newDescription">Description to associate with the new version</param>
         public void UpdateVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
         {
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
+
             using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandText = this.GetSetVersionSql();

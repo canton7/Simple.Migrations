@@ -18,6 +18,9 @@ namespace SimpleMigrations
         /// <param name="migrationAssembly">Assembly to scan for migrations</param>
         public AssemblyMigrationProvider(Assembly migrationAssembly)
         {
+            if (migrationAssembly == null)
+                throw new ArgumentNullException(nameof(migrationAssembly));
+
             this.migrationAssembly = migrationAssembly;
         }
 
@@ -33,7 +36,7 @@ namespace SimpleMigrations
                               select new MigrationData(attribute.Version, attribute.Description, type, attribute.UseTransaction)).ToList();
 
             if (!migrations.Any())
-                throw new MigrationException(String.Format("Could not find any migrations in the assembly you provided ({0}). Migrations must be decorated with [Migration]", this.migrationAssembly.GetName().Name));
+                throw new MigrationException($"Could not find any migrations in the assembly you provided ({this.migrationAssembly.GetName().Name}). Migrations must be decorated with [Migration]");
 
             return migrations;
         }

@@ -92,7 +92,7 @@ namespace SimpleMigrations.Console
             Console.WriteLine("Subcommand can be one of:");
             foreach (var subCommand in this.SubCommands)
             {
-                Console.WriteLine("   {0}", subCommand.Description);
+                Console.WriteLine($"   {subCommand.Description}");
             }
         }
 
@@ -151,7 +151,7 @@ namespace SimpleMigrations.Console
             {
                 var foregroundColor = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine("An error occurred: {0}", e.Message);
+                Console.Error.WriteLine($"An error occurred: {e.Message}");
                 Console.ForegroundColor = foregroundColor;
             }
         }
@@ -203,7 +203,7 @@ namespace SimpleMigrations.Console
             foreach (var migration in this.migrator.Migrations)
             {
                 var marker = (migration == this.migrator.CurrentMigration) ? "*" : " ";
-                Console.WriteLine(" {0} {1}: {2}", marker, migration.Version, migration.FullName);
+                Console.WriteLine($" {marker} {migration.Version}: {migration.FullName}");
             }
         }
 
@@ -215,7 +215,7 @@ namespace SimpleMigrations.Console
             long version = ParseVersion(args[0]);
 
             this.migrator.Baseline(version);
-            Console.WriteLine("Database versioned at version {0}", version);
+            Console.WriteLine($"Database versioned at version {version}");
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 
 namespace SimpleMigrations
 {
@@ -33,9 +34,14 @@ namespace SimpleMigrations
         /// <summary>
         /// Execute and log an SQL query (which returns no data)
         /// </summary>
-        /// <param name="sql"></param>
+        /// <param name="sql">SQL to execute</param>
         public virtual void Execute(string sql)
         {
+            if (this.DB == null)
+                throw new InvalidOperationException("this.DB has not yet been set. This should have been set by the SimpleMigrator");
+            if (this.Logger == null)
+                throw new InvalidOperationException("this.Logger has not yet been set. This should have been set by the SimpleMigrator");
+
             this.Logger.LogSql(sql);
 
             using (var command = this.DB.CreateCommand())

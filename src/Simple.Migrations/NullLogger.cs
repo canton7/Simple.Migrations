@@ -4,6 +4,8 @@ namespace SimpleMigrations
 {
     internal class NullLogger : ILogger
     {
+        public static NullLogger Instance { get; } = new NullLogger();
+
         public void BeginSequence(MigrationData from, MigrationData to) { }
         public void EndSequence(MigrationData from, MigrationData to) { }
         public void EndSequenceWithError(Exception exception, MigrationData from, MigrationData currentVersion) { }

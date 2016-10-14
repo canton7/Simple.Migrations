@@ -8,25 +8,21 @@ namespace SimpleMigrations
     /// </summary>
     public class ConnectionProvider : IConnectionProvider<IDbConnection>
     {
-        private readonly IDbConnection connection;
         private IDbTransaction transaction;
 
         /// <summary>
         /// Gets the current connection, set using the constructors
         /// </summary>
-        public IDbConnection Connection
-        {
-            get { return this.connection; }
-        }
+        public IDbConnection Connection { get; }
 
         /// <summary>
         /// Instantiates a new instance of the <see cref="ConnectionProvider"/> class
         /// </summary>
         public ConnectionProvider(IDbConnection connection)
         {
-            this.connection = connection;
-            if (this.connection.State == ConnectionState.Closed)
-                this.connection.Open();
+            this.Connection = connection;
+            if (this.Connection.State == ConnectionState.Closed)
+                this.Connection.Open();
         }
 
         /// <summary>
@@ -37,7 +33,7 @@ namespace SimpleMigrations
             if (this.transaction != null)
                 throw new InvalidOperationException("Two transactions opened at once");
 
-            this.transaction = this.connection.BeginTransaction(IsolationLevel.Serializable);
+            this.transaction = this.Connection.BeginTransaction(IsolationLevel.Serializable);
         }
 
         /// <summary>

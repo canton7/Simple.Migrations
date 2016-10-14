@@ -13,15 +13,7 @@
         /// <summary>
         /// Gets or sets a value indicating whether SQL should be logged
         /// </summary>
-        public bool EnableSqlLogging { get; set; }
-
-        /// <summary>
-        /// Instantiates a new instance of the <see cref="ConsoleLogger"/> class
-        /// </summary>
-        public ConsoleLogger()
-        {
-            this.EnableSqlLogging = true;
-        }
+        public bool EnableSqlLogging { get; set; } = true;
 
         /// <summary>
         /// Invoked when a sequence of migrations is started

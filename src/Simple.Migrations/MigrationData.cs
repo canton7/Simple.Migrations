@@ -11,30 +11,34 @@ namespace SimpleMigrations
         /// <summary>
         /// Version of this migration
         /// </summary>
-        public long Version { get; private set; }
+        public long Version { get; }
 
         /// <summary>
         /// Description of this migration
         /// </summary>
-        public string Description { get; private set; }
+        public string Description { get; }
 
         /// <summary>
         /// Type of class implementing this migration
         /// </summary>
-        public TypeInfo TypeInfo { get; private set; }
+        public TypeInfo TypeInfo { get; }
 
         /// <summary>
         /// Name of the migration, including the type name and description
         /// </summary>
-        public string FullName { get; private set; }
+        public string FullName { get; }
 
         /// <summary>
         /// Whether or not this migration should be run inside a transaction
         /// </summary>
-        public bool UseTransaction { get; private set; }
+        public bool UseTransaction { get; }
 
         internal MigrationData(long version, string description, TypeInfo typeInfo, bool useTransaction)
         {
+            // 'version' is verified to be >0 in SimpleMigrator
+            if (typeInfo == null)
+                throw new ArgumentNullException(nameof(typeInfo));
+
             this.Version = version;
             this.Description = description;
             this.TypeInfo = typeInfo;
@@ -46,7 +50,7 @@ namespace SimpleMigrations
             }
             else
             {
-                var descriptionPart = String.IsNullOrWhiteSpace(this.Description) ? "" : String.Format(" ({0})", this.Description);
+                var descriptionPart = String.IsNullOrWhiteSpace(this.Description) ? "" : $" ({this.Description})";
                 this.FullName = this.TypeInfo.Name + descriptionPart;
             }
         }

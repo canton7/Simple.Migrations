@@ -18,7 +18,8 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="MigrationException"/> class
         /// </summary>
         /// <param name="message">Message to use</param>
-        public MigrationException(string message) : base(message)
+        public MigrationException(string message)
+            : base(message)
         {
         }
 
@@ -27,7 +28,8 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="message">Message to use</param>
         /// <param name="innerException">Inner exception to use</param>
-        public MigrationException(string message, Exception innerException) : base(message, innerException)
+        public MigrationException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
     }
