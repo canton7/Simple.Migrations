@@ -17,11 +17,26 @@ namespace SimpleMigrations
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            using (var cmd = connection.CreateCommand())
+            using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
             {
-                cmd.CommandText = this.GetCreateVersionTableSql();
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = transaction;
+                        cmd.CommandText = this.GetCreateVersionTableSql();
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
+
         }
 
         /// <summary>
@@ -68,21 +83,35 @@ namespace SimpleMigrations
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            using (var cmd = connection.CreateCommand())
+            using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
             {
-                cmd.CommandText = this.GetSetVersionSql();
+                try
+                {
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = transaction;
+                        cmd.CommandText = this.GetSetVersionSql();
 
-                var versionParam = cmd.CreateParameter();
-                versionParam.ParameterName = "Version";
-                versionParam.Value = newVersion;
-                cmd.Parameters.Add(versionParam);
+                        var versionParam = cmd.CreateParameter();
+                        versionParam.ParameterName = "Version";
+                        versionParam.Value = newVersion;
+                        cmd.Parameters.Add(versionParam);
 
-                var nameParam = cmd.CreateParameter();
-                nameParam.ParameterName = "Description";
-                nameParam.Value = newDescription;
-                cmd.Parameters.Add(nameParam);
+                        var nameParam = cmd.CreateParameter();
+                        nameParam.ParameterName = "Description";
+                        nameParam.Value = newDescription;
+                        cmd.Parameters.Add(nameParam);
 
-                cmd.ExecuteNonQuery();
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
         }
 

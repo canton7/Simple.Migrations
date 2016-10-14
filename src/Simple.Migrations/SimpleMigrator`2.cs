@@ -21,7 +21,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Connection provider
         /// </summary>
-        protected IConnectionProvider<TDatabase> ConnectionProvider { get; }
+        protected TDatabase Connection { get; }
 
         /// <summary>
         /// Version provider, providing access to the version table
@@ -54,24 +54,24 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
         /// <param name="migrationProvider">Migration provider to use to find migration classes</param>
-        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
+        /// <param name="connection">Connection to use to communicate with the database</param>
         /// <param name="versionProvider">Version provider to use to get/set the current version from the database</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
-            IConnectionProvider<TDatabase> connectionProvider,
+            TDatabase connection,
             IVersionProvider<TDatabase> versionProvider,
             ILogger logger = null)
         {
             if (migrationProvider == null)
                 throw new ArgumentNullException(nameof(migrationProvider));
-            if (connectionProvider == null)
-                throw new ArgumentNullException(nameof(connectionProvider));
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
             if (versionProvider == null)
                 throw new ArgumentNullException(nameof(versionProvider));
 
             this.MigrationProvider = migrationProvider;
-            this.ConnectionProvider = connectionProvider;
+            this.Connection = connection;
             this.VersionProvider = versionProvider;
             this.Logger = logger;
         }
@@ -80,15 +80,15 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
         /// <param name="migrationsAssembly">Assembly to search for migrations</param>
-        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
+        /// <param name="connection">Connection to use to communicate with the database</param>
         /// <param name="versionProvider">Version provider to use to get/set the current version from the database</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
-            IConnectionProvider<TDatabase> connectionProvider,
+            TDatabase connection,
             IVersionProvider<TDatabase> versionProvider,
             ILogger logger = null)
-            : this(new AssemblyMigrationProvider(migrationsAssembly), connectionProvider, versionProvider, logger)
+            : this(new AssemblyMigrationProvider(migrationsAssembly), connection, versionProvider, logger)
         {
         }
 
@@ -109,7 +109,7 @@ namespace SimpleMigrations
             if (this.isLoaded)
                 return;
 
-            this.VersionProvider.EnsureCreated(this.ConnectionProvider.Connection);
+            this.VersionProvider.EnsureCreated(this.Connection);
 
             this.FindAndSetMigrations();
             this.SetCurrentVersion();
@@ -150,7 +150,7 @@ namespace SimpleMigrations
         /// </summary>
         protected virtual void SetCurrentVersion()
         {
-            var currentVersion = this.VersionProvider.GetCurrentVersion(this.ConnectionProvider.Connection);
+            var currentVersion = this.VersionProvider.GetCurrentVersion(this.Connection);
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             if (currentMigration == null)
                 throw new MigrationException($"Unable to find migration with the current version: {currentVersion}");
@@ -205,7 +205,7 @@ namespace SimpleMigrations
             if (migration == null)
                 throw new ArgumentException($"Could not find migration with version {version}");
 
-            this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, 0, version, migration.FullName);
+            this.VersionProvider.UpdateVersion(this.Connection, 0, version, migration.FullName);
             this.CurrentMigration = migration;
 
         }
@@ -282,9 +282,6 @@ namespace SimpleMigrations
 
             try
             {
-                if (migrationToRun.UseTransaction)
-                    this.ConnectionProvider.BeginTransaction();
-
                 var migration = this.CreateMigration(migrationToRun);
 
                 this.Logger?.BeginMigration(migrationToRun, direction);
@@ -294,20 +291,14 @@ namespace SimpleMigrations
                 else
                     migration.Down();
 
-                this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, oldMigration.Version, newMigration.Version, newMigration.FullName);
+                this.VersionProvider.UpdateVersion(this.Connection, oldMigration.Version, newMigration.Version, newMigration.FullName);
 
                 this.Logger?.EndMigration(migrationToRun, direction);
-
-                if (migrationToRun.UseTransaction)
-                    this.ConnectionProvider.CommitTransaction();
 
                 this.CurrentMigration = newMigration;
             }
             catch (Exception e)
             {
-                if (migrationToRun.UseTransaction)
-                    this.ConnectionProvider.RollbackTransaction();
-
                 this.Logger?.EndMigrationWithError(e, migrationToRun, direction);
 
                 throw;
@@ -334,8 +325,9 @@ namespace SimpleMigrations
                 throw new MigrationException($"Unable to create migration {migrationData.FullName}", e);
             }
 
-            instance.DB = this.ConnectionProvider.Connection;
+            instance.DB = this.Connection;
             instance.Logger = this.Logger ?? NullLogger.Instance;
+            instance.UseTransaction = migrationData.UseTransaction;
 
             return instance;
         }

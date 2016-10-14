@@ -17,6 +17,14 @@
         IMigrationLogger Logger { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to run <see cref="Up"/> and <see cref="Down"/> in a transaction.
+        /// </summary>
+        /// <remarks>
+        /// This is set to the value of 'useTransaction' on the [Migration] attribute by default, but can be overridden
+        /// </remarks>
+        bool UseTransaction { get; set; }
+
+        /// <summary>
         /// Invoked when this migration should migrate up
         /// </summary>
         void Up();

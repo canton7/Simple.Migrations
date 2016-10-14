@@ -20,7 +20,7 @@ namespace SimpleMigrations
             IDbConnection connection,
             IVersionProvider<IDbConnection> versionProvider,
             ILogger logger = null)
-            : base(migrationProvider, new ConnectionProvider(connection), versionProvider, logger)
+            : base(migrationProvider, connection, versionProvider, logger)
         {
         }
 
@@ -36,8 +36,22 @@ namespace SimpleMigrations
             IDbConnection connection,
             IVersionProvider<IDbConnection> versionProvider,
             ILogger logger = null)
-            : base(migrationsAssembly, new ConnectionProvider(connection), versionProvider, logger)
+            : base(migrationsAssembly, connection, versionProvider, logger)
         {
+        }
+
+        /// <summary>
+        /// Load all available migrations, and the current state of the database
+        /// </summary>
+        /// <remarks>
+        /// This opens the database connection if necessary
+        /// </remarks>
+        public override void Load()
+        {
+            if (this.Connection.State == ConnectionState.Closed)
+                this.Connection.Open();
+
+            base.Load();
         }
     }
 }
