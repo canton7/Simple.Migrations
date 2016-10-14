@@ -4,7 +4,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Simple.Migrations.svg)](https://www.nuget.org/packages/Simple.Migrations/)
 [![Build status](https://ci.appveyor.com/api/projects/status/iub4g6p0qs7onn2b?svg=true)](https://ci.appveyor.com/project/canton7/simplemigrations)
 
-SimpleMigrations is a simple bare-bones migration framework. 
+SimpleMigrations is a simple bare-bones migration framework for .NET Core (.NET Standard 1.2 and .NET 4.5). 
 It doesn't provide SQL generation, or an out-of-the-box command-line tool, or other fancy features.
 It does however provide a set of simple, extendable, and composable tools for integrating migrations into your application.
 
@@ -23,14 +23,17 @@ PM> Install-Package Simple.Migrations
 
 Or right-click your project -> Manage NuGet Packages... -> Online -> search for Simple.Migrations in the top right.
 
-The source is also available when you are debugging, using [GitLink](https://github.com/GitTools/GitLink).
-Go to Debug -> Options and Settings -> General, and make the following changes:
+I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to RestEase's source when debugging.
+If you haven't yet set up Visual Studio to use SymbolSource, do that now:
 
- - Turn **off** "Enable Just My Code"
- - Turn **off** "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order and only use its own servers.
- - Turn **on** "Enable source server support". You may have to OK a security warning.
-
-See also [GitLink troubleshooting](https://github.com/GitTools/GitLink#troubleshooting)
+1. Go to Tools -> Options -> Debugger -> General.
+2. Uncheck "Enable Just My Code (Managed only)".
+3. Uncheck "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order (see further on) and only use it's own servers.
+4. Check "Enable source server support".
+5. Uncheck "Require source files to exactly match the original version"
+6. Go to Tools -> Options -> Debugger -> Symbols.
+7. Select a folder for the local symbol/source cache. You may experience silent failures in getting symbols if it doesn't exist or is read-only for some reason.
+8. Add `http://srv.symbolsource.org/pdb/Public` under "Symbol file (.pdb) locations".
 
 
 Quick Start
@@ -93,6 +96,7 @@ class Program
 
         var migrator = new SimpleMigrator(migrationsAssembly, db, versionProvider);
 
+        // Note: ConsoleRunner is only available in .NET Standard 1.3 and .NET 4.5 (not .NET Standard 1.2)
         var consoleRunner = new ConsoleRunner(migrator);
         consoleRunner.Run(args);
     }
@@ -109,7 +113,8 @@ There are a few built-in version providers, or you can easily write your own, se
 
 Finally, we create and run a `ConsoleRunner`. 
 This is a little helper class which gives you a nice command-line interface for running migrations.
-It's not necessary to use this by anymeans (you can call methods on `SimpleMigrator` directly), but it saves time when you just want a simple command-line application to run your migrations.
+It's not necessary to use this by any means (you can call methods on `SimpleMigrator` directly), but it saves time when you just want a simple command-line application to run your migrations.
+If you're using .NET Standard 1.2 the console is not available, so you will have to call methods on `SimpleMigrator` directly.
 
 And we're done!
 Build your project, and run it with the command-line argument `help` to see what's available.
@@ -225,11 +230,13 @@ migrator.MigrateTo(3);
 `ConsoleRunner`
 ---------------
 
-`ConsoleRunner` is a little helper class which aims to be useful if you're writing a command-line application to perform your migirations.
+`ConsoleRunner` is a little helper class which aims to be useful if you're writing a command-line application to perform your migrations.
 It uses a `SimpleMigrator`, takes your command-line arguments, and uses the latter to decide what methods on the former to execute.
 
 You can use it, extend it (look at the `SubCommands` property), or write your own version: it's not critical in any way.
 
+This is only available when targetting .NET Standard 1.3 (or above) and .NET 4.5.
+The Console is not available in .NET Standard 1.2.
 
 Finding Migrations
 ------------------
