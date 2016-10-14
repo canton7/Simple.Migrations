@@ -48,11 +48,6 @@ namespace SimpleMigrations
         /// </summary>
         public IReadOnlyList<MigrationData> Migrations { get; private set; }
 
-        /// <summary>
-        /// Gets a logger which is not null
-        /// </summary>
-        protected ILogger NotNullLogger => this.Logger ?? NullLogger.Instance;
-
         private bool isLoaded;
 
         /// <summary>
@@ -147,8 +142,7 @@ namespace SimpleMigrations
             if (firstDuplicate != null)
                 throw new MigrationException($"Found more than one migration with version {firstDuplicate.Key} ({String.Join(", ", firstDuplicate)})");
 
-            var initialMigration = new MigrationData(0, "Empty Schema", null, false);
-            this.Migrations = new[] { initialMigration }.Concat(migrations.OrderBy(x => x.Version)).ToList();
+            this.Migrations = new[] { MigrationData.EmptySchema }.Concat(migrations.OrderBy(x => x.Version)).ToList();
         }
 
         /// <summary>
@@ -253,7 +247,7 @@ namespace SimpleMigrations
             var originalMigration = this.CurrentMigration;
 
             var oldMigration = this.CurrentMigration;
-            this.NotNullLogger.BeginSequence(originalMigration, migrations.Last());
+            this.Logger?.BeginSequence(originalMigration, migrations.Last());
             try
             {
                 foreach (var newMigration in migrations)
@@ -262,11 +256,11 @@ namespace SimpleMigrations
                     oldMigration = newMigration;
                 }
 
-                this.NotNullLogger.EndSequence(originalMigration, this.CurrentMigration);
+                this.Logger?.EndSequence(originalMigration, this.CurrentMigration);
             }
             catch (Exception e)
             {
-                this.NotNullLogger.EndSequenceWithError(e, originalMigration, this.CurrentMigration);
+                this.Logger?.EndSequenceWithError(e, originalMigration, this.CurrentMigration);
                 throw;
             }
         }
@@ -293,7 +287,7 @@ namespace SimpleMigrations
 
                 var migration = this.CreateMigration(migrationToRun);
 
-                this.NotNullLogger.BeginMigration(migrationToRun, direction);
+                this.Logger?.BeginMigration(migrationToRun, direction);
 
                 if (direction == MigrationDirection.Up)
                     migration.Up();
@@ -302,7 +296,7 @@ namespace SimpleMigrations
 
                 this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, oldMigration.Version, newMigration.Version, newMigration.FullName);
 
-                this.NotNullLogger.EndMigration(migrationToRun, direction);
+                this.Logger?.EndMigration(migrationToRun, direction);
 
                 if (migrationToRun.UseTransaction)
                     this.ConnectionProvider.CommitTransaction();
@@ -314,7 +308,7 @@ namespace SimpleMigrations
                 if (migrationToRun.UseTransaction)
                     this.ConnectionProvider.RollbackTransaction();
 
-                this.NotNullLogger.EndMigrationWithError(e, migrationToRun, direction);
+                this.Logger?.EndMigrationWithError(e, migrationToRun, direction);
 
                 throw;
             }
@@ -341,7 +335,7 @@ namespace SimpleMigrations
             }
 
             instance.DB = this.ConnectionProvider.Connection;
-            instance.Logger = this.NotNullLogger;
+            instance.Logger = this.Logger ?? NullLogger.Instance;
 
             return instance;
         }

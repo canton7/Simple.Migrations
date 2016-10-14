@@ -8,6 +8,8 @@ namespace SimpleMigrations
     /// </summary>
     public class MigrationData
     {
+        internal static MigrationData EmptySchema { get; } = new MigrationData();
+
         /// <summary>
         /// Version of this migration
         /// </summary>
@@ -33,7 +35,14 @@ namespace SimpleMigrations
         /// </summary>
         public bool UseTransaction { get; }
 
-        internal MigrationData(long version, string description, TypeInfo typeInfo, bool useTransaction)
+        /// <summary>
+        /// Initialises a new instance of the <see cref="MigrationData"/> class
+        /// </summary>
+        /// <param name="version">Version of this migration</param>
+        /// <param name="description">Description of this migration. May be null</param>
+        /// <param name="typeInfo">Type of class implementing this migration</param>
+        /// <param name="useTransaction">Whether or not this migration should be run inside a transactio</param>
+        public MigrationData(long version, string description, TypeInfo typeInfo, bool useTransaction)
         {
             // 'version' is verified to be >0 in SimpleMigrator
             if (typeInfo == null)
@@ -44,15 +53,20 @@ namespace SimpleMigrations
             this.TypeInfo = typeInfo;
             this.UseTransaction = useTransaction;
 
-            if (this.TypeInfo == null)
-            {
-                this.FullName = this.Description;
-            }
-            else
-            {
-                var descriptionPart = String.IsNullOrWhiteSpace(this.Description) ? "" : $" ({this.Description})";
-                this.FullName = this.TypeInfo.Name + descriptionPart;
-            }
+            var descriptionPart = String.IsNullOrWhiteSpace(this.Description) ? "" : $" ({this.Description})";
+            this.FullName = this.TypeInfo.Name + descriptionPart;
+        }
+
+        /// <summary>
+        /// Creates the empty scheme migration
+        /// </summary>
+        private MigrationData()
+        {
+            this.Version = 0;
+            this.Description = "Empty Schema";
+            this.FullName = "Empty Schema";
+            this.TypeInfo = null;
+            this.UseTransaction = false;
         }
     }
 }
