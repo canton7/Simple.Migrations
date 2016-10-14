@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 
@@ -10,8 +11,9 @@ namespace SimpleMigrations
     /// </summary>
     /// <typeparam name="TDatabase">Type of database connection to use</typeparam>
     /// <typeparam name="TMigrationBase">Type of migration base class</typeparam>
-    public class SimpleMigrator<TDatabase, TMigrationBase>  : ISimpleMigrator
-        where TMigrationBase : IMigration<TDatabase>
+    /// <typeparam name="TTransaction">Type of transaction connection to use</typeparam>
+    public class SimpleMigrator<TDatabase, TTransaction, TMigrationBase>  : ISimpleMigrator
+        where TMigrationBase : IMigration<TDatabase, TTransaction>
     {
         /// <summary>
         /// Assembly to search for migrations
@@ -21,12 +23,12 @@ namespace SimpleMigrations
         /// <summary>
         /// Connection provider
         /// </summary>
-        protected readonly IConnectionProvider<TDatabase> ConnectionProvider;
+        protected readonly IConnectionProvider<TDatabase, TTransaction> ConnectionProvider;
 
         /// <summary>
         /// Version provider, providing access to the version table
         /// </summary>
-        protected readonly IVersionProvider<TDatabase> VersionProvider;
+        protected readonly IVersionProvider<TDatabase, TTransaction> VersionProvider;
 
         /// <summary>
         /// Gets and sets the logger to use. May be null
@@ -69,8 +71,8 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             Assembly migrationAssembly,
-            IConnectionProvider<TDatabase> connectionProvider,
-            IVersionProvider<TDatabase> versionProvider,
+            IConnectionProvider<TDatabase, TTransaction> connectionProvider,
+            IVersionProvider<TDatabase, TTransaction> versionProvider,
             ILogger logger = null)
         {
             this.MigrationAssembly = migrationAssembly;
@@ -194,7 +196,7 @@ namespace SimpleMigrations
             if (migration == null)
                 throw new ArgumentException(String.Format("Could not find migration with version {0}", version));
 
-            this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, 0, version, migration.FullName);
+            this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, ConnectionProvider.Transaction, 0, version, migration.FullName);
             this.CurrentMigration = migration;
 
         }
@@ -275,7 +277,7 @@ namespace SimpleMigrations
                 else
                     migration.Down();
 
-                this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, oldMigration.Version, newMigration.Version, newMigration.FullName);
+                this.VersionProvider.UpdateVersion(this.ConnectionProvider.Connection, ConnectionProvider.Transaction,oldMigration.Version, newMigration.Version, newMigration.FullName);
 
                 this.NotNullLogger.EndMigration(migrationToRun, direction);
 
@@ -305,6 +307,7 @@ namespace SimpleMigrations
             var instance = (TMigrationBase)Activator.CreateInstance(migrationData.Type);
 
             instance.DB = this.ConnectionProvider.Connection;
+            instance.Transaction = this.ConnectionProvider.Transaction;
             instance.Logger = this.NotNullLogger;
 
             return instance;

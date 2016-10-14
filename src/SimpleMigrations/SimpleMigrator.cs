@@ -6,7 +6,7 @@ namespace SimpleMigrations
     /// <summary>
     /// Migrator which uses <see cref="IDbConnection"/> connections
     /// </summary>
-    public class SimpleMigrator : SimpleMigrator<IDbConnection, IMigration<IDbConnection>>
+    public class SimpleMigrator : SimpleMigrator<IDbConnection, IDbTransaction, IMigration<IDbConnection, IDbTransaction>>
     {
         /// <summary>
         /// Instantiates a new instance of the <see cref="SimpleMigrator"/> class
@@ -18,7 +18,7 @@ namespace SimpleMigrations
         public SimpleMigrator(
             Assembly migrationAssembly,
             IDbConnection connection,
-            IVersionProvider<IDbConnection> versionProvider,
+            IVersionProvider<IDbConnection, IDbTransaction> versionProvider,
             ILogger logger = null)
             : base(migrationAssembly, new ConnectionProvider(connection), versionProvider, logger)
         {
