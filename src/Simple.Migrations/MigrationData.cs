@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace SimpleMigrations
 {
@@ -20,7 +21,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Type of class implementing this migration
         /// </summary>
-        public Type Type { get; private set; }
+        public TypeInfo TypeInfo { get; private set; }
 
         /// <summary>
         /// Name of the migration, including the type name and description
@@ -32,21 +33,21 @@ namespace SimpleMigrations
         /// </summary>
         public bool UseTransaction { get; private set; }
 
-        internal MigrationData(long version, string description, Type type, bool useTransaction)
+        internal MigrationData(long version, string description, TypeInfo typeInfo, bool useTransaction)
         {
             this.Version = version;
             this.Description = description;
-            this.Type = type;
+            this.TypeInfo = typeInfo;
             this.UseTransaction = useTransaction;
 
-            if (this.Type == null)
+            if (this.TypeInfo == null)
             {
                 this.FullName = this.Description;
             }
             else
             {
                 var descriptionPart = String.IsNullOrWhiteSpace(this.Description) ? "" : String.Format(" ({0})", this.Description);
-                this.FullName = this.Type.Name + descriptionPart;
+                this.FullName = this.TypeInfo.Name + descriptionPart;
             }
         }
     }
