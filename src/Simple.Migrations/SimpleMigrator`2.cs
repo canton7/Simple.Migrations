@@ -16,7 +16,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Assembly to search for migrations
         /// </summary>
-        protected readonly Assembly MigrationAssembly;
+        protected readonly IMigrationProvider MigrationProvider;
 
         /// <summary>
         /// Connection provider
@@ -63,20 +63,36 @@ namespace SimpleMigrations
         /// <summary>
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
-        /// <param name="migrationAssembly">Assembly to search for migrations</param>
+        /// <param name="migrationProvider">Migration provider to use to find migration classes</param>
         /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
         /// <param name="versionProvider">Version provider to use to get/set the current version from the database</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
-            Assembly migrationAssembly,
+            IMigrationProvider migrationProvider,
             IConnectionProvider<TDatabase> connectionProvider,
             IVersionProvider<TDatabase> versionProvider,
             ILogger logger = null)
         {
-            this.MigrationAssembly = migrationAssembly;
+            this.MigrationProvider = migrationProvider;
             this.ConnectionProvider = connectionProvider;
             this.VersionProvider = versionProvider;
             this.Logger = logger;
+        }
+
+        /// <summary>
+        /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
+        /// </summary>
+        /// <param name="migrationsAssembly">Assembly to search for migrations</param>
+        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
+        /// <param name="versionProvider">Version provider to use to get/set the current version from the database</param>
+        /// <param name="logger">Logger to use to log progress and messages</param>
+        public SimpleMigrator(
+            Assembly migrationsAssembly,
+            IConnectionProvider<TDatabase> connectionProvider,
+            IVersionProvider<TDatabase> versionProvider,
+            ILogger logger = null)
+            : this(new AssemblyMigrationProvider(migrationsAssembly), connectionProvider, versionProvider, logger)
+        {
         }
 
         /// <summary>
@@ -110,14 +126,10 @@ namespace SimpleMigrations
         /// </summary>
         protected virtual void FindAndSetMigrations()
         {
-            var migrations = (from type in this.MigrationAssembly.DefinedTypes
-                              let attribute = type.GetCustomAttribute<MigrationAttribute>()
-                              where attribute != null
-                              orderby attribute.Version
-                              select new MigrationData(attribute.Version, attribute.Description, type, attribute.UseTransaction)).ToList();
+            var migrations = this.MigrationProvider.LoadMigrations();
 
-            if (!migrations.Any())
-                throw new MigrationException(String.Format("Could not find any migrations in the assembly you provided ({0}). Migrations must be decorated with [Migration]", this.MigrationAssembly.GetName().Name));
+            if (migrations == null || migrations.Count == 0)
+                throw new MigrationException("The configured MigrationProvider did not find any migrations");
 
             var migrationBaseTypeInfo = typeof(TMigrationBase).GetTypeInfo();
             if (migrations.Any(x => !migrationBaseTypeInfo.IsAssignableFrom(x.TypeInfo)))
@@ -132,7 +144,7 @@ namespace SimpleMigrations
                 throw new MigrationException(String.Format("Found more than one migration with version {0}", firstDuplicate.Key));
 
             var initialMigration = new MigrationData(0, "Empty Schema", null, false);
-            this.Migrations = new[] { initialMigration }.Concat(migrations).ToList();
+            this.Migrations = new[] { initialMigration }.Concat(migrations.OrderBy(x => x.Version)).ToList();
         }
 
         /// <summary>
