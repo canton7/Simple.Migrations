@@ -6,7 +6,7 @@ namespace SimpleMigrations
     /// <summary>
     /// Implements <see cref="IConnectionProvider{TDatabase}"/> for <see cref="IDbConnection"/> connections
     /// </summary>
-    public class ConnectionProvider : IConnectionProvider<IDbConnection>
+    public class ConnectionProvider : IConnectionProvider<IDbConnection, IDbTransaction>
     {
         private readonly IDbConnection connection;
         private IDbTransaction transaction;
@@ -19,6 +19,10 @@ namespace SimpleMigrations
             get { return this.connection; }
         }
 
+        public IDbTransaction Transaction
+        {
+            get { return this.transaction; }
+        }
         /// <summary>
         /// Instantiates a new instance of the <see cref="ConnectionProvider"/> class
         /// </summary>
