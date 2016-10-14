@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SimpleMigrations.VersionProvider
+﻿namespace SimpleMigrations.VersionProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an SQLite database
@@ -10,15 +8,7 @@ namespace SimpleMigrations.VersionProvider
         /// <summary>
         /// Gets or sets the name of the table to use. Defaults to 'VersionInfo'
         /// </summary>
-        public string TableName { get; set; }
-
-        /// <summary>
-        /// Instantiates a new instance of the <see cref="SQLiteVersionProvider"/> class
-        /// </summary>
-        public SQLiteVersionProvider()
-        {
-            this.TableName = "VersionInfo";
-        }
+        public string TableName { get; set; } = "VersionInfo";
 
         /// <summary>
         /// Returns SQL to create the version table
@@ -26,13 +16,12 @@ namespace SimpleMigrations.VersionProvider
         /// <returns>SQL to create the version table</returns>
         public override string GetCreateVersionTableSql()
         {
-            return String.Format(
-                @"CREATE TABLE IF NOT EXISTS {0} (
+            return $@"CREATE TABLE IF NOT EXISTS {this.TableName} (
                     Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     Version INTEGER NOT NULL,
                     AppliedOn DATETIME NOT NULL,
                     Description TEXT NOT NULL
-                )", this.TableName);
+                )";
         }
 
         /// <summary>
@@ -41,7 +30,7 @@ namespace SimpleMigrations.VersionProvider
         /// <returns>SQL to fetch the current version from the version table</returns>
         public override string GetCurrentVersionSql()
         {
-            return String.Format(@"SELECT Version FROM {0} ORDER BY Id DESC LIMIT 1", this.TableName);
+            return $@"SELECT Version FROM {this.TableName} ORDER BY Id DESC LIMIT 1";
         }
 
         /// <summary>
@@ -50,7 +39,7 @@ namespace SimpleMigrations.VersionProvider
         /// <returns>SQL to update the current version in the version table</returns>
         public override string GetSetVersionSql()
         {
-            return String.Format(@"INSERT INTO {0} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)", this.TableName);
+            return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)";
         }
     }
 }
