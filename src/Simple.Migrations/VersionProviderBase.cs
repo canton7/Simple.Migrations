@@ -12,31 +12,16 @@ namespace SimpleMigrations
         /// Ensure that the version table exists, creating it if necessary
         /// </summary>
         /// <param name="connection">Connection to use to perform this action</param>
-        public void EnsureCreated(IDbConnection connection)
+        public virtual void EnsureCreated(IDbConnection connection)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
+            this.RunInTransaction(connection, command =>
             {
-                try
-                {
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.Transaction = transaction;
-                        cmd.CommandText = this.GetCreateVersionTableSql();
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
-
+                command.CommandText = this.GetCreateVersionTableSql();
+                command.ExecuteNonQuery();
+            });
         }
 
         /// <summary>
@@ -44,7 +29,7 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="connection">Connection to use to perform this action</param>
         /// <returns>Current version</returns>
-        public long GetCurrentVersion(IDbConnection connection)
+        public virtual long GetCurrentVersion(IDbConnection connection)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -78,7 +63,35 @@ namespace SimpleMigrations
         /// <param name="oldVersion">Version being upgraded from</param>
         /// <param name="newVersion">Version being upgraded to</param>
         /// <param name="newDescription">Description to associate with the new version</param>
-        public void UpdateVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
+        public virtual void UpdateVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
+        {
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
+
+            this.RunInTransaction(connection, command =>
+            {
+                command.CommandText = this.GetSetVersionSql();
+
+                var versionParam = command.CreateParameter();
+                versionParam.ParameterName = "Version";
+                versionParam.Value = newVersion;
+                command.Parameters.Add(versionParam);
+
+                var nameParam = command.CreateParameter();
+                nameParam.ParameterName = "Description";
+                nameParam.Value = newDescription;
+                command.Parameters.Add(nameParam);
+
+                command.ExecuteNonQuery();
+            });
+        }
+
+        /// <summary>
+        /// Runs the given action in a transaction
+        /// </summary>
+        /// <param name="connection">Connection to open the transaction on</param>
+        /// <param name="action">Action to be executed. This takes a command, which already has the transaction assigned</param>
+        protected virtual void RunInTransaction(IDbConnection connection, Action<IDbCommand> action)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -87,22 +100,10 @@ namespace SimpleMigrations
             {
                 try
                 {
-                    using (var cmd = connection.CreateCommand())
+                    using (var command = connection.CreateCommand())
                     {
-                        cmd.Transaction = transaction;
-                        cmd.CommandText = this.GetSetVersionSql();
-
-                        var versionParam = cmd.CreateParameter();
-                        versionParam.ParameterName = "Version";
-                        versionParam.Value = newVersion;
-                        cmd.Parameters.Add(versionParam);
-
-                        var nameParam = cmd.CreateParameter();
-                        nameParam.ParameterName = "Description";
-                        nameParam.Value = newDescription;
-                        cmd.Parameters.Add(nameParam);
-
-                        cmd.ExecuteNonQuery();
+                        command.Transaction = transaction;
+                        action(command);
                     }
 
                     transaction.Commit();
