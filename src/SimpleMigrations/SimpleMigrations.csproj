@@ -57,6 +57,7 @@
     <Compile Include="NullLogger.cs" />
     <Compile Include="VersionProvider\PostgresqlVersionProvider.cs" />
     <Compile Include="VersionProvider\MsSqlVersionProvider.cs" />
+    <Compile Include="VersionProvider\MySqlVersionProvider.cs" />
     <Compile Include="VersionProvider\SqliteVersionProvider.cs" />
     <Compile Include="VersionProviderBase.cs" />
     <Compile Include="IConnectionProvider.cs" />
