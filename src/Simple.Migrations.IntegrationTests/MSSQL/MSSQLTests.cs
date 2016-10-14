@@ -12,17 +12,24 @@ namespace Simple.Migrations.IntegrationTests.MSSQL
     [TestFixture]
     public class MSSQLTests
     {
+        private SqlConnection connection;
         private SimpleMigrator migrator;
 
         [SetUp]
         public void SetUp()
         {
-            var connection = new SqlConnection(ConnectionStrings.MSSQL);
+            this.connection = new SqlConnection(ConnectionStrings.MSSQL);
             var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, connection, new MSSQLVersionProvider(), new NUnitLogger());
+            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MSSQLVersionProvider(), new NUnitLogger());
 
             this.migrator.Load();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
             this.migrator.MigrateTo(0);
+            new SqlCommand(@"DROP TABLE VersionInfo", this.connection).ExecuteNonQuery();
         }
 
         [Test]
