@@ -19,7 +19,9 @@ namespace Simple.Migrations.IntegrationTests.SQLite
         public void SetUp()
         {
             var connection = new SqliteConnection(ConnectionStrings.SQLite);
-            this.migrator = new SimpleMigrator(typeof(SQLiteTests).Assembly, connection, new SQLiteVersionProvider());
+            var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
+            this.migrator = new SimpleMigrator(migrationProvider, connection, new SQLiteVersionProvider(), new NUnitLogger());
+
             this.migrator.Load();
             this.migrator.MigrateTo(0);
         }
