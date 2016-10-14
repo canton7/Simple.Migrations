@@ -2,14 +2,15 @@
 
 namespace SimpleMigratorTests.TestMigrations
 {
-    [Migration(1, useTransaction:false)]
+    [Migration(1)]
     public class AddUser : Migration
     {
         public override void Up()
         {
             Execute(@"CREATE TABLE Users (
-                [Id] [int] IDENTITY(1,1)  PRIMARY KEY NOT NULL,
-                Name TEXT NOT NULL);");
+	            Id INT NOT NULL AUTO_INCREMENT,
+	            Name TEXT NULL,
+	            PRIMARY KEY (Id));");
         }
 
         public override void Down()
