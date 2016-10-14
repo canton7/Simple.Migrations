@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="SimpleMigrations, Version=0.9.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Simple.Migrations.0.9.3\lib\net45\SimpleMigrations.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -46,22 +50,16 @@
     <Compile Include="Migrations\1_CreateUsers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SchemaVersion.cs" />
     <Compile Include="SQLite.cs" />
     <Compile Include="SQLiteAsync.cs" />
-    <Compile Include="SQLiteDotNetConnectionProvider.cs" />
-    <Compile Include="SQLiteDotNetMigration.cs" />
-    <Compile Include="SQLiteDotNetVersionProvider.cs" />
-    <Compile Include="SQLiteDotNetVersionTable.cs" />
+    <Compile Include="SQLiteNetConnectionProvider.cs" />
+    <Compile Include="SQLiteNetMigration.cs" />
+    <Compile Include="SQLiteNetVersionProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\SimpleMigrations\SimpleMigrations.csproj">
-      <Project>{352d9be8-3506-4f85-ad9a-7e5fb86ba5a8}</Project>
-      <Name>SimpleMigrations</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="sqlite3.dll">
