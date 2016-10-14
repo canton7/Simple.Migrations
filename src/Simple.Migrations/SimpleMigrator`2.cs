@@ -303,7 +303,15 @@ namespace SimpleMigrations
         /// <returns>An instantiated and configured migration</returns>
         protected virtual TMigrationBase CreateMigration(MigrationData migrationData)
         {
-            var instance = (TMigrationBase)Activator.CreateInstance(migrationData.TypeInfo.GetType());
+            TMigrationBase instance;
+            try
+            {
+                instance = (TMigrationBase)Activator.CreateInstance(migrationData.TypeInfo.AsType());
+            }
+            catch (Exception e)
+            {
+                throw new MigrationException($"Unable to create migration {migrationData.FullName}", e);
+            }
 
             instance.DB = this.ConnectionProvider.Connection;
             instance.Logger = this.NotNullLogger;
