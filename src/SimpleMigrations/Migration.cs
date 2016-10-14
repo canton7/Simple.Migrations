@@ -6,12 +6,14 @@ namespace SimpleMigrations
     /// Base class, intended to be used by all migrations (although you may implement <see cref="IMigration{TDatabase}"/> directly if you wish).
     /// Migrations MUST apply the <see cref="MigrationAttribute"/> attribute
     /// </summary>
-    public abstract class Migration : IMigration<IDbConnection>
+    public abstract class Migration : IMigration<IDbConnection, IDbTransaction>
     {
         /// <summary>
         /// Gets or sets the database to be used by this migration
         /// </summary>
         public IDbConnection DB { get; set; }
+
+        public IDbTransaction Transaction { get; set; }
 
         /// <summary>
         /// Gets or sets the logger to be used by this migration
@@ -38,6 +40,7 @@ namespace SimpleMigrations
 
             using (var command = this.DB.CreateCommand())
             {
+                command.Transaction = Transaction;
                 command.CommandText = sql;
                 command.ExecuteNonQuery();
             }
