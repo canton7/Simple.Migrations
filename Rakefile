@@ -1,6 +1,6 @@
 require 'json'
 
-SIMPLEMIGRATIONS_DIR = 'src/SimpleMigrations'
+SIMPLEMIGRATIONS_DIR = 'src/Simple.Migrations'
 
 ASSEMBLY_INFO = File.join(SIMPLEMIGRATIONS_DIR, 'Properties/AssemblyInfo.cs')
 SIMPLEMIGRATIONS_JSON = File.join(SIMPLEMIGRATIONS_DIR, 'project.json')

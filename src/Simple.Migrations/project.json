@@ -1,7 +1,9 @@
 ﻿{
   "version": "0.0.0",
-  "copyright": "Copyright 2015-2016 Antony Male",
+  "title": "SimpleMigrations",
   "description": "Simple but flexible migrations library",
+  "authors": [ "Antony Male" ],
+  "copyright": "Copyright 2015-2016 Antony Male",
 
   "frameworks": {
     "netstandard1.2": {
@@ -47,9 +49,7 @@
   },
 
   "packOptions": {
-    "title": "SimpleMigrations",
     "owners": [ "Antony Male" ],
-    "authors": [ "Antony Male" ],
     "licenseUrl": "http://github.com/canton7/SimpleMigrations/blob/master/LICENSE.txt",
     "projectUrl": "https://github.com/canton7/SimpleMigrations",
     "repository": {

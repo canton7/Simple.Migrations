@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SimpleMigrations", "src\SimpleMigrations\SimpleMigrations.xproj", "{D9EBA58B-647F-4196-AA67-0EE9CABC16D4}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Simple.Migrations", "src\Simple.Migrations\Simple.Migrations.xproj", "{D9EBA58B-647F-4196-AA67-0EE9CABC16D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
