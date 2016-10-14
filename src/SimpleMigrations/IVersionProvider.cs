@@ -4,7 +4,7 @@
     /// Interface representing the ability to interact with the Version table in the database
     /// </summary>
     /// <typeparam name="TDatabase">Type of database connection</typeparam>
-    public interface IVersionProvider<TDatabase>
+    public interface IVersionProvider<in TDatabase, in TTransaction>
     {
         /// <summary>
         /// Ensure that the version table exists, creating it if necessary
@@ -26,6 +26,8 @@
         /// <param name="oldVersion">Version being upgraded from</param>
         /// <param name="newVersion">Version being upgraded to</param>
         /// <param name="newDescription">Description to associate with the new version</param>
-        void UpdateVersion(TDatabase connection, long oldVersion, long newVersion, string newDescription);
+        /// <param name="transaction">Transaction to use to perform this action</param>
+        void UpdateVersion(TDatabase connection, TTransaction transaction, long oldVersion, long newVersion, string newDescription);
+        
     }
 }

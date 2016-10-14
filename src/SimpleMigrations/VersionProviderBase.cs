@@ -6,7 +6,7 @@ namespace SimpleMigrations
     /// <summary>
     /// Version provider which acts by maintaining a table of applied versions
     /// </summary>
-    public abstract class VersionProviderBase : IVersionProvider<IDbConnection>
+    public abstract class VersionProviderBase : IVersionProvider<IDbConnection, IDbTransaction>
     {
         /// <summary>
         /// Ensure that the version table exists, creating it if necessary
@@ -57,12 +57,12 @@ namespace SimpleMigrations
         /// <param name="oldVersion">Version being upgraded from</param>
         /// <param name="newVersion">Version being upgraded to</param>
         /// <param name="newDescription">Description to associate with the new version</param>
-        public void UpdateVersion(IDbConnection connection, long oldVersion, long newVersion, string newDescription)
+        public void UpdateVersion(IDbConnection connection, IDbTransaction transaction, long oldVersion, long newVersion, string newDescription)
         {
             using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandText = this.GetSetVersionSql();
-
+                cmd.Transaction = transaction;
                 var versionParam = cmd.CreateParameter();
                 versionParam.ParameterName = "Version";
                 versionParam.Value = newVersion;
