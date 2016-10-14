@@ -1,6 +1,4 @@
-﻿#if SUPPORTS_CONSOLE
-
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
@@ -221,5 +219,3 @@ namespace SimpleMigrations.Console
         }
     }
 }
-
-#endif

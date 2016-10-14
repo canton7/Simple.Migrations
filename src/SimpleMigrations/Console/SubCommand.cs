@@ -1,6 +1,4 @@
-﻿#if SUPPORTS_CONSOLE
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SimpleMigrations.Console
 {
@@ -31,5 +29,3 @@ namespace SimpleMigrations.Console
         public SubCommandAction Action { get; set; }
     }
 }
-
-#endif

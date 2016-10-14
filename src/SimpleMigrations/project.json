@@ -1,42 +1,59 @@
-﻿{
-  "version": "1.0.0-*",
-
-  "dependencies": {
-    
-  },
-
+{
+  "version": "0.0.0",
+  "copyright": "Copyright 2015-2016 Antony Male",
+  "description": "Simple but flexible migrations library",
   "frameworks": {
     "netstandard1.2": {
       "dependencies": {
         "NETStandard.Library": "1.6.0",
         "System.Data.Common": "4.1.0",
         "System.Data.SqlClient": "4.1.0"
+      },
+      "buildOptions": {
+        "compile": {
+          "exclude": [
+            "Console"
+          ]
+        }
       }
     },
-
     "netstandard1.3": {
       "dependencies": {
         "NETStandard.Library": "1.6.0",
         "System.Data.Common": "4.1.0",
         "System.Data.SqlClient": "4.1.0",
         "System.Console": "4.0.0"
-      },
-      "buildOptions": {
-        "define": [
-          "SUPPORTS_CONSOLE"
-        ]
       }
     },
-
     "net45": {
       "frameworkAssemblies": {
         "System.Data": "4.0.0.0"
-      },
-      "buildOptions": {
-        "define": [
-          "SUPPORTS_CONSOLE"
-        ]
       }
     }
+  },
+  "buildOptions": {
+    "emitEntryPoint": false,
+    "xmlDoc": true
+  },
+  "packOptions": {
+    "title": "SimpleMigrations",
+    "owners": [
+      "Antony Male"
+    ],
+    "authors": [
+      "Antony Male"
+    ],
+    "licenseUrl": "http://github.com/canton7/SimpleMigrations/blob/master/LICENSE.txt",
+    "projectUrl": "https://github.com/canton7/SimpleMigrations",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/canton7/SimpleMigrations"
+    },
+    "tags": [
+      "SQL",
+      "Migration"
+    ],
+    "iconUrl": "https://raw.githubusercontent.com/canton7/SimpleMigrations/master/icon.png",
+    "requireLicenseAcceptance": false
   }
 }

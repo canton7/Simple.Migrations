@@ -1,6 +1,4 @@
-﻿#if SUPPORTS_CONSOLE
-
-namespace SimpleMigrations.Console
+﻿namespace SimpleMigrations.Console
 {
     // Avoid pain with Console.XXX being assumed to be in SimpleMigrations.Console
     using System;
@@ -133,5 +131,3 @@ namespace SimpleMigrations.Console
         }
     }
 }
-
-#endif
