@@ -73,6 +73,7 @@ namespace SimpleMigrations
             this.MigrationProvider = migrationProvider;
             this.Connection = connection;
             this.VersionProvider = versionProvider;
+            this.VersionProvider.Connection = connection;
             this.Logger = logger;
         }
 
@@ -109,7 +110,7 @@ namespace SimpleMigrations
             if (this.isLoaded)
                 return;
 
-            this.VersionProvider.EnsureCreated(this.Connection);
+            this.VersionProvider.EnsureCreated();
 
             this.FindAndSetMigrations();
             this.SetCurrentVersion();
@@ -150,7 +151,7 @@ namespace SimpleMigrations
         /// </summary>
         protected virtual void SetCurrentVersion()
         {
-            var currentVersion = this.VersionProvider.GetCurrentVersion(this.Connection);
+            var currentVersion = this.VersionProvider.GetCurrentVersion();
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             if (currentMigration == null)
                 throw new MigrationException($"Unable to find migration with the current version: {currentVersion}");
@@ -205,7 +206,7 @@ namespace SimpleMigrations
             if (migration == null)
                 throw new ArgumentException($"Could not find migration with version {version}");
 
-            this.VersionProvider.UpdateVersion(this.Connection, 0, version, migration.FullName);
+            this.VersionProvider.UpdateVersion(0, version, migration.FullName);
             this.CurrentMigration = migration;
 
         }
@@ -291,7 +292,7 @@ namespace SimpleMigrations
                 else
                     migration.Down();
 
-                this.VersionProvider.UpdateVersion(this.Connection, oldMigration.Version, newMigration.Version, newMigration.FullName);
+                this.VersionProvider.UpdateVersion(oldMigration.Version, newMigration.Version, newMigration.FullName);
 
                 this.Logger?.EndMigration(migrationToRun, direction);
 

@@ -7,25 +7,27 @@
     public interface IVersionProvider<TDatabase>
     {
         /// <summary>
+        /// Gets or sets the connection to use. Must be set before calling other methods
+        /// </summary>
+        TDatabase Connection { get; set; }
+
+        /// <summary>
         /// Ensure that the version table exists, creating it if necessary
         /// </summary>
-        /// <param name="connection">Connection to use to perform this action</param>
-        void EnsureCreated(TDatabase connection);
+        void EnsureCreated();
 
         /// <summary>
         /// Return the current version from the version table
         /// </summary>
-        /// <param name="connection">Connection to use to perform this action</param>
         /// <returns>Current version</returns>
-        long GetCurrentVersion(TDatabase connection);
+        long GetCurrentVersion();
 
         /// <summary>
         /// Update the current version in the version table
         /// </summary>
-        /// <param name="connection">Connection to use to perform this action</param>
         /// <param name="oldVersion">Version being upgraded from</param>
         /// <param name="newVersion">Version being upgraded to</param>
         /// <param name="newDescription">Description to associate with the new version</param>
-        void UpdateVersion(TDatabase connection, long oldVersion, long newVersion, string newDescription);
+        void UpdateVersion(long oldVersion, long newVersion, string newDescription);
     }
 }
