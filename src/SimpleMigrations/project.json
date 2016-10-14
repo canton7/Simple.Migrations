@@ -43,7 +43,6 @@
   },
 
   "buildOptions": {
-    "emitEntryPoint": false,
     "xmlDoc": true
   },
 
