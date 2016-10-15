@@ -1,7 +1,7 @@
 ﻿namespace SimpleMigrations.VersionProvider
 {
     /// <summary>
-    /// Class which can read from / write to a version table in an SQLite database
+    /// Class which can read from / write to a version table in an MSSQL database
     /// </summary>
     public class MssqlVersionProvider : VersionProviderBase
     {
