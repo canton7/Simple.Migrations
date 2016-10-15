@@ -3,7 +3,7 @@
     /// <summary>
     /// Class which can read from / write to a version table in an SQLite database
     /// </summary>
-    public class MSSQLVersionProvider : VersionProviderBase
+    public class MssqlVersionProvider : VersionProviderBase
     {
         /// <summary>
         /// Gets or sets the name of the table to use. Defaults to 'VersionInfo'

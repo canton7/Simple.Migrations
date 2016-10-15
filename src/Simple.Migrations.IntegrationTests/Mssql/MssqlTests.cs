@@ -1,27 +1,26 @@
-﻿using Microsoft.Data.Sqlite;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using SimpleMigrations;
-using SimpleMigrations.VersionProvider;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using System.Data.SqlClient;
+using SimpleMigrations.VersionProvider;
 
-namespace Simple.Migrations.IntegrationTests.SQLite
+namespace Simple.Migrations.IntegrationTests.Mssql
 {
     [TestFixture]
-    public class SQLiteTests
+    public class MssqlTests
     {
-        private SqliteConnection connection;
+        private SqlConnection connection;
         private SimpleMigrator migrator;
 
         [SetUp]
         public void SetUp()
         {
-            this.connection = new SqliteConnection(ConnectionStrings.SQLite);
+            this.connection = new SqlConnection(ConnectionStrings.MSSQL);
             var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new SQLiteVersionProvider(), new NUnitLogger());
+            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MssqlVersionProvider(), new NUnitLogger());
 
             this.migrator.Load();
         }
@@ -30,7 +29,7 @@ namespace Simple.Migrations.IntegrationTests.SQLite
         public void TearDown()
         {
             this.migrator.MigrateTo(0);
-            new SqliteCommand(@"DROP TABLE VersionInfo", this.connection).ExecuteNonQuery();
+            new SqlCommand(@"DROP TABLE VersionInfo", this.connection).ExecuteNonQuery();
         }
 
         [Test]

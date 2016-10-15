@@ -1,9 +1,9 @@
 ﻿namespace SimpleMigrations.VersionProvider
 {
     /// <summary>
-    /// Class which can read from / write to a version table in an PostgreSQL database
+    /// Class which can read from / write to a version table in an SQLite database
     /// </summary>
-    public class PostgreSQLVersionProvider : VersionProviderBase
+    public class SqliteVersionProvider : VersionProviderBase
     {
         /// <summary>
         /// Gets or sets the name of the table to use. Defaults to 'VersionInfo'
@@ -17,10 +17,10 @@
         public override string GetCreateVersionTableSql()
         {
             return $@"CREATE TABLE IF NOT EXISTS {this.TableName} (
-                    Id SERIAL PRIMARY KEY,
-                    Version bigint NOT NULL,
-                    AppliedOn timestamp with time zone,
-                    Description text NOT NULL
+                    Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    Version INTEGER NOT NULL,
+                    AppliedOn DATETIME NOT NULL,
+                    Description TEXT NOT NULL
                 )";
         }
 
@@ -39,7 +39,7 @@
         /// <returns>SQL to update the current version in the version table</returns>
         public override string GetSetVersionSql()
         {
-            return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, CURRENT_TIMESTAMP, @Description)";
+            return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)";
         }
     }
 }
