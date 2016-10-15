@@ -6,7 +6,7 @@ namespace SimpleMigrations
     /// <summary>
     /// Migrator which uses <see cref="IDbConnection"/> connections
     /// </summary>
-    public class SimpleMigrator : SimpleMigrator<IDbConnection, IMigration<IDbConnection>>
+    public class SimpleMigrator : SimpleMigrator<ITransactionAwareDbConnection, IMigration<ITransactionAwareDbConnection>>
     {
         /// <summary>
         /// Instantiates a new instance of the <see cref="SimpleMigrator"/> class
@@ -20,7 +20,7 @@ namespace SimpleMigrations
             IDbConnection connection,
             IVersionProvider<IDbConnection> versionProvider,
             ILogger logger = null)
-            : base(migrationProvider, connection, versionProvider, logger)
+            : base(migrationProvider, new TransactionAwareDbConnection(connection), versionProvider, logger)
         {
         }
 
@@ -36,16 +36,13 @@ namespace SimpleMigrations
             IDbConnection connection,
             IVersionProvider<IDbConnection> versionProvider,
             ILogger logger = null)
-            : base(migrationsAssembly, connection, versionProvider, logger)
+            : base(migrationsAssembly, new TransactionAwareDbConnection(connection), versionProvider, logger)
         {
         }
 
         /// <summary>
-        /// Load all available migrations, and the current state of the database
+        /// Opens the connection if necessary, loads all available migrations, and the current state of the database
         /// </summary>
-        /// <remarks>
-        /// This opens the database connection if necessary
-        /// </remarks>
         public override void Load()
         {
             if (this.Connection.State == ConnectionState.Closed)

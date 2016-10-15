@@ -13,17 +13,28 @@ namespace SimpleMigrations
         /// </summary>
         public const string DefaultTableName = "VersionInfo";
 
+        private IDbConnection connection;
+
         /// <summary>
-        /// Gets or sets the connection to use. Must be set before calling other methods
+        /// Gets or sets a value indicating whether to run <see cref="EnsureCreated"/>
+        /// or <see cref="GetCurrentVersion"/> in a transaction
         /// </summary>
-        public IDbConnection Connection { get; set; }
+        protected bool UseTransaction { get; set; }
+
+        /// <summary>
+        /// Sets the connection to use. Must be set before calling other methods
+        /// </summary>
+        public void SetConnection(IDbConnection connection)
+        {
+            this.connection = connection;
+        }
 
         /// <summary>
         /// Ensures that the class has been properly set up
         /// </summary>
         protected void EnsureSetup()
         {
-            if (this.Connection == null)
+            if (this.connection == null)
                 throw new InvalidOperationException("this.Connection must be assigned before calling this method");
         }
 
@@ -34,7 +45,7 @@ namespace SimpleMigrations
         {
             this.EnsureSetup();
 
-            this.RunInTransaction(command =>
+            this.RunInTransactionIfConfigured(command =>
             {
                 command.CommandText = this.GetCreateVersionTableSql();
                 command.ExecuteNonQuery();
@@ -49,15 +60,15 @@ namespace SimpleMigrations
         {
             this.EnsureSetup();
 
-            using (var cmd = this.Connection.CreateCommand())
+            long version = 0;
+            this.RunInTransactionIfConfigured(command =>
             {
-                cmd.CommandText = this.GetCurrentVersionSql();
-                var result = cmd.ExecuteScalar();
+                command.CommandText = this.GetCurrentVersionSql();
+                var result = command.ExecuteScalar();
 
                 if (result == null)
-                    return 0;
+                    return;
 
-                long version;
                 try
                 {
                     version = Convert.ToInt64(result);
@@ -65,10 +76,10 @@ namespace SimpleMigrations
                 catch
                 {
                     throw new MigrationException("Version Provider returns a value for the current version which isn't a long");
-                }   
+                }
+            });
 
-                return version;
-            }
+            return version;
         }
 
         /// <summary>
@@ -81,7 +92,7 @@ namespace SimpleMigrations
         {
             this.EnsureSetup();
 
-            this.RunInTransaction(command =>
+            using (var command = this.connection.CreateCommand())
             {
                 command.CommandText = this.GetSetVersionSql();
 
@@ -96,33 +107,41 @@ namespace SimpleMigrations
                 command.Parameters.Add(nameParam);
 
                 command.ExecuteNonQuery();
-            });
+            }
         }
 
         /// <summary>
         /// Runs the given action in a transaction
         /// </summary>
         /// <param name="action">Action to be executed. This takes a command, which already has the transaction assigned</param>
-        protected virtual void RunInTransaction(Action<IDbCommand> action)
+        protected virtual void RunInTransactionIfConfigured(Action<IDbCommand> action)
         {
             this.EnsureSetup();
 
-            using (var transaction = this.Connection.BeginTransaction(IsolationLevel.Serializable))
+            if (this.UseTransaction)
             {
-                try
+                using (var transaction = this.connection.BeginTransaction(IsolationLevel.Serializable))
                 {
-                    using (var command = this.Connection.CreateCommand())
+                    try
                     {
-                        command.Transaction = transaction;
-                        action(command);
+                        using (var command = this.connection.CreateCommand())
+                        {
+                            action(command);
+                        }
+                        transaction.Commit();
                     }
-
-                    transaction.Commit();
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
-                catch
+            }
+            else
+            {
+                using (var command = this.connection.CreateCommand())
                 {
-                    transaction.Rollback();
-                    throw;
+                    action(command);
                 }
             }
         }

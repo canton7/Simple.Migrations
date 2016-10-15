@@ -8,10 +8,11 @@ namespace SimpleMigrations
     /// <summary>
     /// Base class for migrators, allowing any database type and custom configuration of migrations
     /// </summary>
-    /// <typeparam name="TDatabase">Type of database connection to use</typeparam>
+    /// <typeparam name="TConnection">Type of database connection to use</typeparam>
     /// <typeparam name="TMigrationBase">Type of migration base class</typeparam>
-    public class SimpleMigrator<TDatabase, TMigrationBase>  : ISimpleMigrator
-        where TMigrationBase : IMigration<TDatabase>
+    public class SimpleMigrator<TConnection, TMigrationBase>  : ISimpleMigrator
+        where TConnection : ITransactionProvider
+        where TMigrationBase : IMigration<TConnection>
     {
         /// <summary>
         /// Assembly to search for migrations
@@ -19,14 +20,14 @@ namespace SimpleMigrations
         protected IMigrationProvider MigrationProvider { get; }
 
         /// <summary>
-        /// Connection provider
+        /// Connection
         /// </summary>
-        protected TDatabase Connection { get; }
+        protected TConnection Connection { get; }
 
         /// <summary>
         /// Version provider, providing access to the version table
         /// </summary>
-        protected IVersionProvider<TDatabase> VersionProvider { get; }
+        protected IVersionProvider<TConnection> VersionProvider { get; }
 
         /// <summary>
         /// Gets and sets the logger to use. May be null
@@ -59,8 +60,8 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
-            TDatabase connection,
-            IVersionProvider<TDatabase> versionProvider,
+            TConnection connection,
+            IVersionProvider<TConnection> versionProvider,
             ILogger logger = null)
         {
             if (migrationProvider == null)
@@ -73,7 +74,7 @@ namespace SimpleMigrations
             this.MigrationProvider = migrationProvider;
             this.Connection = connection;
             this.VersionProvider = versionProvider;
-            this.VersionProvider.Connection = connection;
+            this.VersionProvider.SetConnection(connection);
             this.Logger = logger;
         }
 
@@ -86,8 +87,8 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
-            TDatabase connection,
-            IVersionProvider<TDatabase> versionProvider,
+            TConnection connection,
+            IVersionProvider<TConnection> versionProvider,
             ILogger logger = null)
             : this(new AssemblyMigrationProvider(migrationsAssembly), connection, versionProvider, logger)
         {
@@ -283,6 +284,9 @@ namespace SimpleMigrations
 
             try
             {
+                if (migrationToRun.UseTransaction)
+                    this.Connection.BeginTransaction();
+
                 var migration = this.CreateMigration(migrationToRun);
 
                 this.Logger?.BeginMigration(migrationToRun, direction);
@@ -296,10 +300,16 @@ namespace SimpleMigrations
 
                 this.Logger?.EndMigration(migrationToRun, direction);
 
+                if (migrationToRun.UseTransaction)
+                    this.Connection.CommitTransaction();
+
                 this.CurrentMigration = newMigration;
             }
             catch (Exception e)
             {
+                if (migrationToRun.UseTransaction)
+                    this.Connection.RollbackTransaction();
+
                 this.Logger?.EndMigrationWithError(e, migrationToRun, direction);
 
                 throw;
@@ -328,7 +338,6 @@ namespace SimpleMigrations
 
             instance.DB = this.Connection;
             instance.Logger = this.Logger ?? NullLogger.Instance;
-            instance.UseTransaction = migrationData.UseTransaction;
 
             return instance;
         }

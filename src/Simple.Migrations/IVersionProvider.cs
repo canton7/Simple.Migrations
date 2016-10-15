@@ -3,13 +3,13 @@
     /// <summary>
     /// Interface representing the ability to interact with the Version table in the database
     /// </summary>
-    /// <typeparam name="TDatabase">Type of database connection</typeparam>
-    public interface IVersionProvider<TDatabase>
+    /// <typeparam name="TConection">Type of database connection</typeparam>
+    public interface IVersionProvider<in TConection>
     {
         /// <summary>
-        /// Gets or sets the connection to use. Must be set before calling other methods
+        /// Sets the connection to use. Must be set before calling other methods
         /// </summary>
-        TDatabase Connection { get; set; }
+        void SetConnection(TConection connection);
 
         /// <summary>
         /// Ensure that the version table exists, creating it if necessary
