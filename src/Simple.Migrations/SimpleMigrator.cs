@@ -20,7 +20,7 @@ namespace SimpleMigrations
             IDbConnection connection,
             IVersionProvider<IDbConnection> versionProvider,
             ILogger logger = null)
-            : base(migrationProvider, new TransactionAwareDbConnection(connection), versionProvider, logger)
+            : base(migrationProvider, new ConnectionProvider(connection), versionProvider, logger)
         {
         }
 
@@ -36,7 +36,7 @@ namespace SimpleMigrations
             IDbConnection connection,
             IVersionProvider<IDbConnection> versionProvider,
             ILogger logger = null)
-            : base(migrationsAssembly, new TransactionAwareDbConnection(connection), versionProvider, logger)
+            : base(migrationsAssembly, new ConnectionProvider(connection), versionProvider, logger)
         {
         }
 
@@ -45,8 +45,8 @@ namespace SimpleMigrations
         /// </summary>
         public override void Load()
         {
-            if (this.Connection.State == ConnectionState.Closed)
-                this.Connection.Open();
+            if (this.ConnectionProvider.Connection.State == ConnectionState.Closed)
+                this.ConnectionProvider.Connection.Open();
 
             base.Load();
         }

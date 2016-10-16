@@ -3,14 +3,10 @@
 namespace SimpleMigrations
 {
     /// <summary>
-    /// Encapsulates the notion of an <see cref="ITransactionProvider"/> implemented for
-    /// an <see cref="IDbConnection"/>
+    /// Specialized <see cref="IDbConnection"/> which has the notion of a single transaction, and which
+    /// associates that transaction with all created commands.
     /// </summary>
-    /// <remarks>
-    /// Things which implement this interface are <see cref="IDbConnection"/>s which
-    /// SimpleMigrator knows how to create/commit transactions for
-    /// </remarks>
-    public interface ITransactionAwareDbConnection : IDbConnection, ITransactionProvider
+    public interface ITransactionAwareDbConnection : IDbConnection
     {
         /// <summary>
         /// Gets the currently-open transaction, if any

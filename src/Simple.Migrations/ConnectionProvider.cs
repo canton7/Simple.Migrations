@@ -7,9 +7,14 @@ namespace SimpleMigrations
     /// Wrapper around an <see cref="IDbConnection"/> which adds the notion of a current transaction,
     /// and automatically associates new <see cref="IDbCommand"/>s with it.
     /// </summary>
-    public class TransactionAwareDbConnection : ITransactionAwareDbConnection
+    public class ConnectionProvider : IConnectionProvider<ITransactionAwareDbConnection>, ITransactionAwareDbConnection
     {
         private readonly IDbConnection connection;
+
+        /// <summary>
+        /// Gets the connection, which will be given to migrations
+        /// </summary>
+        public ITransactionAwareDbConnection Connection => this;
 
         /// <summary>
         /// Gets the currently-open transaction, if any
@@ -60,10 +65,10 @@ namespace SimpleMigrations
         public void Close() => this.connection.Close();
 
         /// <summary>
-        /// Instantiates a new instance of the <see cref="TransactionAwareDbConnection"/> class
+        /// Instantiates a new instance of the <see cref="ConnectionProvider"/> class
         /// </summary>
         /// <param name="connection">Connection to wrap</param>
-        public TransactionAwareDbConnection(IDbConnection connection)
+        public ConnectionProvider(IDbConnection connection)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -84,7 +89,7 @@ namespace SimpleMigrations
             return this.Transaction;
         }
 
-        void ITransactionProvider.BeginTransaction() => this.BeginTransaction(IsolationLevel.Serializable);
+        void IConnectionProvider<ITransactionAwareDbConnection>.BeginTransaction() => this.BeginTransaction(IsolationLevel.Serializable);
 
         /// <summary>
         /// Begins a database transaction with the specified <see cref="IsolationLevel"/> value.

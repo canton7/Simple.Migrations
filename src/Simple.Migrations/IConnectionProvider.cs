@@ -4,14 +4,16 @@ using System.Data;
 namespace SimpleMigrations
 {
     /// <summary>
-    /// Interface for objects which can be transactional
+    /// Provider which gives access to a database connection. Used to provide the connection to migrations, and to perform transactions
     /// </summary>
-    /// <remarks>
-    /// SimpleMigrator uses this to control transactions, even when it doesn't
-    /// know what sort of connection it's using
-    /// </remarks>
-    public interface ITransactionProvider
+    /// <typeparam name="TConnection">Type of the database being provided</typeparam>
+    public interface IConnectionProvider<TConnection>
     {
+        /// <summary>
+        /// Gets the connection, which will be given to migrations
+        /// </summary>
+        TConnection Connection { get; }
+
         /// <summary>
         /// Begin a transaction
         /// </summary>

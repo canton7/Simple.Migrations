@@ -11,7 +11,6 @@ namespace SimpleMigrations
     /// <typeparam name="TConnection">Type of database connection to use</typeparam>
     /// <typeparam name="TMigrationBase">Type of migration base class</typeparam>
     public class SimpleMigrator<TConnection, TMigrationBase>  : ISimpleMigrator
-        where TConnection : ITransactionProvider
         where TMigrationBase : IMigration<TConnection>
     {
         /// <summary>
@@ -20,9 +19,9 @@ namespace SimpleMigrations
         protected IMigrationProvider MigrationProvider { get; }
 
         /// <summary>
-        /// Connection
+        /// Connection provider
         /// </summary>
-        protected TConnection Connection { get; }
+        protected IConnectionProvider<TConnection> ConnectionProvider { get; }
 
         /// <summary>
         /// Version provider, providing access to the version table
@@ -55,26 +54,26 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
         /// <param name="migrationProvider">Migration provider to use to find migration classes</param>
-        /// <param name="connection">Connection to use to communicate with the database</param>
+        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
         /// <param name="versionProvider">Version provider to use to get/set the current version from the database</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
-            TConnection connection,
+            IConnectionProvider<TConnection> connectionProvider,
             IVersionProvider<TConnection> versionProvider,
             ILogger logger = null)
         {
             if (migrationProvider == null)
                 throw new ArgumentNullException(nameof(migrationProvider));
-            if (connection == null)
-                throw new ArgumentNullException(nameof(connection));
+            if (connectionProvider == null)
+                throw new ArgumentNullException(nameof(connectionProvider));
             if (versionProvider == null)
                 throw new ArgumentNullException(nameof(versionProvider));
 
             this.MigrationProvider = migrationProvider;
-            this.Connection = connection;
+            this.ConnectionProvider = connectionProvider;
             this.VersionProvider = versionProvider;
-            this.VersionProvider.SetConnection(connection);
+            this.VersionProvider.SetConnection(connectionProvider.Connection);
             this.Logger = logger;
         }
 
@@ -82,15 +81,15 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
         /// <param name="migrationsAssembly">Assembly to search for migrations</param>
-        /// <param name="connection">Connection to use to communicate with the database</param>
+        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
         /// <param name="versionProvider">Version provider to use to get/set the current version from the database</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
-            TConnection connection,
+            IConnectionProvider<TConnection> connectionProvider,
             IVersionProvider<TConnection> versionProvider,
             ILogger logger = null)
-            : this(new AssemblyMigrationProvider(migrationsAssembly), connection, versionProvider, logger)
+            : this(new AssemblyMigrationProvider(migrationsAssembly), connectionProvider, versionProvider, logger)
         {
         }
 
@@ -285,7 +284,7 @@ namespace SimpleMigrations
             try
             {
                 if (migrationToRun.UseTransaction)
-                    this.Connection.BeginTransaction();
+                    this.ConnectionProvider.BeginTransaction();
 
                 var migration = this.CreateMigration(migrationToRun);
 
@@ -301,14 +300,14 @@ namespace SimpleMigrations
                 this.Logger?.EndMigration(migrationToRun, direction);
 
                 if (migrationToRun.UseTransaction)
-                    this.Connection.CommitTransaction();
+                    this.ConnectionProvider.CommitTransaction();
 
                 this.CurrentMigration = newMigration;
             }
             catch (Exception e)
             {
                 if (migrationToRun.UseTransaction)
-                    this.Connection.RollbackTransaction();
+                    this.ConnectionProvider.RollbackTransaction();
 
                 this.Logger?.EndMigrationWithError(e, migrationToRun, direction);
 
@@ -336,7 +335,7 @@ namespace SimpleMigrations
                 throw new MigrationException($"Unable to create migration {migrationData.FullName}", e);
             }
 
-            instance.DB = this.Connection;
+            instance.DB = this.ConnectionProvider.Connection;
             instance.Logger = this.Logger ?? NullLogger.Instance;
 
             return instance;
