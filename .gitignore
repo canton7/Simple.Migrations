@@ -40,3 +40,4 @@ installer/Output
 *.tmp
 Coverage
 .vs
+TestResult.xml

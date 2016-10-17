@@ -1,0 +1,18 @@
+﻿{
+  "version": "1.0.0-*",
+
+  "dependencies": {
+    "Simple.Migrations": {
+      "target": "project"
+    },
+    "NUnit": "3.4.1",
+    "dotnet-test-nunit": "3.4.0-beta-2",
+    "Moq": "4.5.23"
+  },
+
+  "testRunner": "nunit",
+
+  "frameworks": {
+    "net451": { }
+  }
+}

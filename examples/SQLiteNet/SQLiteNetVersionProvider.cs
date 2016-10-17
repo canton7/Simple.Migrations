@@ -10,21 +10,28 @@ namespace SQLiteNet
 {
     public class SQLiteNetVersionProvider : IVersionProvider<SQLiteConnection>
     {
-        public void EnsureCreated(SQLiteConnection connection)
+        private SQLiteConnection connection;
+
+        public void SetConnection(SQLiteConnection connection)
         {
-            connection.CreateTable<SchemaVersion>();
+            this.connection = connection;
         }
 
-        public long GetCurrentVersion(SQLiteConnection connection)
+        public void EnsureCreated()
+        {
+            this.connection.CreateTable<SchemaVersion>();
+        }
+
+        public long GetCurrentVersion()
         {
             // Return 0 if the table has no entries
-            var latestOrNull = connection.Table<SchemaVersion>().OrderByDescending(x => x.Id).FirstOrDefault();
-            return latestOrNull == null ? 0 : latestOrNull.Version;
+            var latestOrNull = this.connection.Table<SchemaVersion>().OrderByDescending(x => x.Id).FirstOrDefault();
+            return latestOrNull?.Version ?? 0;
         }
 
-        public void UpdateVersion(SQLiteConnection connection, long oldVersion, long newVersion, string newDescription)
+        public void UpdateVersion(long oldVersion, long newVersion, string newDescription)
         {
-            connection.Insert(new SchemaVersion()
+            this.connection.Insert(new SchemaVersion()
             {
                 Version = newVersion,
                 AppliedOn = DateTime.Now,
