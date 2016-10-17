@@ -124,7 +124,7 @@ namespace SimpleMigrations
         /// </summary>
         protected virtual void FindAndSetMigrations()
         {
-            var migrations = this.MigrationProvider.LoadMigrations().ToList();
+            var migrations = this.MigrationProvider.LoadMigrations()?.ToList();
 
             if (migrations == null || migrations.Count == 0)
                 throw new MigrationException("The configured MigrationProvider did not find any migrations");
