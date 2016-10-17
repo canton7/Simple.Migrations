@@ -1,6 +1,6 @@
 ﻿{
   "version": "0.0.0",
-  "title": "SimpleMigrations",
+  "title": "Simple.Migrations",
   "description": "Simple but flexible migrations library",
   "authors": [ "Antony Male" ],
   "copyright": "Copyright 2015-2016 Antony Male",
@@ -50,14 +50,14 @@
 
   "packOptions": {
     "owners": [ "Antony Male" ],
-    "licenseUrl": "http://github.com/canton7/SimpleMigrations/blob/master/LICENSE.txt",
-    "projectUrl": "https://github.com/canton7/SimpleMigrations",
+    "licenseUrl": "http://github.com/canton7/Simple.Migrations/blob/master/LICENSE.txt",
+    "projectUrl": "https://github.com/canton7/Simple.Migrations",
     "repository": {
       "type": "git",
-      "url": "https://github.com/canton7/SimpleMigrations"
+      "url": "https://github.com/canton7/Simple.Migrations"
     },
     "tags": [ "SQL", "Migration" ],
-    "iconUrl": "https://raw.githubusercontent.com/canton7/SimpleMigrations/master/icon.png",
+    "iconUrl": "https://raw.githubusercontent.com/canton7/Simple.Migrations/master/icon.png",
     "requireLicenseAcceptance": false
   }
 }
