@@ -12,7 +12,7 @@ namespace SeparateMigrator
         {
             var migrationsAssembly = typeof(Program).Assembly;
             var db = new SQLiteConnection("DataSource=database.sqlite");
-            var versionProvider = new SQLiteVersionProvider();
+            var versionProvider = new SqliteVersionProvider();
 
             var migrator = new SimpleMigrator(migrationsAssembly, db, versionProvider);
 
