@@ -1,6 +1,7 @@
 require 'json'
 
 SIMPLEMIGRATIONS_DIR = 'src/Simple.Migrations'
+UNIT_TESTS_DIR = 'src/Simple.Migrations.UnitTests'
 
 ASSEMBLY_INFO = File.join(SIMPLEMIGRATIONS_DIR, 'Properties/AssemblyInfo.cs')
 SIMPLEMIGRATIONS_JSON = File.join(SIMPLEMIGRATIONS_DIR, 'project.json')
@@ -29,4 +30,9 @@ end
 desc "Build the project for release"
 task :build do
   sh 'dotnet', 'build', '--configuration=Release', SIMPLEMIGRATIONS_DIR
+end
+
+desc "Run tests"
+task :test do
+  sh 'dotnet', 'test', UNIT_TESTS_DIR
 end

@@ -26,6 +26,9 @@ namespace SimpleMigrations
         /// </summary>
         public void SetConnection(IDbConnection connection)
         {
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
+
             this.connection = connection;
         }
 

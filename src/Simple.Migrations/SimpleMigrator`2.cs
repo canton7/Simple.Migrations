@@ -178,7 +178,7 @@ namespace SimpleMigrations
             this.EnsureLoaded();
 
             if (!this.Migrations.Any(x => x.Version == newVersion))
-                throw new ArgumentException($"Could not find migration with version {newVersion}");
+                throw new ArgumentException($"Could not find migration with version {newVersion}", nameof(newVersion));
 
             var direction = newVersion > this.CurrentMigration.Version ? MigrationDirection.Up : MigrationDirection.Down;
             var migrations = this.FindMigrationsToRun(newVersion, direction).ToList();
@@ -204,11 +204,10 @@ namespace SimpleMigrations
 
             var migration = this.Migrations.FirstOrDefault(x => x.Version == version);
             if (migration == null)
-                throw new ArgumentException($"Could not find migration with version {version}");
+                throw new ArgumentException($"Could not find migration with version {version}", nameof(version));
 
             this.VersionProvider.UpdateVersion(0, version, migration.FullName);
             this.CurrentMigration = migration;
-
         }
 
         /// <summary>

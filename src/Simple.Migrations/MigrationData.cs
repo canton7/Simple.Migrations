@@ -68,5 +68,14 @@ namespace SimpleMigrations
             this.TypeInfo = null;
             this.UseTransaction = false;
         }
+
+        /// <summary>
+        /// Returns a string representation of the object
+        /// </summary>
+        /// <returns>A string representation of the object</returns>
+        public override string ToString()
+        {
+            return $"<{nameof(MigrationData)} Version={this.Version} Description={this.Description} FullName={this.FullName} TypeInfo={this.TypeInfo} UseTransaction={this.UseTransaction}>";
+        }
     }
 }
