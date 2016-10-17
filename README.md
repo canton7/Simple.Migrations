@@ -1,14 +1,14 @@
-![Project Icon](icon.png) SimpleMigrations
-==========================================
+![Project Icon](icon.png) Simple.Migrations
+===========================================
 
 [![NuGet](https://img.shields.io/nuget/v/Simple.Migrations.svg)](https://www.nuget.org/packages/Simple.Migrations/)
 [![Build status](https://ci.appveyor.com/api/projects/status/iub4g6p0qs7onn2b?svg=true)](https://ci.appveyor.com/project/canton7/simplemigrations)
 
-SimpleMigrations is a simple bare-bones migration framework for .NET Core (.NET Standard 1.2 and .NET 4.5). 
+Simple.Migrations is a simple bare-bones migration framework for .NET Core (.NET Standard 1.2 and .NET 4.5). 
 It doesn't provide SQL generation, or an out-of-the-box command-line tool, or other fancy features.
 It does however provide a set of simple, extendable, and composable tools for integrating migrations into your application.
 
-**WARNING: Until SimpleMigrations reaches version 1.0, I reserve the right to make minor backwards-incompatible changes to the API.**
+**WARNING: Until Simple.Migrations reaches version 1.0, I reserve the right to make minor backwards-incompatible changes to the API.**
 
 ### Table of Contents
 
@@ -119,8 +119,8 @@ What's going on here?
 Well, we create a new `SimpleMigrator`, passing in the assembly to search for migrations, the database connection to use to talk to the database, and the version provider to use.
 
 What's a version provider?
-SimpleMigrations uses a table inside your database to track which version the database is at.
-Since difference databases (SQLite, PostgreSQL, etc) will need different commands to create and modify that table, SimpleMigrations uses a version provider to provide that ability. 
+Simple.Migrations uses a table inside your database to track which version the database is at.
+Since difference databases (SQLite, PostgreSQL, etc) will need different commands to create and modify that table, Simple.Migrations uses a version provider to provide that ability. 
 There are a few built-in version providers, or you can easily write your own, see below.
 
 Finally, we create and run a `ConsoleRunner`. 
@@ -157,9 +157,9 @@ If you want to perform more complicated operations on the database (e.g selectin
 Version Providers
 -----------------
 
-SimpleMigrations aims to be as database-agnostic as possible.
-However, there is one place where SimpleMigrations needs to talk to the database directly: the schema version table.
-SimpleMigrations uses a table inside of your database to track which version the database is at, i.e. which migration was most recently applied.
+Simple.Migrations aims to be as database-agnostic as possible.
+However, there is one place where Simple.Migrations needs to talk to the database directly: the schema version table.
+Simple.Migrations uses a table inside of your database to track which version the database is at, i.e. which migration was most recently applied.
 In order to manipulate this, it needs to communicate with your database.
 It does this using version providers.
 
@@ -188,7 +188,7 @@ The currently supported database engines are:
 Connection Providers
 --------------------
 
-SimpleMigrations needs to be able to create, commit, and rollback transactions.
+Simple.Migrations needs to be able to create, commit, and rollback transactions.
 In order to encapsulate this functionality, the interface `IConnectionProvider<TConnection>` exists.
 This is implemented by `ConnectionProvider` for ADO.NET.
 
@@ -264,7 +264,7 @@ This means you can put your migrations inside any assembly you want, and referen
 
 Some common configurations are:
 
- - Main application contains the migrations, and uses SimpleMigrations to automatically migrate on startup.
+ - Main application contains the migrations, and uses Simple.Migrations to automatically migrate on startup.
  - Main application contains the migrations, and there is a separate executable to run migrations. This executable references the main application.
  - Dedicated DLL contains the migrations, which is used by both the main application and a separate executable (used to run migrations).
 
@@ -277,12 +277,12 @@ Example: Using sqlite-net
 -------------------------
 
 [sqlite-net](https://github.com/praeclarum/sqlite-net) is a little SQLite driver and micro-ORM.
-It is not an ADO.NET implementation, and so makes a good example for seeing how SimpleMigrations work with drivers which don't implement ADO.NET.
+It is not an ADO.NET implementation, and so makes a good example for seeing how Simple.Migrations work with drivers which don't implement ADO.NET.
 
 First off, create a new Console Application, and install the sqlite-net NuGet package.
 You'll also need to download `sqlite.dll` and add it to your project.
 
-Next, we'll need to create a number of classes to tell SimpleMigrations how to work with sqlite-net: we'll need a version provider, connection provider, and a base class for the migrations.
+Next, we'll need to create a number of classes to tell Simple.Migrations how to work with sqlite-net: we'll need a version provider, connection provider, and a base class for the migrations.
 
 ### `IConnectionProvider`
 
@@ -320,7 +320,7 @@ public class SQLiteNetConnectionProvider : IConnectionProvider<SQLiteConnection>
 ### `IVersionProvider`
 
 Next, the `IVersionProvider` implementation.
-This is the class which lets SimpleMigrations work with the 'SchemaVersion' table in your database.
+This is the class which lets Simple.Migrations work with the 'SchemaVersion' table in your database.
 Since sqlite-net includes a micro-ORM, let's use that to create, read, and modify the SchemaVersion table, rather than executing raw SQL.
 
 Note that it's not normally advisable to write migrations using C# models: migrations by definition work with lots of different versions of a table, whereas a C# class can only encapsulate one version of a table.
