@@ -1,6 +1,15 @@
 Changelog
 =========
 
+v0.9.4
+------
+
+ - Add support for .NET Core (.NET Standard 1.2)
+ - Add MSSQL and MySQL version providers
+ - Allow migration discovery to be customised, using `IMigrationProvider`
+ - Fix use of transactions with MSSQL
+ - General robustness improvements
+
 v0.9.3
 ------
 
