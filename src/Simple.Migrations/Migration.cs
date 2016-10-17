@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace SimpleMigrations
+﻿namespace SimpleMigrations
 {
     /// <summary>
     /// Base class, intended to be used by all migrations (although you may implement <see cref="IMigration{TDatabase}"/> directly if you wish).

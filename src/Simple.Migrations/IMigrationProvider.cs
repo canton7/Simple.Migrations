@@ -14,6 +14,6 @@ namespace SimpleMigrations
         /// Load all migration info. These can be in any order
         /// </summary>
         /// <returns>All migration info</returns>
-        List<MigrationData> LoadMigrations();
+        IEnumerable<MigrationData> LoadMigrations();
     }
 }

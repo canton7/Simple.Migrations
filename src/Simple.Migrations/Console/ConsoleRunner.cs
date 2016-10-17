@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using System.Reflection;
+﻿using System.Linq;
 using System.Collections.Generic;
 
 namespace SimpleMigrations.Console

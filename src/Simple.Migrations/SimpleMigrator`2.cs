@@ -120,11 +120,11 @@ namespace SimpleMigrations
         }
 
         /// <summary>
-        /// Set this.Migrations, by scanning this.migrationAssembly for migrations
+        /// Load the migrations, and set <see cref="Migrations"/>
         /// </summary>
         protected virtual void FindAndSetMigrations()
         {
-            var migrations = this.MigrationProvider.LoadMigrations();
+            var migrations = this.MigrationProvider.LoadMigrations().ToList();
 
             if (migrations == null || migrations.Count == 0)
                 throw new MigrationException("The configured MigrationProvider did not find any migrations");

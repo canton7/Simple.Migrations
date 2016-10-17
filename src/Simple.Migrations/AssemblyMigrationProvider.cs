@@ -28,12 +28,12 @@ namespace SimpleMigrations
         /// Load all migration info. These can be in any order
         /// </summary>
         /// <returns>All migration info</returns>
-        public List<MigrationData> LoadMigrations()
+        public IEnumerable<MigrationData> LoadMigrations()
         {
-            var migrations = (from type in this.migrationAssembly.DefinedTypes
-                              let attribute = type.GetCustomAttribute<MigrationAttribute>()
-                              where attribute != null
-                              select new MigrationData(attribute.Version, attribute.Description, type, attribute.UseTransaction)).ToList();
+            var migrations = from type in this.migrationAssembly.DefinedTypes
+                             let attribute = type.GetCustomAttribute<MigrationAttribute>()
+                             where attribute != null
+                             select new MigrationData(attribute.Version, attribute.Description, type, attribute.UseTransaction);
 
             if (!migrations.Any())
                 throw new MigrationException($"Could not find any migrations in the assembly you provided ({this.migrationAssembly.GetName().Name}). Migrations must be decorated with [Migration]");
