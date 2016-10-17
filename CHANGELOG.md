@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.5
+------
+
+ - Change nuget package title to 'Simple.Migrations', so NuGet will let us publish again
+
 v0.9.4
 ------
 
