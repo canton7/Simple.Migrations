@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.6
+------
+
+ - No code change: version bump required for build server
+
 v0.9.5
 ------
 
