@@ -129,6 +129,8 @@ namespace SimpleMigrations
                     {
                         using (var command = this.connection.CreateCommand())
                         {
+                            // Just in case we weren't given an ITransactionAwareDbConnection
+                            command.Transaction = transaction;
                             action(command);
                         }
                         transaction.Commit();
