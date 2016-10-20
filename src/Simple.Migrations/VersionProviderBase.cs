@@ -8,12 +8,12 @@ namespace SimpleMigrations
     /// </summary>
     public abstract class VersionProviderBase : IVersionProvider<IDbConnection>
     {
-        /// <summary>
-        /// Default table name used to store version info
-        /// </summary>
-        public const string DefaultTableName = "VersionInfo";
-
         private IDbConnection connection;
+
+        /// <summary>
+        /// Table name used to store version info. Defaults to 'VersionInfo'
+        /// </summary>
+        public string TableName { get; set; } = "VersionInfo";
 
         /// <summary>
         /// Gets or sets a value indicating whether to run <see cref="EnsureCreated"/>

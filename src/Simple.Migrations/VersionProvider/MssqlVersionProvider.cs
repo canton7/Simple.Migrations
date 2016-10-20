@@ -6,11 +6,6 @@
     public class MssqlVersionProvider : VersionProviderBase
     {
         /// <summary>
-        /// Gets or sets the name of the table to use. Defaults to 'VersionInfo'
-        /// </summary>
-        public string TableName { get; set; } = DefaultTableName;
-
-        /// <summary>
         /// Initialises a new instance of the <see cref="MssqlVersionProvider"/> class
         /// </summary>
         public MssqlVersionProvider()
