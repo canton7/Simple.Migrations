@@ -11,6 +11,14 @@
         public string TableName { get; set; } = DefaultTableName;
 
         /// <summary>
+        /// Initialises a new instance of the <see cref="MssqlVersionProvider"/> class
+        /// </summary>
+        public MssqlVersionProvider()
+        {
+            this.MaxDescriptionLength = 256;
+        }
+
+        /// <summary>
         /// Returns SQL to create the version table
         /// </summary>
         /// <returns>SQL to create the version table</returns>
@@ -22,7 +30,7 @@
                     [Id] [int] IDENTITY(1,1)  PRIMARY KEY NOT NULL,
                     [Version] [int] NOT NULL,
                     [AppliedOn] [datetime] NOT NULL,
-                    [Description] [nvarchar](128) NOT NULL,
+                    [Description] [nvarchar]({this.MaxDescriptionLength}) NOT NULL,
                 )
                 END;";
         }

@@ -20,6 +20,12 @@ namespace Simple.Migrations.UnitTests
                 set { base.UseTransaction = value; }
             }
 
+            public new int MaxDescriptionLength
+            {
+                get { return base.MaxDescriptionLength; }
+                set { base.MaxDescriptionLength = value; }
+            }
+
             public string CreateTableSql = "Create Table SQL";
             public override string GetCreateVersionTableSql() => this.CreateTableSql;
 
@@ -205,6 +211,30 @@ namespace Simple.Migrations.UnitTests
 
             param2.VerifySet(x => x.ParameterName = "Description");
             param2.VerifySet(x => x.Value = "Test Description");
+        }
+
+        [Test]
+        public void UpdateVersionTruncatesDescriptionIfNecessary()
+        {
+            this.versionProvider.SetConnection(this.connection.Object);
+
+            this.versionProvider.MaxDescriptionLength = 10;
+
+            var command = new Mock<IDbCommand>();
+            this.connection.Setup(x => x.CreateCommand()).Returns(command.Object);
+
+            var sequence = new MockSequence();
+            var param1 = new Mock<IDbDataParameter>();
+            var param2 = new Mock<IDbDataParameter>();
+            command.InSequence(sequence).Setup(x => x.CreateParameter()).Returns(param1.Object);
+            command.InSequence(sequence).Setup(x => x.CreateParameter()).Returns(param2.Object);
+
+            var commandParameters = new Mock<IDataParameterCollection>();
+            command.Setup(x => x.Parameters).Returns(commandParameters.Object);
+
+            this.versionProvider.UpdateVersion(2, 3, "Test Description");
+
+            param2.VerifySet(x => x.Value = "Test De...");
         }
     }
 }

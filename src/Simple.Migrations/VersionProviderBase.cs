@@ -22,6 +22,14 @@ namespace SimpleMigrations
         protected bool UseTransaction { get; set; }
 
         /// <summary>
+        /// If > 0, specifies the maximum length of the 'Description' field. Descriptions longer will be truncated/
+        /// </summary>
+        /// <remarks>
+        /// Version providers which put a maximum length on the Description field should set this to that length
+        /// </remarks>
+        protected int MaxDescriptionLength { get; set; }
+
+        /// <summary>
         /// Sets the connection to use. Must be set before calling other methods
         /// </summary>
         public void SetConnection(IDbConnection connection)
@@ -94,6 +102,11 @@ namespace SimpleMigrations
         public virtual void UpdateVersion(long oldVersion, long newVersion, string newDescription)
         {
             this.EnsureSetup();
+
+            if (this.MaxDescriptionLength > 0 && newDescription.Length > this.MaxDescriptionLength)
+            {
+                newDescription = newDescription.Substring(0, this.MaxDescriptionLength - 3) + "...";
+            }
 
             using (var command = this.connection.CreateCommand())
             {
