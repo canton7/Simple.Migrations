@@ -14,7 +14,7 @@ namespace Simple.Migrations.UnitTests
         private Mock<ITransactionAwareDbConnection> connection;
         private Mock<IMigrationProvider> migrationProvider;
         private Mock<IConnectionProvider<ITransactionAwareDbConnection>> connectionProvider;
-        private Mock<IVersionProvider<ITransactionAwareDbConnection>> versionProvider;
+        private Mock<IDatabaseProvider<ITransactionAwareDbConnection>> databaseProvider;
 
         [SetUp]
         public void SetUp()
@@ -22,7 +22,7 @@ namespace Simple.Migrations.UnitTests
             this.connection = new Mock<ITransactionAwareDbConnection>();
             this.migrationProvider = new Mock<IMigrationProvider>();
             this.connectionProvider = new Mock<IConnectionProvider<ITransactionAwareDbConnection>>();
-            this.versionProvider = new Mock<IVersionProvider<ITransactionAwareDbConnection>>();
+            this.databaseProvider = new Mock<IDatabaseProvider<ITransactionAwareDbConnection>>();
 
             this.connectionProvider.Setup(x => x.Connection).Returns(this.connection.Object);
         }
@@ -30,9 +30,9 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void CtorSetsVersionProviderConnection()
         {
-            var migrator = new SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>>(this.migrationProvider.Object, this.connectionProvider.Object, this.versionProvider.Object);
+            var migrator = new SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>>(this.migrationProvider.Object, this.connectionProvider.Object, this.databaseProvider.Object);
 
-            this.versionProvider.Verify(x => x.SetConnection(this.connection.Object));
+            this.databaseProvider.Verify(x => x.SetConnection(this.connection.Object));
         }
     }
 }

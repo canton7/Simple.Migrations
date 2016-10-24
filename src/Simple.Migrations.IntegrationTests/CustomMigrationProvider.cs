@@ -21,7 +21,7 @@ namespace Simple.Migrations.IntegrationTests
             this.migrations = migrations.ToList();
         }
 
-        public List<MigrationData> LoadMigrations()
+        public IEnumerable<MigrationData> LoadMigrations()
         {
             return this.migrations.ToList();
         }

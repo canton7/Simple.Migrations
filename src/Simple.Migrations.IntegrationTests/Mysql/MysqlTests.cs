@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using NUnit.Framework;
 using SimpleMigrations;
-using SimpleMigrations.VersionProvider;
+using SimpleMigrations.DatabaseProvider;
 
 namespace Simple.Migrations.IntegrationTests.Mysql
 {
@@ -20,7 +20,7 @@ namespace Simple.Migrations.IntegrationTests.Mysql
         {
             this.connection = new MySqlConnection(ConnectionStrings.MySQL);
             var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MysqlVersionProvider(), new NUnitLogger());
+            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MysqlDatabaseProvider(), new NUnitLogger());
 
             this.migrator.Load();
         }

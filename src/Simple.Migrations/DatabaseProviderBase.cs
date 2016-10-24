@@ -4,9 +4,9 @@ using System.Data;
 namespace SimpleMigrations
 {
     /// <summary>
-    /// Version provider which acts by maintaining a table of applied versions
+    /// Database provider which acts by maintaining a table of applied versions
     /// </summary>
-    public abstract class VersionProviderBase : IVersionProvider<IDbConnection>
+    public abstract class DatabaseProviderBase : IDatabaseProvider<IDbConnection>
     {
         private IDbConnection connection;
 
@@ -25,7 +25,7 @@ namespace SimpleMigrations
         /// If > 0, specifies the maximum length of the 'Description' field. Descriptions longer will be truncated/
         /// </summary>
         /// <remarks>
-        /// Version providers which put a maximum length on the Description field should set this to that length
+        /// Database providers which put a maximum length on the Description field should set this to that length
         /// </remarks>
         protected int MaxDescriptionLength { get; set; }
 
@@ -86,7 +86,7 @@ namespace SimpleMigrations
                 }
                 catch
                 {
-                    throw new MigrationException("Version Provider returns a value for the current version which isn't a long");
+                    throw new MigrationException("Database Provider returns a value for the current version which isn't a long");
                 }
             });
 

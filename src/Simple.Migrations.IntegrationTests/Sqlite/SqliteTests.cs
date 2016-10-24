@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using NUnit.Framework;
 using SimpleMigrations;
-using SimpleMigrations.VersionProvider;
+using SimpleMigrations.DatabaseProvider;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ namespace Simple.Migrations.IntegrationTests.Sqlite
         {
             this.connection = new SqliteConnection(ConnectionStrings.SQLite);
             var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new SqliteVersionProvider(), new NUnitLogger());
+            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new SqliteDatabaseProvider(), new NUnitLogger());
 
             this.migrator.Load();
         }

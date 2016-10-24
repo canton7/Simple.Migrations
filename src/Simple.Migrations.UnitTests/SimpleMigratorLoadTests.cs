@@ -34,7 +34,7 @@ namespace Simple.Migrations.UnitTests
         private Mock<ITransactionAwareDbConnection> connection;
         private Mock<IMigrationProvider> migrationProvider;
         private Mock<IConnectionProvider<ITransactionAwareDbConnection>> connectionProvider;
-        private Mock<IVersionProvider<ITransactionAwareDbConnection>> versionProvider;
+        private Mock<IDatabaseProvider<ITransactionAwareDbConnection>> databaseProvider;
 
         private SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>> migrator;
 
@@ -44,11 +44,11 @@ namespace Simple.Migrations.UnitTests
             this.connection = new Mock<ITransactionAwareDbConnection>();
             this.migrationProvider = new Mock<IMigrationProvider>();
             this.connectionProvider = new Mock<IConnectionProvider<ITransactionAwareDbConnection>>();
-            this.versionProvider = new Mock<IVersionProvider<ITransactionAwareDbConnection>>();
+            this.databaseProvider = new Mock<IDatabaseProvider<ITransactionAwareDbConnection>>();
 
             this.connectionProvider.Setup(x => x.Connection).Returns(this.connection.Object);
 
-            this.migrator = new SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>>(this.migrationProvider.Object, this.connectionProvider.Object, this.versionProvider.Object);
+            this.migrator = new SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>>(this.migrationProvider.Object, this.connectionProvider.Object, this.databaseProvider.Object);
         }
 
         [Test]
@@ -127,7 +127,7 @@ namespace Simple.Migrations.UnitTests
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
-            this.versionProvider.Setup(x => x.GetCurrentVersion()).Returns(1);
+            this.databaseProvider.Setup(x => x.GetCurrentVersion()).Returns(1);
 
             Assert.That(() => this.migrator.Load(), Throws.InstanceOf<MigrationException>());
         }
@@ -141,7 +141,7 @@ namespace Simple.Migrations.UnitTests
                 new MigrationData(2, "Migration 2", typeof(ValidMigration2).GetTypeInfo(), true),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
-            this.versionProvider.Setup(x => x.GetCurrentVersion()).Returns(2);
+            this.databaseProvider.Setup(x => x.GetCurrentVersion()).Returns(2);
 
             this.migrator.Load();
 
@@ -174,7 +174,7 @@ namespace Simple.Migrations.UnitTests
 
             this.migrator.Load();
 
-            this.versionProvider.Verify(x => x.EnsureCreated());
+            this.databaseProvider.Verify(x => x.EnsureCreated());
         }
     }
 }

@@ -1,14 +1,14 @@
-﻿namespace SimpleMigrations.VersionProvider
+﻿namespace SimpleMigrations.DatabaseProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an MSSQL database
     /// </summary>
-    public class MssqlVersionProvider : VersionProviderBase
+    public class MssqlDatabaseProvider : DatabaseProviderBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="MssqlVersionProvider"/> class
+        /// Initialises a new instance of the <see cref="MssqlDatabaseProvider"/> class
         /// </summary>
-        public MssqlVersionProvider()
+        public MssqlDatabaseProvider()
         {
             this.MaxDescriptionLength = 256;
         }

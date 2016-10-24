@@ -1,10 +1,10 @@
 ﻿namespace SimpleMigrations
 {
     /// <summary>
-    /// Interface representing the ability to interact with the Version table in the database
+    /// Interface representing database-type-specific operations which needs to be performed
     /// </summary>
     /// <typeparam name="TConection">Type of database connection</typeparam>
-    public interface IVersionProvider<in TConection>
+    public interface IDatabaseProvider<in TConection>
     {
         /// <summary>
         /// Sets the connection to use. Must be set before calling other methods

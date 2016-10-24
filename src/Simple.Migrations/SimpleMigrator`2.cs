@@ -24,9 +24,9 @@ namespace SimpleMigrations
         protected IConnectionProvider<TConnection> ConnectionProvider { get; }
 
         /// <summary>
-        /// Version provider, providing access to the version table
+        /// Database provider, providing access to the version table, etc
         /// </summary>
-        protected IVersionProvider<TConnection> VersionProvider { get; }
+        protected IDatabaseProvider<TConnection> DatabaseProvider { get; }
 
         /// <summary>
         /// Gets and sets the logger to use. May be null
@@ -55,25 +55,25 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="migrationProvider">Migration provider to use to find migration classes</param>
         /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
-        /// <param name="versionProvider">Version provider to use to get/set the current version from the database</param>
+        /// <param name="databaseProvider">Database provider to use to interact with the version table, etc</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
             IConnectionProvider<TConnection> connectionProvider,
-            IVersionProvider<TConnection> versionProvider,
+            IDatabaseProvider<TConnection> databaseProvider,
             ILogger logger = null)
         {
             if (migrationProvider == null)
                 throw new ArgumentNullException(nameof(migrationProvider));
             if (connectionProvider == null)
                 throw new ArgumentNullException(nameof(connectionProvider));
-            if (versionProvider == null)
-                throw new ArgumentNullException(nameof(versionProvider));
+            if (databaseProvider == null)
+                throw new ArgumentNullException(nameof(databaseProvider));
 
             this.MigrationProvider = migrationProvider;
             this.ConnectionProvider = connectionProvider;
-            this.VersionProvider = versionProvider;
-            this.VersionProvider.SetConnection(connectionProvider.Connection);
+            this.DatabaseProvider = databaseProvider;
+            this.DatabaseProvider.SetConnection(connectionProvider.Connection);
             this.Logger = logger;
         }
 
@@ -82,14 +82,14 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="migrationsAssembly">Assembly to search for migrations</param>
         /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
-        /// <param name="versionProvider">Version provider to use to get/set the current version from the database</param>
+        /// <param name="databaseProvider">Database provider to use to interact with the version table, etc</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
             IConnectionProvider<TConnection> connectionProvider,
-            IVersionProvider<TConnection> versionProvider,
+            IDatabaseProvider<TConnection> databaseProvider,
             ILogger logger = null)
-            : this(new AssemblyMigrationProvider(migrationsAssembly), connectionProvider, versionProvider, logger)
+            : this(new AssemblyMigrationProvider(migrationsAssembly), connectionProvider, databaseProvider, logger)
         {
         }
 
@@ -110,7 +110,7 @@ namespace SimpleMigrations
             if (this.isLoaded)
                 return;
 
-            this.VersionProvider.EnsureCreated();
+            this.DatabaseProvider.EnsureCreated();
 
             this.FindAndSetMigrations();
             this.SetCurrentVersion();
@@ -151,7 +151,7 @@ namespace SimpleMigrations
         /// </summary>
         protected virtual void SetCurrentVersion()
         {
-            var currentVersion = this.VersionProvider.GetCurrentVersion();
+            var currentVersion = this.DatabaseProvider.GetCurrentVersion();
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             if (currentMigration == null)
                 throw new MigrationException($"Unable to find migration with the current version: {currentVersion}");
@@ -206,7 +206,7 @@ namespace SimpleMigrations
             if (migration == null)
                 throw new ArgumentException($"Could not find migration with version {version}", nameof(version));
 
-            this.VersionProvider.UpdateVersion(0, version, migration.FullName);
+            this.DatabaseProvider.UpdateVersion(0, version, migration.FullName);
             this.CurrentMigration = migration;
         }
 
@@ -294,7 +294,7 @@ namespace SimpleMigrations
                 else
                     migration.Down();
 
-                this.VersionProvider.UpdateVersion(oldMigration.Version, newMigration.Version, newMigration.FullName);
+                this.DatabaseProvider.UpdateVersion(oldMigration.Version, newMigration.Version, newMigration.FullName);
 
                 this.Logger?.EndMigration(migrationToRun, direction);
 

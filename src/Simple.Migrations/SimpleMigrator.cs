@@ -13,14 +13,14 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="migrationProvider">Migration provider to use to find migration classes</param>
         /// <param name="connection">Connection to use to communicate with the database</param>
-        /// <param name="versionProvider"><see cref="IVersionProvider{TDatabase}"/> implementation to use</param>
+        /// <param name="databaseProvider"><see cref="IDatabaseProvider{TDatabase}"/> implementation to use</param>
         /// <param name="logger">Logger to use to log progress</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
             IDbConnection connection,
-            IVersionProvider<IDbConnection> versionProvider,
+            IDatabaseProvider<IDbConnection> databaseProvider,
             ILogger logger = null)
-            : base(migrationProvider, new ConnectionProvider(connection), versionProvider, logger)
+            : base(migrationProvider, new ConnectionProvider(connection), databaseProvider, logger)
         {
         }
 
@@ -29,14 +29,14 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="migrationsAssembly">Assembly to search for migrations</param>
         /// <param name="connection">Connection to use to communicate with the database</param>
-        /// <param name="versionProvider"><see cref="IVersionProvider{TDatabase}"/> implementation to use</param>
+        /// <param name="databaseProvider"><see cref="IDatabaseProvider{TDatabase}"/> implementation to use</param>
         /// <param name="logger">Logger to use to log progress</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
             IDbConnection connection,
-            IVersionProvider<IDbConnection> versionProvider,
+            IDatabaseProvider<IDbConnection> databaseProvider,
             ILogger logger = null)
-            : base(migrationsAssembly, new ConnectionProvider(connection), versionProvider, logger)
+            : base(migrationsAssembly, new ConnectionProvider(connection), databaseProvider, logger)
         {
         }
 

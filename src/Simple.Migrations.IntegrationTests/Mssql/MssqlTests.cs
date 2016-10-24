@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
-using SimpleMigrations.VersionProvider;
+using SimpleMigrations.DatabaseProvider;
 
 namespace Simple.Migrations.IntegrationTests.Mssql
 {
@@ -20,7 +20,7 @@ namespace Simple.Migrations.IntegrationTests.Mssql
         {
             this.connection = new SqlConnection(ConnectionStrings.MSSQL);
             var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MssqlVersionProvider(), new NUnitLogger());
+            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MssqlDatabaseProvider(), new NUnitLogger());
 
             this.migrator.Load();
         }

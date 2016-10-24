@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 namespace Simple.Migrations.UnitTests
 {
     [TestFixture]
-    public class VersionProviderBaseTests : AssertionHelper
+    public class DatabaseProviderBaseTests : AssertionHelper
     {
-        private class VersionProvider : VersionProviderBase
+        private class VersionProvider : DatabaseProviderBase
         {
             public new bool UseTransaction
             {
@@ -36,13 +36,13 @@ namespace Simple.Migrations.UnitTests
             public override string GetSetVersionSql() => this.SetVersionSql;
         }
 
-        private VersionProvider versionProvider;
+        private VersionProvider databaseProvider;
         private Mock<IDbConnection> connection;
 
         [SetUp]
         public void SetUp()
         {
-            this.versionProvider = new VersionProvider();
+            this.databaseProvider = new VersionProvider();
 
             this.connection = new Mock<IDbConnection>();
         }
@@ -50,19 +50,19 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void SetConnectionThrowsIfConnectionIsNull()
         {
-            Expect(() => this.versionProvider.SetConnection(null), Throws.ArgumentNullException.With.Property("ParamName").EqualTo("connection"));
+            Expect(() => this.databaseProvider.SetConnection(null), Throws.ArgumentNullException.With.Property("ParamName").EqualTo("connection"));
         }
 
         [Test]
         public void EnsureCreatedThrowsIfConnectionNotSet()
         {
-            Expect(() => this.versionProvider.EnsureCreated(), Throws.InvalidOperationException);
+            Expect(() => this.databaseProvider.EnsureCreated(), Throws.InvalidOperationException);
         }
 
         [Test]
         public void EnsureCreatedRunsCreateTableSqlInsideATransactionIfConfigured()
         {
-            this.versionProvider.SetConnection(this.connection.Object);
+            this.databaseProvider.SetConnection(this.connection.Object);
 
             var transaction = new Mock<IDbTransaction>();
             this.connection.Setup(x => x.BeginTransaction(IsolationLevel.Serializable)).Returns(transaction.Object);
@@ -70,9 +70,9 @@ namespace Simple.Migrations.UnitTests
             var command = new Mock<IDbCommand>();
             this.connection.Setup(x => x.CreateCommand()).Returns(command.Object);
 
-            this.versionProvider.UseTransaction = true;
+            this.databaseProvider.UseTransaction = true;
 
-            this.versionProvider.EnsureCreated();
+            this.databaseProvider.EnsureCreated();
 
             command.VerifySet(x => x.Transaction = transaction.Object);
             command.VerifySet(x => x.CommandText = "Create Table SQL");
@@ -84,14 +84,14 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void EnsureCreatedRunsCreateTableSqlOutsideATransactionIfConfigured()
         {
-            this.versionProvider.SetConnection(this.connection.Object);
+            this.databaseProvider.SetConnection(this.connection.Object);
 
             var command = new Mock<IDbCommand>();
             this.connection.Setup(x => x.CreateCommand()).Returns(command.Object);
 
-            this.versionProvider.UseTransaction = false;
+            this.databaseProvider.UseTransaction = false;
 
-            this.versionProvider.EnsureCreated();
+            this.databaseProvider.EnsureCreated();
 
             command.VerifySet(x => x.CommandText = "Create Table SQL");
             command.Verify(x => x.ExecuteNonQuery());
@@ -100,13 +100,13 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void GetCurrentVersionThrowsIfConnectionNotSet()
         {
-            Expect(() => this.versionProvider.GetCurrentVersion(), Throws.InvalidOperationException);
+            Expect(() => this.databaseProvider.GetCurrentVersion(), Throws.InvalidOperationException);
         }
 
         [Test]
         public void GetCurrentVersionRunsInATransactionIfRequested()
         {
-            this.versionProvider.SetConnection(this.connection.Object);
+            this.databaseProvider.SetConnection(this.connection.Object);
 
             var transaction = new Mock<IDbTransaction>();
             this.connection.Setup(x => x.BeginTransaction(IsolationLevel.Serializable)).Returns(transaction.Object);
@@ -116,8 +116,8 @@ namespace Simple.Migrations.UnitTests
 
             command.Setup(x => x.ExecuteScalar()).Returns(4).Verifiable();
 
-            this.versionProvider.UseTransaction = true;
-            this.versionProvider.GetCurrentVersion();
+            this.databaseProvider.UseTransaction = true;
+            this.databaseProvider.GetCurrentVersion();
 
             transaction.Verify(x => x.Commit());
             command.VerifySet(x => x.CommandText = "Get Current Version SQL");
@@ -128,15 +128,15 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void GetCurrentVersionReturnsTheCurrentVersion()
         {
-            this.versionProvider.SetConnection(this.connection.Object);
+            this.databaseProvider.SetConnection(this.connection.Object);
 
             var command = new Mock<IDbCommand>();
             this.connection.Setup(x => x.CreateCommand()).Returns(command.Object);
 
             command.Setup(x => x.ExecuteScalar()).Returns((object)4);
 
-            this.versionProvider.UseTransaction = false;
-            long version = this.versionProvider.GetCurrentVersion();
+            this.databaseProvider.UseTransaction = false;
+            long version = this.databaseProvider.GetCurrentVersion();
 
             Expect(version, EqualTo(4));
             command.VerifySet(x => x.CommandText = "Get Current Version SQL");
@@ -145,15 +145,15 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void GetCurrentVersionReturnsZeroIfCommandReturnsNull()
         {
-            this.versionProvider.SetConnection(this.connection.Object);
+            this.databaseProvider.SetConnection(this.connection.Object);
 
             var command = new Mock<IDbCommand>();
             this.connection.Setup(x => x.CreateCommand()).Returns(command.Object);
 
             command.Setup(x => x.ExecuteScalar()).Returns(null).Verifiable();
 
-            this.versionProvider.UseTransaction = false;
-            long version = this.versionProvider.GetCurrentVersion();
+            this.databaseProvider.UseTransaction = false;
+            long version = this.databaseProvider.GetCurrentVersion();
 
             Expect(version, EqualTo(0));
             command.Verify();
@@ -162,27 +162,27 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void GetCurrentVersionThrowsMigrationExceptionIfResultCannotBeConvertedToLong()
         {
-            this.versionProvider.SetConnection(this.connection.Object);
+            this.databaseProvider.SetConnection(this.connection.Object);
 
             var command = new Mock<IDbCommand>();
             this.connection.Setup(x => x.CreateCommand()).Returns(command.Object);
 
             command.Setup(x => x.ExecuteScalar()).Returns("not a number");
 
-            this.versionProvider.UseTransaction = false;
-            Expect(() => this.versionProvider.GetCurrentVersion(), Throws.InstanceOf<MigrationException>());
+            this.databaseProvider.UseTransaction = false;
+            Expect(() => this.databaseProvider.GetCurrentVersion(), Throws.InstanceOf<MigrationException>());
         }
 
         [Test]
         public void UpdateVersionThrowsIfConnectionNotSet()
         {
-            Expect(() => this.versionProvider.UpdateVersion(1, 2, "Test"), Throws.InvalidOperationException);
+            Expect(() => this.databaseProvider.UpdateVersion(1, 2, "Test"), Throws.InvalidOperationException);
         }
 
         [Test]
         public void UpdateVersionUpdatesVersion()
         {
-            this.versionProvider.SetConnection(this.connection.Object);
+            this.databaseProvider.SetConnection(this.connection.Object);
 
             var command = new Mock<IDbCommand>();
             this.connection.Setup(x => x.CreateCommand()).Returns(command.Object);
@@ -196,8 +196,8 @@ namespace Simple.Migrations.UnitTests
             var commandParameters = new Mock<IDataParameterCollection>();
             command.Setup(x => x.Parameters).Returns(commandParameters.Object);
 
-            this.versionProvider.UseTransaction = true;
-            this.versionProvider.UpdateVersion(2, 3, "Test Description");
+            this.databaseProvider.UseTransaction = true;
+            this.databaseProvider.UpdateVersion(2, 3, "Test Description");
 
             command.VerifySet(x => x.CommandText = "Set Version SQL");
             command.Verify(x => x.ExecuteNonQuery());
@@ -216,9 +216,9 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void UpdateVersionTruncatesDescriptionIfNecessary()
         {
-            this.versionProvider.SetConnection(this.connection.Object);
+            this.databaseProvider.SetConnection(this.connection.Object);
 
-            this.versionProvider.MaxDescriptionLength = 10;
+            this.databaseProvider.MaxDescriptionLength = 10;
 
             var command = new Mock<IDbCommand>();
             this.connection.Setup(x => x.CreateCommand()).Returns(command.Object);
@@ -232,7 +232,7 @@ namespace Simple.Migrations.UnitTests
             var commandParameters = new Mock<IDataParameterCollection>();
             command.Setup(x => x.Parameters).Returns(commandParameters.Object);
 
-            this.versionProvider.UpdateVersion(2, 3, "Test Description");
+            this.databaseProvider.UpdateVersion(2, 3, "Test Description");
 
             param2.VerifySet(x => x.Value = "Test De...");
         }

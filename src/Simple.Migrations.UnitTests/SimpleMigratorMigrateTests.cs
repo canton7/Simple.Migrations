@@ -67,7 +67,7 @@ namespace Simple.Migrations.UnitTests
         private Mock<ITransactionAwareDbConnection> connection;
         private Mock<IMigrationProvider> migrationProvider;
         private Mock<IConnectionProvider<ITransactionAwareDbConnection>> connectionProvider;
-        private Mock<IVersionProvider<ITransactionAwareDbConnection>> versionProvider;
+        private Mock<IDatabaseProvider<ITransactionAwareDbConnection>> databaseProvider;
         private Mock<ILogger> logger;
 
         private List<MigrationData> migrations;
@@ -83,12 +83,12 @@ namespace Simple.Migrations.UnitTests
             this.connection = new Mock<ITransactionAwareDbConnection>();
             this.migrationProvider = new Mock<IMigrationProvider>();
             this.connectionProvider = new Mock<IConnectionProvider<ITransactionAwareDbConnection>>();
-            this.versionProvider = new Mock<IVersionProvider<ITransactionAwareDbConnection>>();
+            this.databaseProvider = new Mock<IDatabaseProvider<ITransactionAwareDbConnection>>();
             this.logger = new Mock<ILogger>();
 
             this.connectionProvider.Setup(x => x.Connection).Returns(this.connection.Object);
 
-            this.migrator = new SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>>(this.migrationProvider.Object, this.connectionProvider.Object, this.versionProvider.Object, this.logger.Object);
+            this.migrator = new SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>>(this.migrationProvider.Object, this.connectionProvider.Object, this.databaseProvider.Object, this.logger.Object);
 
             this.migrations = new List<MigrationData>()
             {
@@ -109,7 +109,7 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void BaselineThrowsIfRequestedVersionDoesNotExist()
         {
-            this.versionProvider.Setup(x => x.GetCurrentVersion()).Returns(0);
+            this.databaseProvider.Setup(x => x.GetCurrentVersion()).Returns(0);
             this.migrator.Load();
 
             Expect(() => this.migrator.Baseline(3), Throws.ArgumentException.With.Property("ParamName").EqualTo("version"));
@@ -122,7 +122,7 @@ namespace Simple.Migrations.UnitTests
 
             this.migrator.Baseline(1);
 
-            this.versionProvider.Verify(x => x.UpdateVersion(0, 1, "Migration1 (Migration 1)"));
+            this.databaseProvider.Verify(x => x.UpdateVersion(0, 1, "Migration1 (Migration 1)"));
             Expect(this.migrator.CurrentMigration, EqualTo(this.migrations[0]));
         }
 
@@ -145,7 +145,7 @@ namespace Simple.Migrations.UnitTests
             Expect(Migration1.DownCalled, False);
             Expect(Migration2.UpCalled, False);
             Expect(Migration2.DownCalled, False);
-            this.versionProvider.Verify(x => x.UpdateVersion(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>()), Times.Never());
+            this.databaseProvider.Verify(x => x.UpdateVersion(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>()), Times.Never());
         }
 
         [Test]
@@ -154,13 +154,13 @@ namespace Simple.Migrations.UnitTests
             this.LoadMigrator(0);
 
             int sequence = 0;
-            this.versionProvider.Setup(x => x.UpdateVersion(0, 1, "Migration1 (Migration 1)")).Callback(() =>
+            this.databaseProvider.Setup(x => x.UpdateVersion(0, 1, "Migration1 (Migration 1)")).Callback(() =>
             {
                 Expect(sequence++, EqualTo(0));
                 Expect(Migration1.UpCalled, True);
                 Expect(Migration2.UpCalled, False);
             }).Verifiable();
-            this.versionProvider.Setup(x => x.UpdateVersion(1, 2, "Migration2 (Migration 2)")).Callback(() =>
+            this.databaseProvider.Setup(x => x.UpdateVersion(1, 2, "Migration2 (Migration 2)")).Callback(() =>
             {
                 Expect(sequence++, EqualTo(1));
                 Expect(Migration2.UpCalled, True);
@@ -168,7 +168,7 @@ namespace Simple.Migrations.UnitTests
 
             this.migrator.MigrateTo(2);
 
-            this.versionProvider.VerifyAll();
+            this.databaseProvider.VerifyAll();
 
             Expect(Migration1.DownCalled, False);
             Expect(Migration2.DownCalled, False);
@@ -180,13 +180,13 @@ namespace Simple.Migrations.UnitTests
             this.LoadMigrator(2);
 
             int sequence = 0;
-            this.versionProvider.Setup(x => x.UpdateVersion(2, 1, "Migration1 (Migration 1)")).Callback(() =>
+            this.databaseProvider.Setup(x => x.UpdateVersion(2, 1, "Migration1 (Migration 1)")).Callback(() =>
             {
                 Expect(sequence++, EqualTo(0));
                 Expect(Migration2.DownCalled, True);
                 Expect(Migration1.DownCalled, False);
             }).Verifiable();
-            this.versionProvider.Setup(x => x.UpdateVersion(1, 0, "Empty Schema")).Callback(() =>
+            this.databaseProvider.Setup(x => x.UpdateVersion(1, 0, "Empty Schema")).Callback(() =>
             {
                 Expect(sequence++, EqualTo(1));
                 Expect(Migration1.DownCalled, True);
@@ -194,7 +194,7 @@ namespace Simple.Migrations.UnitTests
 
             this.migrator.MigrateTo(0);
 
-            this.versionProvider.VerifyAll();
+            this.databaseProvider.VerifyAll();
 
             Expect(Migration1.UpCalled, False);
             Expect(Migration2.UpCalled, False);
@@ -210,7 +210,7 @@ namespace Simple.Migrations.UnitTests
 
             Expect(() => this.migrator.MigrateTo(2), Throws.Exception.EqualTo(e));
 
-            this.versionProvider.Verify(x => x.UpdateVersion(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>()), Times.Never());
+            this.databaseProvider.Verify(x => x.UpdateVersion(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>()), Times.Never());
             Expect(this.migrator.CurrentMigration.Version, EqualTo(0));
             Expect(Migration1.DownCalled, False);
         }
@@ -223,13 +223,13 @@ namespace Simple.Migrations.UnitTests
 
             this.connectionProvider.Setup(x => x.BeginTransaction()).Callback(() => Expect(sequence++, EqualTo(0))).Verifiable();
             Migration1.Callback = _ => Expect(sequence++, EqualTo(1));
-            this.versionProvider.Setup(x => x.UpdateVersion(0, 1, "Migration1 (Migration 1)")).Callback(() => Expect(sequence++, EqualTo(2))).Verifiable();
+            this.databaseProvider.Setup(x => x.UpdateVersion(0, 1, "Migration1 (Migration 1)")).Callback(() => Expect(sequence++, EqualTo(2))).Verifiable();
             this.connectionProvider.Setup(x => x.CommitTransaction()).Callback(() => Expect(sequence++, EqualTo(3))).Verifiable();
 
             this.migrator.MigrateTo(1);
 
             this.connectionProvider.VerifyAll();
-            this.versionProvider.VerifyAll();
+            this.databaseProvider.VerifyAll();
         }
 
         [Test]
@@ -274,7 +274,7 @@ namespace Simple.Migrations.UnitTests
 
         private void LoadMigrator(long currentVersion)
         {
-            this.versionProvider.Setup(x => x.GetCurrentVersion()).Returns(currentVersion);
+            this.databaseProvider.Setup(x => x.GetCurrentVersion()).Returns(currentVersion);
             this.migrator.Load();
         }
     }

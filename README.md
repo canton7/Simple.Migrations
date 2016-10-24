@@ -15,7 +15,7 @@ It does however provide a set of simple, extendable, and composable tools for in
 1. [Installation](#installation)
 2. [Quick Start](#quick-start)
 3. [Migrations](#migrations)
-4. [Version Providers](#version-providers)
+4. [Database Providers](#database-providers)
 5. [Connection Providers](#connection-providers)
 6. [SimpleMigrator](#simplemigrator)
 7. [ConsoleRunner](#consolerunner)
@@ -104,9 +104,9 @@ class Program
     {
         var migrationsAssembly = typeof(Program).Assembly;
         var db = new SQLiteConnection("DataSource=database.sqlite");
-        var versionProvider = new SqliteVersionProvider();
+        var databaseProvider = new SqliteDatabaseProvider();
 
-        var migrator = new SimpleMigrator(migrationsAssembly, db, versionProvider);
+        var migrator = new SimpleMigrator(migrationsAssembly, db, databaseProvider);
 
         // Note: ConsoleRunner is only available in .NET Standard 1.3 and .NET 4.5 (not .NET Standard 1.2)
         var consoleRunner = new ConsoleRunner(migrator);
@@ -118,10 +118,10 @@ class Program
 What's going on here? 
 Well, we create a new `SimpleMigrator`, passing in the assembly to search for migrations, the database connection to use to talk to the database, and the version provider to use.
 
-What's a version provider?
+What's a database provider?
 Simple.Migrations uses a table inside your database to track which version the database is at.
-Since difference databases (SQLite, PostgreSQL, etc) will need different commands to create and modify that table, Simple.Migrations uses a version provider to provide that ability. 
-There are a few built-in version providers, or you can easily write your own, see below.
+Since difference databases (SQLite, PostgreSQL, etc) will need different commands to create and modify that table, Simple.Migrations uses a database provider to provide that ability. 
+There are a few built-in database providers, or you can easily write your own, see below.
 
 Finally, we create and run a `ConsoleRunner`. 
 This is a little helper class which gives you a nice command-line interface for running migrations.
@@ -154,35 +154,35 @@ If you want to perform more complicated operations on the database (e.g selectin
 [`Dapper`](https://github.com/StackExchange/dapper-dot-net) may make your life easier here (it works by providing extension methods on `IDbConnection`), or you can create your own migration base class which uses a specific type of database connection, and add your own helpers methods to it.
 
 
-Version Providers
------------------
+Database Providers
+------------------
 
 Simple.Migrations aims to be as database-agnostic as possible.
 However, there is one place where Simple.Migrations needs to talk to the database directly: the schema version table.
 Simple.Migrations uses a table inside of your database to track which version the database is at, i.e. which migration was most recently applied.
 In order to manipulate this, it needs to communicate with your database.
-It does this using version providers.
+It does this using database providers.
 
-A version provider is a class which implements `IVersionProvider<TConnection>`.
+A database provider is a class which implements `IDatabaseProvider<TConnection>`.
 This interface describes methods which:
 
  - Ensure that the version table is created
  - Fetch the current schema version from the database
  - Update the current schema version (up and down)
 
-A helper class, `VersionProviderBase`, assumes an ADO.NET connection and implements `IVersionProvider<IDbConnection>`.
-This class provides methods for executing SQL to perform the operations required by `IVersionProvider`, and has abstract methods which child classes can use to provide that SQL.
+A helper class, `DatabaseProviderBase`, assumes an ADO.NET connection and implements `IDatabaseProvider<IDbConnection>`.
+This class provides methods for executing SQL to perform the operations required by `IDatabaseProvider`, and has abstract methods which child classes can use to provide that SQL.
 
-A few implementations of `VersionProviderBase` have been provided, which provide access to the schema version table for a small number of database engines.
-If you're not using one of these database engines, you'll have to write your own version provider.
+A few implementations of `DatabaseProviderBase` have been provided, which provide access to the schema version table for a small number of database engines.
+If you're not using one of these database engines, you'll have to write your own database provider.
 Subissions to support more database engines are readily accepted!
 
 The currently supported database engines are:
 
- - MSSQL (`VersionProviders.MssqlVersionProvider`)
- - SQLite (`VersionProviders.SqliteVersionProvider`)
- - PostgreSQL (`VersionProviders.PostgresSQLVersionProvider`)
- - MySQL (`VersionProviders.MysqlVersionProvider`)
+ - MSSQL (`DatabaseProviders.MssqlDatabaseProvider`)
+ - SQLite (`DatabaseProviders.SqliteDatabaseProvider`)
+ - PostgreSQL (`DatabaseProviders.PostgresqlDatabaseProvider`)
+ - MySQL (`DatabaseProviders.MysqlDatabaseProvider`)
 
 
 Connection Providers
@@ -212,9 +212,9 @@ For example, if you want to migrate to the latest version on startup (not partic
 ```csharp
 var migrationsAssembly = Assembly.GetEntryAssembly();
 var connection = new ConnectionProvider(/* fetch the connection you normally use in your application */);
-var versionProvider = new SQLiteVersionProvider();
+var databaseProvider = new SQLiteDatabaseProvider();
 
-var migrator = new SimpleMigrator(migrationsAssembly, connection, versionProvider);
+var migrator = new SimpleMigrator(migrationsAssembly, connection, databaseProvider);
 migrator.Load();
 
 migrator.MigrateToLatest();
@@ -223,7 +223,7 @@ migrator.MigrateToLatest();
 Or, if you wanted to assert that your database was at the latest migration:
 
 ```csharp
-var migrator = new SimpleMigrator(migrationsAssembly, connection, versionProvider);
+var migrator = new SimpleMigrator(migrationsAssembly, connection, databaseProvider);
 migrator.Load();
 
 if (migrator.CurrentMigration.Version != migrator.LatestMigration.Version)
@@ -235,7 +235,7 @@ if (migrator.CurrentMigration.Version != migrator.LatestMigration.Version)
 You can, of course, migrate to a specific version this way as well, if you want:
 
 ```csharp
-var migrator = new SimpleMigrator(migrationsAssembly, connection, versionProvider);
+var migrator = new SimpleMigrator(migrationsAssembly, connection, databaseProvider);
 migrator.Load();
 
 migrator.MigrateTo(3);
@@ -282,7 +282,7 @@ It is not an ADO.NET implementation, and so makes a good example for seeing how 
 First off, create a new Console Application, and install the sqlite-net NuGet package.
 You'll also need to download `sqlite.dll` and add it to your project.
 
-Next, we'll need to create a number of classes to tell Simple.Migrations how to work with sqlite-net: we'll need a version provider, connection provider, and a base class for the migrations.
+Next, we'll need to create a number of classes to tell Simple.Migrations how to work with sqlite-net: we'll need a database provider, connection provider, and a base class for the migrations.
 
 ### `IConnectionProvider`
 
@@ -317,9 +317,9 @@ public class SQLiteNetConnectionProvider : IConnectionProvider<SQLiteConnection>
 }
 ```
 
-### `IVersionProvider`
+### `IDatabaseProvider`
 
-Next, the `IVersionProvider` implementation.
+Next, the `IDatabaseProvider` implementation.
 This is the class which lets Simple.Migrations work with the 'SchemaVersion' table in your database.
 Since sqlite-net includes a micro-ORM, let's use that to create, read, and modify the SchemaVersion table, rather than executing raw SQL.
 
@@ -339,10 +339,10 @@ public class SchemaVersion
 }
 ```
 
-And our `IVersionProvider` implementation:
+And our `IDatabaseProvider` implementation:
 
 ```csharp
-public class SQLiteNetVersionProvider : IVersionProvider<SQLiteConnection>
+public class SQLiteNetDatabaseProvider : IDatabaseProvider<SQLiteConnection>
 {
     private SQLiteConnection connection;
 
@@ -433,10 +433,10 @@ using (var connection = new SQLiteConnection("SQLiteNetDatabase.sqlite"))
 {
     var migrationsAssembly = Assembly.GetExecutingAssembly();
     var connectionProvider = new SQLiteNetConnectionProvider(connection);
-    var versionProvider = new SQLiteNetVersionProvider();
+    var databaseProvider = new SQLiteNetDatabaseProvider();
 
     var migrator = new SimpleMigrator<SQLiteConnection, SQLiteNetMigration>(
-        migrationsAssembly, connectionProvider, versionProvider
+        migrationsAssembly, connectionProvider, databaseProvider
     );
     migrator.Load();
 
