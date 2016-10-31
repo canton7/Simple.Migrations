@@ -18,7 +18,7 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="to">Migration being migrated to</param>
         public void BeginSequence(MigrationData from, MigrationData to)
         {
-            this.WriteHeader("Migrating from {0}: {1} to {2}: {3}", from.Version, from.FullName, to.Version, to.FullName);
+            this.WriteHeader($"Migrating from {from.Version}: {from.FullName} to {to.Version}: {to.FullName}");
         }
 
         /// <summary>
@@ -44,6 +44,16 @@ namespace Simple.Migrations.IntegrationTests
         }
 
         /// <summary>
+        /// Invoked when the migrator skips a migration, because it was already applied, probably by a migrator running in parallel
+        /// </summary>
+        /// <param name="migration">Migration which was skipped</param>
+        /// <param name="direction">Direction of the migration</param>
+        public void SkipMigrationBecauseAlreadyApplied(MigrationData migration, MigrationDirection direction)
+        {
+            this.WriteWarning($"{migration.Version}: {migration.FullName} SKIPPED as it has already been applied, probably by a migrator running in parallel");
+        }
+
+        /// <summary>
         /// Invoked when an individual migration is started
         /// </summary>
         /// <param name="migration">Migration being started</param>
@@ -51,7 +61,7 @@ namespace Simple.Migrations.IntegrationTests
         public void BeginMigration(MigrationData migration, MigrationDirection direction)
         {
             var term = direction == MigrationDirection.Up ? "migrating" : "reverting";
-            this.WriteHeader("{0}: {1} {2}", migration.Version, migration.FullName, term);
+            this.WriteHeader($"{migration.Version}: {migration.FullName} {term}");
         }
 
         /// <summary>
@@ -72,7 +82,18 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="direction">Direction of the migration</param>
         public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction)
         {
-            this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.FullName, exception.Message);
+            this.WriteError($"{migration.Version}: {migration.FullName} ERROR {exception.Message}");
+        }
+
+        /// <summary>
+        /// Invoked when the migrator ran a migration outside of a transaction and then attempted to update the schema version,
+        /// but found that it had already been updated, probably by a migrator running in parallel
+        /// </summary>
+        /// <param name="migration">Migration which was run, but the version
+        public void EndMigrationWithSkippedVersionTableUpdate(MigrationData migration, MigrationDirection direction)
+        {
+            this.WriteWarning($"{migration.Version}: {migration.FullName} PARTIAL Migration was applied outside of a transaction, but another migrator " +
+                "running in parallel updated the version table at the same time, so it was not updated after this migration.");
         }
 
         /// <summary>
@@ -94,20 +115,27 @@ namespace Simple.Migrations.IntegrationTests
                 TestContext.WriteLine(message);
         }
 
-        private void WriteHeader(string format, params object[] args)
+        private void WriteHeader(string message)
         {
             TestContext.WriteLine(new String('-', 20));
-            TestContext.WriteLine(format, args);
+            TestContext.WriteLine(message);
             TestContext.WriteLine(new String('-', 20));
             TestContext.WriteLine();
         }
 
-        private void WriteError(string format, params object[] args)
+        private void WriteError(string message)
         {
             TestContext.WriteLine();
             TestContext.WriteLine(new String('-', 20));
-            TestContext.WriteLine(format, args);
+            TestContext.WriteLine(message);
             TestContext.WriteLine(new String('-', 20));
+        }
+
+        private void WriteWarning(string message)
+        {
+            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine(message);
+            Console.WriteLine(new String('-', Console.WindowWidth - 1));
         }
     }
 }

@@ -9,10 +9,12 @@ namespace SimpleMigrations
         public void BeginSequence(MigrationData from, MigrationData to) { }
         public void EndSequence(MigrationData from, MigrationData to) { }
         public void EndSequenceWithError(Exception exception, MigrationData from, MigrationData currentVersion) { }
+        public void EndMigrationWithSkippedVersionTableUpdate(MigrationData migration, MigrationDirection direction) { }
 
         public void BeginMigration(MigrationData migration, MigrationDirection direction) { }
         public void EndMigration(MigrationData migration, MigrationDirection direction) { }
         public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction) { }
+        public void SkipMigrationBecauseAlreadyApplied(MigrationData migration, MigrationDirection direction) { }
 
         public void Info(string message) { }
         public void LogSql(string message) { }
