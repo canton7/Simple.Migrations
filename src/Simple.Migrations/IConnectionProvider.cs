@@ -13,6 +13,8 @@ namespace SimpleMigrations
         /// </summary>
         TConnection Connection { get; }
 
+        bool HasOpenTransaction { get; }
+
         /// <summary>
         /// Begin a transaction
         /// </summary>

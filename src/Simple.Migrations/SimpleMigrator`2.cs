@@ -177,17 +177,101 @@ namespace SimpleMigrations
         {
             this.EnsureLoaded();
 
-            if (!this.Migrations.Any(x => x.Version == newVersion))
+            if (newVersion == this.CurrentMigration.Version)
+                return;
+
+            var toMigration = this.Migrations.FirstOrDefault(x => x.Version == newVersion);
+            if (toMigration == null)
                 throw new ArgumentException($"Could not find migration with version {newVersion}", nameof(newVersion));
 
             var direction = newVersion > this.CurrentMigration.Version ? MigrationDirection.Up : MigrationDirection.Down;
-            var migrations = this.FindMigrationsToRun(newVersion, direction).ToList();
 
-            // Nothing to do?
-            if (!migrations.Any())
-                return;
+            var originalMigration = this.CurrentMigration;
+            this.Logger?.BeginSequence(originalMigration, toMigration);
 
-            this.RunMigrations(migrations, direction);
+            var lastVersionWeSaw = originalMigration;
+
+            try
+            {
+                while (true)
+                {
+                    try
+                    {
+                        this.ConnectionProvider.BeginTransaction();
+
+                        var currentVersion = this.VersionProvider.GetCurrentVersion();
+
+                        if (currentVersion != lastVersionWeSaw.Version)
+                            this.Logger?.SkippedMigrationsDueToConcurrentMigrator()
+
+                        var migrationData = this.FindNextMigrationToRun(currentVersion, direction);
+                        if (migrationData == null)
+                            break;
+
+                        try
+                        {
+                            var migration = this.CreateMigration(migrationData);
+
+                            // If the migration doesn't want a transaction, complete the current one
+                            if (!migrationData.UseTransaction)
+                                this.ConnectionProvider.CommitTransaction();
+
+                            this.Logger?.BeginMigration(migrationData, direction);
+
+                            if (direction == MigrationDirection.Up)
+                                migration.Up();
+                            else
+                                migration.Down();
+
+                            // If we're in a transaction, we can just update the version table and commit.
+                            // If we're not, we have to open a new one, and do a read-modify-write
+                            if (migrationData.UseTransaction)
+                            {
+                                this.VersionProvider.UpdateVersion(currentVersion, migrationData.Version, migrationData.FullName);
+                                this.ConnectionProvider.CommitTransaction();
+                            }
+                            else
+                            {
+                                this.ConnectionProvider.BeginTransaction();
+
+                                var newCurrentVersion = this.VersionProvider.GetCurrentVersion();
+                                if (newCurrentVersion == currentVersion)
+                                    this.VersionProvider.UpdateVersion(currentVersion, migrationData.Version, migrationData.FullName);
+
+                                this.ConnectionProvider.CommitTransaction();
+                            }
+
+                            lastVersionWeSaw = migrationData;
+
+                            this.Logger?.EndMigration(migrationData, direction);
+                        }
+                        catch (Exception e)
+                        {
+                            this.Logger?.EndMigrationWithError(e, migrationData, direction);
+                            throw;
+                        }
+                    }
+                    finally
+                    {
+                        if (this.ConnectionProvider.HasOpenTransaction)
+                            this.ConnectionProvider.RollbackTransaction();
+                    }
+                }
+
+                this.SetCurrentVersion();
+                this.Logger?.EndSequence(originalMigration, this.CurrentMigration);
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    this.SetCurrentVersion();
+                }
+                catch { }
+
+                this.Logger?.EndSequenceWithError(e, originalMigration, this.CurrentMigration);
+                throw;
+            }
         }
 
         /// <summary>
@@ -208,6 +292,18 @@ namespace SimpleMigrations
 
             this.DatabaseProvider.UpdateVersion(0, version, migration.FullName);
             this.CurrentMigration = migration;
+        }
+
+        protected virtual MigrationData FindNextMigrationToRun(long currentVersion, MigrationDirection direction)
+        {
+            if (direction == MigrationDirection.Up)
+            {
+                return this.Migrations.FirstOrDefault(x => x.Version > currentVersion);
+            }
+            else
+            {
+                return currentVersion == 0 ? null : this.Migrations.First(x => x.Version == currentVersion);
+            }
         }
 
         /// <summary>

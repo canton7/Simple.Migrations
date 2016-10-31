@@ -40,7 +40,7 @@ namespace Simple.Migrations.IntegrationTests
         public void EndSequenceWithError(Exception exception, MigrationData from, MigrationData currentVersion)
         {
             TestContext.WriteLine();
-            TestContext.WriteLine("ERROR: Database is currently on version {0}: {1}", currentVersion.Version, currentVersion.FullName);
+            TestContext.WriteLine("ERROR: {0}. Database is currently on version {1}: {2}", exception.Message, currentVersion.Version, currentVersion.FullName);
         }
 
         /// <summary>

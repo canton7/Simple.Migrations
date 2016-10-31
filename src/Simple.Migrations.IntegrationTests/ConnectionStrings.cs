@@ -7,7 +7,8 @@ namespace Simple.Migrations.IntegrationTests
 {
     public static class ConnectionStrings
     {
-        public static readonly string SQLite = "DataSource=database.sqlite";
+        public static readonly string SQLiteDatabase = "database.sqlite";
+        public static readonly string SQLite = "DataSource=" + SQLiteDatabase;
         public static readonly string MSSQL = @"Server=.;Database=SimpleMigratorTests;Trusted_Connection=True;";
         public static readonly string MySQL = @"Server=localhost;Database=SimpleMigrator;Uid=SimpleMigrator;Pwd=SimpleMigrator;";
     }

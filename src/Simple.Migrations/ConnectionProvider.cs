@@ -16,6 +16,8 @@ namespace SimpleMigrations
         /// </summary>
         public ITransactionAwareDbConnection Connection => this;
 
+        public bool HasOpenTransaction => this.Transaction != null;
+
         /// <summary>
         /// Gets the currently-open transaction, if any
         /// </summary>
