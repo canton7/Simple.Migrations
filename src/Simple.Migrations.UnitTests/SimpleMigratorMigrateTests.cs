@@ -67,7 +67,7 @@ namespace Simple.Migrations.UnitTests
         private Mock<ITransactionAwareDbConnection> connection;
         private Mock<IMigrationProvider> migrationProvider;
         private Mock<IConnectionProvider<ITransactionAwareDbConnection>> connectionProvider;
-        private Mock<IDatabaseProvider<ITransactionAwareDbConnection>> databaseProvider;
+        private Mock<MockDatabaseProvider> databaseProvider;
         private Mock<ILogger> logger;
 
         private List<MigrationData> migrations;
@@ -83,7 +83,10 @@ namespace Simple.Migrations.UnitTests
             this.connection = new Mock<ITransactionAwareDbConnection>();
             this.migrationProvider = new Mock<IMigrationProvider>();
             this.connectionProvider = new Mock<IConnectionProvider<ITransactionAwareDbConnection>>();
-            this.databaseProvider = new Mock<IDatabaseProvider<ITransactionAwareDbConnection>>();
+            this.databaseProvider = new Mock<MockDatabaseProvider>()
+            {
+                CallBase = true,
+            };
             this.logger = new Mock<ILogger>();
 
             this.connectionProvider.Setup(x => x.Connection).Returns(this.connection.Object);
@@ -109,7 +112,7 @@ namespace Simple.Migrations.UnitTests
         [Test]
         public void BaselineThrowsIfRequestedVersionDoesNotExist()
         {
-            this.databaseProvider.Setup(x => x.GetCurrentVersion()).Returns(0);
+            this.databaseProvider.Object.CurrentVersion = 0;
             this.migrator.Load();
 
             Expect(() => this.migrator.Baseline(3), Throws.ArgumentException.With.Property("ParamName").EqualTo("version"));
@@ -185,6 +188,7 @@ namespace Simple.Migrations.UnitTests
                 Expect(sequence++, EqualTo(0));
                 Expect(Migration2.DownCalled, True);
                 Expect(Migration1.DownCalled, False);
+                this.databaseProvider.Object.CurrentVersion = 1;
             }).Verifiable();
             this.databaseProvider.Setup(x => x.UpdateVersion(1, 0, "Empty Schema")).Callback(() =>
             {
@@ -274,7 +278,7 @@ namespace Simple.Migrations.UnitTests
 
         private void LoadMigrator(long currentVersion)
         {
-            this.databaseProvider.Setup(x => x.GetCurrentVersion()).Returns(currentVersion);
+            this.databaseProvider.Object.CurrentVersion = currentVersion;
             this.migrator.Load();
         }
     }

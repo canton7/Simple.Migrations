@@ -326,10 +326,10 @@ namespace SimpleMigrations
             }
             else
             {
-                // currentVersion should == migration>Version
-                if (currentVersion >= lastMigrationData.Version)
+                // currentVersion should == migrationData.Version
+                if (currentVersion > migrationData.Version)
                 {
-                    throw new ConflictingMigratorsException(migrationData, lastMigrationData.Version, currentVersion);
+                    throw new ConflictingMigratorsException(migrationData, migrationData.Version, currentVersion);
                 }
                 else if (currentVersion < migrationData.Version)
                 {
@@ -376,7 +376,7 @@ namespace SimpleMigrations
             }
             else
             {
-                migrations = this.Migrations.Where(x => x.Version < this.CurrentMigration.Version && x.Version >= newVersion).OrderByDescending(x => x.Version);
+                migrations = this.Migrations.Where(x => x.Version <= this.CurrentMigration.Version && x.Version > newVersion).OrderByDescending(x => x.Version);
             }
 
             return migrations;
