@@ -20,7 +20,7 @@ namespace Simple.Migrations.IntegrationTests.Mssql
         {
             this.connection = new SqlConnection(ConnectionStrings.MSSQL);
             var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MssqlDatabaseProvider(), new NUnitLogger());
+            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MssqlDatabaseProvider(), new NUnitLogger("migrator"));
 
             this.migrator.Load();
         }

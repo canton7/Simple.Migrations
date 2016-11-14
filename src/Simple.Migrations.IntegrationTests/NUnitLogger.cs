@@ -9,6 +9,13 @@ namespace Simple.Migrations.IntegrationTests
 {
     public class NUnitLogger : ILogger
     {
+        private readonly string name;
+
+        public NUnitLogger(string name)
+        {
+            this.name = name;
+        }
+
         public bool EnableSqlLogging { get; set; } = true;
 
         /// <summary>
@@ -18,7 +25,7 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="to">Migration being migrated to</param>
         public void BeginSequence(MigrationData from, MigrationData to)
         {
-            this.WriteHeader($"Migrating from {from.Version}: {from.FullName} to {to.Version}: {to.FullName}");
+            this.WriteHeader($"{this.name}: Migrating from {from.Version}: {from.FullName} to {to.Version}: {to.FullName}");
         }
 
         /// <summary>
@@ -28,7 +35,7 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="to">Migration which was migrated to</param>
         public void EndSequence(MigrationData from, MigrationData to)
         {
-            this.WriteHeader("Done");
+            this.WriteHeader($"{this.name}: Done");
         }
 
         /// <summary>
@@ -39,8 +46,8 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="currentVersion">Last successful migration which was applied</param>
         public void EndSequenceWithError(Exception exception, MigrationData from, MigrationData currentVersion)
         {
-            TestContext.WriteLine();
-            TestContext.WriteLine("ERROR: {0}. Database is currently on version {1}: {2}", exception.Message, currentVersion.Version, currentVersion.FullName);
+            TestContext.WriteLine($"{this.name}:");
+            TestContext.WriteLine($"{this.name}: ERROR: {exception.Message}. Database is currently on version {currentVersion.Version}: {currentVersion.FullName}");
         }
 
         /// <summary>
@@ -50,7 +57,7 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="direction">Direction of the migration</param>
         public void SkipMigrationBecauseAlreadyApplied(MigrationData migration, MigrationDirection direction)
         {
-            this.WriteWarning($"{migration.Version}: {migration.FullName} SKIPPED as it has already been applied, probably by a migrator running in parallel");
+            this.WriteWarning($"{this.name}: {migration.Version}: {migration.FullName} SKIPPED as it has already been applied, probably by a migrator running in parallel");
         }
 
         /// <summary>
@@ -61,7 +68,7 @@ namespace Simple.Migrations.IntegrationTests
         public void BeginMigration(MigrationData migration, MigrationDirection direction)
         {
             var term = direction == MigrationDirection.Up ? "migrating" : "reverting";
-            this.WriteHeader($"{migration.Version}: {migration.FullName} {term}");
+            this.WriteHeader($"{this.name}: {migration.Version}: {migration.FullName} {term}");
         }
 
         /// <summary>
@@ -71,7 +78,7 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="direction">Direction of the migration</param>
         public void EndMigration(MigrationData migration, MigrationDirection direction)
         {
-            TestContext.WriteLine();
+            TestContext.WriteLine($"{this.name}:");
         }
 
         /// <summary>
@@ -82,7 +89,7 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="direction">Direction of the migration</param>
         public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction)
         {
-            this.WriteError($"{migration.Version}: {migration.FullName} ERROR {exception.Message}");
+            this.WriteError($"{this.name}: {migration.Version}: {migration.FullName} ERROR {exception.Message}");
         }
 
         /// <summary>
@@ -92,7 +99,7 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="migration">Migration which was run, but the version
         public void EndMigrationWithSkippedVersionTableUpdate(MigrationData migration, MigrationDirection direction)
         {
-            this.WriteWarning($"{migration.Version}: {migration.FullName} PARTIAL Migration was applied outside of a transaction, but another migrator " +
+            this.WriteWarning($"{this.name}: {migration.Version}: {migration.FullName} PARTIAL Migration was applied outside of a transaction, but another migrator " +
                 "running in parallel updated the version table at the same time, so it was not updated after this migration.");
         }
 
@@ -102,7 +109,7 @@ namespace Simple.Migrations.IntegrationTests
         /// <param name="message">Message to be logged</param>
         public void Info(string message)
         {
-            TestContext.WriteLine(message);
+            TestContext.WriteLine($"{this.name}: {message}");
         }
 
         /// <summary>
@@ -112,30 +119,30 @@ namespace Simple.Migrations.IntegrationTests
         public void LogSql(string message)
         {
             if (this.EnableSqlLogging)
-                TestContext.WriteLine(message);
+                TestContext.WriteLine($"{this.name}: {message}");
         }
 
         private void WriteHeader(string message)
         {
-            TestContext.WriteLine(new String('-', 20));
-            TestContext.WriteLine(message);
-            TestContext.WriteLine(new String('-', 20));
-            TestContext.WriteLine();
+            TestContext.WriteLine($"{this.name}: {new String('-', 20)}");
+            TestContext.WriteLine($"{this.name}: {message}");
+            TestContext.WriteLine($"{this.name}: {new String('-', 20)}");
+            TestContext.WriteLine($"{this.name}:");
         }
 
         private void WriteError(string message)
         {
-            TestContext.WriteLine();
-            TestContext.WriteLine(new String('-', 20));
-            TestContext.WriteLine(message);
-            TestContext.WriteLine(new String('-', 20));
+            TestContext.WriteLine($"{this.name}:");
+            TestContext.WriteLine($"{this.name}: {new String('-', 20)}");
+            TestContext.WriteLine($"{this.name}: {message}");
+            TestContext.WriteLine($"{this.name}: {new String('-', 20)}");
         }
 
         private void WriteWarning(string message)
         {
-            Console.WriteLine(new String('-', Console.WindowWidth - 1));
-            Console.WriteLine(message);
-            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine($"{this.name}: {new String('-', Console.WindowWidth - 1)}");
+            Console.WriteLine($"{this.name}: {message}");
+            Console.WriteLine($"{this.name}: {new String('-', Console.WindowWidth - 1)}");
         }
     }
 }

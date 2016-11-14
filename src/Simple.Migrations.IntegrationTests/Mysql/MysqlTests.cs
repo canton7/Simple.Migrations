@@ -20,7 +20,7 @@ namespace Simple.Migrations.IntegrationTests.Mysql
         {
             this.connection = new MySqlConnection(ConnectionStrings.MySQL);
             var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MysqlDatabaseProvider(), new NUnitLogger());
+            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MysqlDatabaseProvider(), new NUnitLogger("migrator"));
 
             this.migrator.Load();
         }

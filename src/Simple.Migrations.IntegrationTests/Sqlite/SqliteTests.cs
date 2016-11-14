@@ -1,53 +1,31 @@
-﻿using Microsoft.Data.Sqlite;
-using NUnit.Framework;
-using SimpleMigrations;
-using SimpleMigrations.DatabaseProvider;
+﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using SimpleMigrations;
+using System.Data;
+using SimpleMigrations.DatabaseProvider;
 using System.IO;
+using System.Reflection;
+using Microsoft.Data.Sqlite;
 
 namespace Simple.Migrations.IntegrationTests.Sqlite
 {
     [TestFixture]
-    public class SqliteTests
+    public class SqliteTests : TestsBase
     {
-        private static SimpleMigrator CreateMigrator(params Type[] migrationTypes)
-        {
-            var connection = new SqliteConnection(ConnectionStrings.SQLite);
-            var migrationProvider = new CustomMigrationProvider(migrationTypes);
-            var migrator = new SimpleMigrator(migrationProvider, connection, new SqliteDatabaseProvider(), new NUnitLogger());
-            migrator.Load();
-            return migrator;
-        }
+        protected override IDatabaseProvider<IDbConnection> DatabaseProvider { get; } = new SqliteDatabaseProvider();
 
-        [SetUp]
-        public void SetUp()
+        protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new SqliteStringsProvider();
+
+        protected override void Clean()
         {
             var db = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ConnectionStrings.SQLiteDatabase);
             if (File.Exists(db))
                 File.Delete(db);
         }
 
-        [Test]
-        public void RunMigration()
-        {
-            var migrator = CreateMigrator(typeof(AddTable));
-            migrator.MigrateToLatest();
-        }
-
-        [Test]
-        public void RunsConcurrentMigrations()
-        {
-           var m1 = CreateMigrator(typeof(BlockingMigration));
-           var m2 = CreateMigrator(typeof(BlockingMigration));
-
-            Task.WaitAll(
-                Task.Run(() => m1.MigrateToLatest()),
-                Task.Run(() => m2.MigrateToLatest())
-            );
-        }
+        protected override IDbConnection CreateConnection() => new SqliteConnection(ConnectionStrings.SQLite);
     }
 }
