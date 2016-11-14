@@ -12,5 +12,7 @@ namespace SimpleMigrations
         /// Gets the currently-open transaction, if any
         /// </summary>
         IDbTransaction Transaction { get; }
+
+        void BeginAndRecordTransaction();
     }
 }

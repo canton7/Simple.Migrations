@@ -82,16 +82,14 @@ namespace SimpleMigrations
         /// Begins a database transaction.
         /// </summary>
         /// <returns>An object representing the new transaction.</returns>
-        public IDbTransaction BeginTransaction()
-        {
-            if (this.Transaction != null)
-                throw new InvalidOperationException("Nested transactions are not supported");
+        public IDbTransaction BeginTransaction() => this.connection.BeginTransaction();
 
-            this.Transaction = this.connection.BeginTransaction();
-            return this.Transaction;
+        public void BeginAndRecordTransaction()
+        {
+            this.Transaction = this.connection.BeginTransaction(IsolationLevel.Serializable);
         }
 
-        void IConnectionProvider<ITransactionAwareDbConnection>.BeginTransaction() => this.BeginTransaction(IsolationLevel.Serializable);
+        //void IConnectionProvider<ITransactionAwareDbConnection>.BeginTransaction() => this.BeginTransaction(IsolationLevel.Serializable);
 
         /// <summary>
         /// Begins a database transaction with the specified <see cref="IsolationLevel"/> value.

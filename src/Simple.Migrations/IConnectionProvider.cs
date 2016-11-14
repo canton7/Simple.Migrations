@@ -19,7 +19,7 @@ namespace SimpleMigrations
         /// Begin a transaction
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if a transaction is already open</exception>
-        void BeginTransaction();
+        void BeginAndRecordTransaction();
 
         /// <summary>
         /// Commit the currently-open transaction

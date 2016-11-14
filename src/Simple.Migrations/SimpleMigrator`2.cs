@@ -199,7 +199,7 @@ namespace SimpleMigrations
 
                     try
                     {
-                        this.ConnectionProvider.BeginTransaction();
+                        this.ConnectionProvider.BeginAndRecordTransaction();
 
                         var currentVersion = this.DatabaseProvider.GetCurrentVersion();
 
@@ -227,7 +227,7 @@ namespace SimpleMigrations
                             }
                             else
                             {
-                                this.ConnectionProvider.BeginTransaction();
+                                this.ConnectionProvider.BeginAndRecordTransaction();
 
                                 var newCurrentVersion = this.DatabaseProvider.GetCurrentVersion();
 
