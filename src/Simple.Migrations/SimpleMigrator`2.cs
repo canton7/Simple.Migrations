@@ -188,40 +188,42 @@ namespace SimpleMigrations
 
             this.Logger?.BeginSequence(originalMigration, toMigration);
 
-            // This is the last migration which was run (that we know about)
-            var lastMigrationData = this.CurrentMigration;
+            //// This is the last migration which was run (that we know about)
+            //var lastMigrationData = this.CurrentMigration;
 
             try
             {
-                foreach (var migrationData in migrations)
+                foreach (var migrationDataPair in migrations)
                 {
+                    var migrationDataToRun = (direction == MigrationDirection.Up) ? migrationDataPair.To : migrationDataPair.From;
+
                     try
                     {
                         this.ConnectionProvider.BeginTransaction();
 
                         var currentVersion = this.DatabaseProvider.GetCurrentVersion();
 
-                        if (this.ShouldSkipMigrationOrThrowIfConflictingMigrators(direction, currentVersion, migrationData, lastMigrationData))
+                        if (this.ShouldSkipMigrationOrThrowIfConflictingMigrators(direction, migrationDataPair, currentVersion))
                             continue;
 
                         try
                         {
-                            this.Logger?.BeginMigration(migrationData, direction);
+                            this.Logger?.BeginMigration(migrationDataToRun, direction);
 
                             // If the migration doesn't want a transaction, complete the current one
-                            if (!migrationData.UseTransaction)
+                            if (!migrationDataToRun.UseTransaction)
                                 this.ConnectionProvider.CommitTransaction();
 
-                            this.RunMigration(direction, migrationData);
+                            this.RunMigration(direction, migrationDataToRun);
 
                             // If we're in a transaction, we can just update the version table and commit.
                             // If we're not, we have to open a new one, and do a read-modify-write
-                            if (migrationData.UseTransaction)
+                            if (migrationDataToRun.UseTransaction)
                             {
-                                this.DatabaseProvider.UpdateVersion(currentVersion, migrationData.Version, migrationData.FullName);
+                                this.DatabaseProvider.UpdateVersion(currentVersion, migrationDataPair.To.Version, migrationDataPair.To.FullName);
                                 this.ConnectionProvider.CommitTransaction();
 
-                                this.Logger?.EndMigration(migrationData, direction);
+                                this.Logger?.EndMigration(migrationDataToRun, direction);
                             }
                             else
                             {
@@ -234,10 +236,10 @@ namespace SimpleMigrations
 
                                 if (newCurrentVersion == currentVersion)
                                 {
-                                    this.DatabaseProvider.UpdateVersion(currentVersion, migrationData.Version, migrationData.FullName);
+                                    this.DatabaseProvider.UpdateVersion(currentVersion, migrationDataPair.To.Version, migrationDataPair.To.FullName);
                                     this.ConnectionProvider.CommitTransaction();
 
-                                    this.Logger?.EndMigration(migrationData, direction);
+                                    this.Logger?.EndMigration(migrationDataToRun, direction);
                                 }
                                 else
                                 {
@@ -246,23 +248,23 @@ namespace SimpleMigrations
                                     if (direction == MigrationDirection.Up)
                                     {
                                         if (newCurrentVersion > currentVersion)
-                                            this.Logger?.EndMigrationWithSkippedVersionTableUpdate(migrationData, direction);
+                                            this.Logger?.EndMigrationWithSkippedVersionTableUpdate(migrationDataToRun, direction);
                                         else
-                                            throw new ConflictingMigratorsException(migrationData, currentVersion, newCurrentVersion);
+                                            throw new ConflictingMigratorsException(migrationDataToRun, currentVersion, newCurrentVersion);
                                     }
                                     else
                                     {
                                         if (newCurrentVersion < currentVersion)
-                                            this.Logger?.EndMigrationWithSkippedVersionTableUpdate(migrationData, direction);
+                                            this.Logger?.EndMigrationWithSkippedVersionTableUpdate(migrationDataToRun, direction);
                                         else
-                                            throw new ConflictingMigratorsException(migrationData, currentVersion, newCurrentVersion);
+                                            throw new ConflictingMigratorsException(migrationDataToRun, currentVersion, newCurrentVersion);
                                     }
                                 }
                             }
                         }
                         catch (Exception e)
                         {
-                            this.Logger?.EndMigrationWithError(e, migrationData, direction);
+                            this.Logger?.EndMigrationWithError(e, migrationDataToRun, direction);
                             throw;
                         }
                     }
@@ -304,7 +306,7 @@ namespace SimpleMigrations
                 migration.Down();
         }
 
-        protected virtual bool ShouldSkipMigrationOrThrowIfConflictingMigrators(MigrationDirection direction, long currentVersion, MigrationData migrationData, MigrationData lastMigrationData)
+        protected virtual bool ShouldSkipMigrationOrThrowIfConflictingMigrators(MigrationDirection direction, MigrationDataPair migrationDataPair, long currentVersion)
         {
             // If the database is already at this migration (or further on), skip it.
             // If the database has gone in the opposite direction, abort with an error
@@ -313,27 +315,27 @@ namespace SimpleMigrations
 
             if (direction == MigrationDirection.Up)
             {
-                // currentVersion should == lastMigration.Version
-                if (currentVersion < lastMigrationData.Version)
+                // currentVersion should == from version
+                if (currentVersion < migrationDataPair.From.Version)
                 {
-                    throw new ConflictingMigratorsException(migrationData, lastMigrationData.Version, currentVersion);
+                    throw new ConflictingMigratorsException(migrationDataPair.To, migrationDataPair.From.Version, currentVersion);
                 }
-                else if (currentVersion >= migrationData.Version)
+                else if (currentVersion > migrationDataPair.From.Version)
                 {
-                    this.Logger?.SkipMigrationBecauseAlreadyApplied(migrationData, direction);
+                    this.Logger?.SkipMigrationBecauseAlreadyApplied(migrationDataPair.To, direction);
                     shouldSkip = true;
                 }
             }
             else
             {
-                // currentVersion should == migrationData.Version
-                if (currentVersion > migrationData.Version)
+                // currentVersion should == to version
+                if (currentVersion > migrationDataPair.From.Version)
                 {
-                    throw new ConflictingMigratorsException(migrationData, migrationData.Version, currentVersion);
+                    throw new ConflictingMigratorsException(migrationDataPair.From, migrationDataPair.From.Version, currentVersion);
                 }
-                else if (currentVersion < migrationData.Version)
+                else if (currentVersion < migrationDataPair.From.Version)
                 {
-                    this.Logger?.SkipMigrationBecauseAlreadyApplied(migrationData, direction);
+                    this.Logger?.SkipMigrationBecauseAlreadyApplied(migrationDataPair.To, direction);
                     shouldSkip = true;
                 }
             }
@@ -367,19 +369,30 @@ namespace SimpleMigrations
         /// <param name="newVersion">Version to bring the database to</param>
         /// <param name="direction">Direction of migrations</param>
         /// <returns>A sorted list of migrations to run, with the first migration to run being first in the collection</returns>
-        protected virtual IEnumerable<MigrationData> FindMigrationsToRun(long newVersion, MigrationDirection direction)
+        protected virtual IEnumerable<MigrationDataPair> FindMigrationsToRun(long newVersion, MigrationDirection direction)
         {
-            IEnumerable<MigrationData> migrations;
+            // We require that 'this.Migrations' is ordered, and a migration with version 'newVersions' exists
+
             if (direction == MigrationDirection.Up)
             {
-                migrations = this.Migrations.Where(x => x.Version > this.CurrentMigration.Version && x.Version <= newVersion).OrderBy(x => x.Version);
+                for (int i = 0; i < this.Migrations.Count; i++)
+                {
+                    if (this.Migrations[i].Version > this.CurrentMigration.Version && this.Migrations[i].Version <= newVersion)
+                    {
+                        yield return new MigrationDataPair(this.Migrations[i - 1], this.Migrations[i]);
+                    }
+                }
             }
             else
             {
-                migrations = this.Migrations.Where(x => x.Version <= this.CurrentMigration.Version && x.Version > newVersion).OrderByDescending(x => x.Version);
+                for (int i = this.Migrations.Count - 1; i >= 0; i--)
+                {
+                    if (this.Migrations[i].Version <= this.CurrentMigration.Version && this.Migrations[i].Version > newVersion)
+                    {
+                        yield return new MigrationDataPair(this.Migrations[i], this.Migrations[i - 1]);
+                    }
+                }
             }
-
-            return migrations;
         }
 
 
@@ -407,6 +420,18 @@ namespace SimpleMigrations
             instance.Logger = this.Logger ?? NullLogger.Instance;
 
             return instance;
+        }
+
+        protected struct MigrationDataPair
+        {
+            public MigrationData From { get; }
+            public MigrationData To { get; }
+
+            public MigrationDataPair(MigrationData from, MigrationData to)
+            {
+                this.From = from;
+                this.To = to;
+            }
         }
     }
 }

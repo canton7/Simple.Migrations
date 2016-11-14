@@ -162,11 +162,13 @@ namespace Simple.Migrations.UnitTests
                 Expect(sequence++, EqualTo(0));
                 Expect(Migration1.UpCalled, True);
                 Expect(Migration2.UpCalled, False);
+                this.databaseProvider.Object.CurrentVersion = 1;
             }).Verifiable();
             this.databaseProvider.Setup(x => x.UpdateVersion(1, 2, "Migration2 (Migration 2)")).Callback(() =>
             {
                 Expect(sequence++, EqualTo(1));
                 Expect(Migration2.UpCalled, True);
+                this.databaseProvider.Object.CurrentVersion = 2;
             }).Verifiable();
 
             this.migrator.MigrateTo(2);
@@ -194,6 +196,7 @@ namespace Simple.Migrations.UnitTests
             {
                 Expect(sequence++, EqualTo(1));
                 Expect(Migration1.DownCalled, True);
+                this.databaseProvider.Object.CurrentVersion = 0;
             }).Verifiable();
 
             this.migrator.MigrateTo(0);
@@ -242,9 +245,16 @@ namespace Simple.Migrations.UnitTests
             this.LoadMigrator(0);
             int sequence = 0;
 
-            this.connectionProvider.Setup(x => x.BeginTransaction()).Callback(() => Expect(sequence++, EqualTo(0))).Verifiable();
+            this.connectionProvider.Setup(x => x.BeginTransaction()).Callback(() =>
+            {
+                Expect(sequence++, EqualTo(0));
+                this.connectionProvider.Setup(x => x.HasOpenTransaction).Returns(true);
+            }).Verifiable();
             Migration1.Exception = new Exception("BOOM");
-            this.connectionProvider.Setup(x => x.RollbackTransaction()).Callback(() => Expect(sequence++, EqualTo(1))).Verifiable();
+            this.connectionProvider.Setup(x => x.RollbackTransaction()).Callback(() =>
+            {
+                Expect(sequence++, EqualTo(1));
+            }).Verifiable();
 
             Expect(() => this.migrator.MigrateTo(1), Throws.Exception);
 
