@@ -156,6 +156,15 @@
           "lib/net45/Newtonsoft.Json.dll": {}
         }
       },
+      "Npgsql/3.1.8": {
+        "type": "package",
+        "compile": {
+          "lib/net451/Npgsql.dll": {}
+        },
+        "runtime": {
+          "lib/net451/Npgsql.dll": {}
+        }
+      },
       "NuGet.Common/3.5.0-beta2-1484": {
         "type": "package",
         "frameworkAssemblies": [
@@ -582,6 +591,21 @@
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll",
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
         "tools/install.ps1"
+      ]
+    },
+    "Npgsql/3.1.8": {
+      "sha512": "KkIIz4b4wQptzQsROXHv3dlnSfejuoSQ4I0a5BeRMLWCrxQ46pHPZIWBT/pJvb6i7wR2IYhw460d7Zq7IcYwWg==",
+      "type": "package",
+      "path": "Npgsql/3.1.8",
+      "files": [
+        "Npgsql.3.1.8.nupkg.sha512",
+        "Npgsql.nuspec",
+        "lib/net45/Npgsql.dll",
+        "lib/net45/Npgsql.xml",
+        "lib/net451/Npgsql.dll",
+        "lib/net451/Npgsql.xml",
+        "lib/netstandard1.3/Npgsql.dll",
+        "lib/netstandard1.3/Npgsql.xml"
       ]
     },
     "NuGet.Common/3.5.0-beta2-1484": {
@@ -1156,6 +1180,7 @@
       "Microsoft.Data.SQLite >= 1.0.0",
       "MySql.Data >= 6.9.9",
       "NUnit >= 3.4.1",
+      "Npgsql >= 3.1.8",
       "Simple.Migrations",
       "System.Data.SqlClient >= 4.1.0",
       "System.Reflection.Extensions >= 4.0.0",

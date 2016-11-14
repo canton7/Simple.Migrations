@@ -33,12 +33,15 @@ namespace Simple.Migrations.IntegrationTests
         [Test]
         public void RunsConcurrentMigrations()
         {
-            var m1 = CreateMigrator("migrator1", typeof(CreateUsersTable));
-            var m2 = CreateMigrator("migrator2", typeof(CreateUsersTable));
+            Action<string> action = name =>
+            {
+                var migrator = CreateMigrator(name, typeof(CreateUsersTable));
+                migrator.MigrateToLatest();
+            };
 
             Task.WaitAll(
-                Task.Run(() => m1.MigrateToLatest()),
-                Task.Run(() => m2.MigrateToLatest())
+                Task.Run(() => action("migrator1")),
+                Task.Run(() => action("migrator2"))
             );
         }
 

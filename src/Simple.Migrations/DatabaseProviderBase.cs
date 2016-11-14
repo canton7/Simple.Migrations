@@ -19,7 +19,7 @@ namespace SimpleMigrations
         /// Gets or sets a value indicating whether to run <see cref="EnsureCreated"/>
         /// or <see cref="GetCurrentVersion"/> in a transaction
         /// </summary>
-        protected bool UseTransaction { get; set; }
+        protected virtual bool UseTransactionForEnsureCreated { get; } = true;
 
         /// <summary>
         /// If > 0, specifies the maximum length of the 'Description' field. Descriptions longer will be truncated/
@@ -72,23 +72,23 @@ namespace SimpleMigrations
             this.EnsureSetup();
 
             long version = 0;
-            this.RunInTransactionIfConfigured(command =>
+            using (var command = this.connection.CreateCommand())
             {
                 command.CommandText = this.GetCurrentVersionSql();
                 var result = command.ExecuteScalar();
 
-                if (result == null)
-                    return;
-
-                try
+                if (result != null)
                 {
-                    version = Convert.ToInt64(result);
+                    try
+                    {
+                        version = Convert.ToInt64(result);
+                    }
+                    catch
+                    {
+                        throw new MigrationException("Database Provider returns a value for the current version which isn't a long");
+                    }
                 }
-                catch
-                {
-                    throw new MigrationException("Database Provider returns a value for the current version which isn't a long");
-                }
-            });
+            };
 
             return version;
         }
@@ -134,7 +134,7 @@ namespace SimpleMigrations
         {
             this.EnsureSetup();
 
-            if (this.UseTransaction)
+            if (this.UseTransactionForEnsureCreated)
             {
                 using (var transaction = this.connection.BeginTransaction(IsolationLevel.Serializable))
                 {
