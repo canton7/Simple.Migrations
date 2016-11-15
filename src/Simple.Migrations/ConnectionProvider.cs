@@ -86,6 +86,9 @@ namespace SimpleMigrations
 
         public void BeginAndRecordTransaction()
         {
+            if (this.Transaction != null)
+                throw new InvalidOperationException("Nested transactions are not supported");
+
             this.Transaction = this.connection.BeginTransaction(IsolationLevel.Serializable);
         }
 
@@ -98,17 +101,14 @@ namespace SimpleMigrations
         /// <returns>An object representing the new transaction.</returns>
         public IDbTransaction BeginTransaction(IsolationLevel il)
         {
-            if (this.Transaction != null)
-                throw new InvalidOperationException("Nested transactions are not supported");
-
-            this.Transaction = this.connection.BeginTransaction(il);
-            return this.Transaction;
+            var transaction = this.connection.BeginTransaction(il);
+            return transaction;
         }
 
         /// <summary>
         /// Commit the currently-open transaction
         /// </summary>
-        public void CommitTransaction()
+        public void CommitRecordedTransaction()
         {
             if (this.Transaction == null)
                 throw new InvalidOperationException("No transaction in progress");

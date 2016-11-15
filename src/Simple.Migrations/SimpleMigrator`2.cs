@@ -110,13 +110,22 @@ namespace SimpleMigrations
             if (this.isLoaded)
                 return;
 
-            this.DatabaseProvider.EnsureCreated();
+            try
+            {
+                this.DatabaseProvider.AcquireDatabaseLock();
 
-            this.FindAndSetMigrations();
-            this.SetCurrentVersion();
-            this.LatestMigration = this.Migrations.Last();
+                this.DatabaseProvider.EnsureCreated();
 
-            this.isLoaded = true;
+                this.FindAndSetMigrations();
+                this.SetCurrentVersion();
+                this.LatestMigration = this.Migrations.Last();
+
+                this.isLoaded = true;
+            }
+            finally
+            {
+                this.DatabaseProvider.ReleaseDatabaseLock();
+            }
         }
 
         /// <summary>
@@ -193,6 +202,8 @@ namespace SimpleMigrations
 
             try
             {
+                this.DatabaseProvider.AcquireDatabaseLock();
+
                 foreach (var migrationDataPair in migrations)
                 {
                     var migrationDataToRun = (direction == MigrationDirection.Up) ? migrationDataPair.To : migrationDataPair.From;
@@ -212,7 +223,7 @@ namespace SimpleMigrations
 
                             // If the migration doesn't want a transaction, complete the current one
                             if (!migrationDataToRun.UseTransaction)
-                                this.ConnectionProvider.CommitTransaction();
+                                this.ConnectionProvider.CommitRecordedTransaction();
 
                             this.RunMigration(direction, migrationDataToRun);
 
@@ -221,7 +232,7 @@ namespace SimpleMigrations
                             if (migrationDataToRun.UseTransaction)
                             {
                                 this.DatabaseProvider.UpdateVersion(currentVersion, migrationDataPair.To.Version, migrationDataPair.To.FullName);
-                                this.ConnectionProvider.CommitTransaction();
+                                this.ConnectionProvider.CommitRecordedTransaction();
 
                                 this.Logger?.EndMigration(migrationDataToRun, direction);
                             }
@@ -237,7 +248,7 @@ namespace SimpleMigrations
                                 if (newCurrentVersion == currentVersion)
                                 {
                                     this.DatabaseProvider.UpdateVersion(currentVersion, migrationDataPair.To.Version, migrationDataPair.To.FullName);
-                                    this.ConnectionProvider.CommitTransaction();
+                                    this.ConnectionProvider.CommitRecordedTransaction();
 
                                     this.Logger?.EndMigration(migrationDataToRun, direction);
                                 }
@@ -293,6 +304,10 @@ namespace SimpleMigrations
 
                 this.Logger?.EndSequenceWithError(e, originalMigration, this.CurrentMigration);
                 throw;
+            }
+            finally
+            {
+                this.DatabaseProvider.ReleaseDatabaseLock();
             }
         }
 

@@ -25,7 +25,7 @@ namespace SimpleMigrations
         /// Commit the currently-open transaction
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if no transaction is open</exception>
-        void CommitTransaction();
+        void CommitRecordedTransaction();
 
         /// <summary>
         /// Rolls back the currently-open transaction

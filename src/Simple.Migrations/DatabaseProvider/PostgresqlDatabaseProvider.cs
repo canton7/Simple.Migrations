@@ -5,6 +5,8 @@
     /// </summary>
     public class PostgresqlDatabaseProvider : DatabaseProviderBase
     {
+        private const long advisoryLockKey = 2609878; // Chosen by fair dice roll
+
         /// <summary>
         /// Returns SQL to create the version table
         /// </summary>
@@ -35,6 +37,24 @@
         public override string GetSetVersionSql()
         {
             return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, CURRENT_TIMESTAMP, @Description)";
+        }
+
+        public override void AcquireDatabaseLock()
+        {
+            using (var command = this.Connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT pg_advisory_lock({advisoryLockKey})";
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public override void ReleaseDatabaseLock()
+        {
+            using (var command = this.Connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT pg_advisory_unlock({advisoryLockKey})";
+                command.ExecuteNonQuery();
+            }
         }
     }
 }

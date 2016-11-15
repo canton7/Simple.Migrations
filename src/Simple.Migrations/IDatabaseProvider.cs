@@ -29,5 +29,8 @@
         /// <param name="newVersion">Version being upgraded to</param>
         /// <param name="newDescription">Description to associate with the new version</param>
         void UpdateVersion(long oldVersion, long newVersion, string newDescription);
+
+        void AcquireDatabaseLock();
+        void ReleaseDatabaseLock();
     }
 }

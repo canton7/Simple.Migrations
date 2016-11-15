@@ -13,7 +13,7 @@ namespace Simple.Migrations.IntegrationTests
     public abstract class TestsBase
     {
         protected abstract IDbConnection CreateConnection();
-        protected abstract IDatabaseProvider<IDbConnection> DatabaseProvider { get; }
+        protected abstract IDatabaseProvider<IDbConnection> CreateDatabaseProvider();
         protected abstract IMigrationStringsProvider MigrationStringsProvider { get; }
         protected abstract void Clean();
 
@@ -60,7 +60,7 @@ namespace Simple.Migrations.IntegrationTests
 
             var connection = this.CreateConnection();
             var migrationProvider = new CustomMigrationProvider(migrationTypes);
-            var migrator = new SimpleMigrator(migrationProvider, connection, this.DatabaseProvider, new NUnitLogger(name));
+            var migrator = new SimpleMigrator(migrationProvider, connection, this.CreateDatabaseProvider(), new NUnitLogger(name));
             migrator.Load();
             return migrator;
         }

@@ -8,7 +8,7 @@ namespace SimpleMigrations
     /// </summary>
     public abstract class DatabaseProviderBase : IDatabaseProvider<IDbConnection>
     {
-        private IDbConnection connection;
+        protected IDbConnection Connection { get; private set; }
 
         /// <summary>
         /// Table name used to store version info. Defaults to 'VersionInfo'
@@ -37,7 +37,7 @@ namespace SimpleMigrations
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            this.connection = connection;
+            this.Connection = connection;
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace SimpleMigrations
         /// </summary>
         protected void EnsureSetup()
         {
-            if (this.connection == null)
+            if (this.Connection == null)
                 throw new InvalidOperationException("this.Connection must be assigned before calling this method");
         }
 
@@ -56,11 +56,35 @@ namespace SimpleMigrations
         {
             this.EnsureSetup();
 
-            this.RunInTransactionIfConfigured(command =>
+            if (this.UseTransactionForEnsureCreated)
             {
-                command.CommandText = this.GetCreateVersionTableSql();
-                command.ExecuteNonQuery();
-            });
+                using (var transaction = this.Connection.BeginTransaction(IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        using (var command = this.Connection.CreateCommand())
+                        {
+                            command.Transaction = transaction;
+                            command.CommandText = this.GetCreateVersionTableSql();
+                            command.ExecuteNonQuery();
+                        }
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+            else
+            {
+                using (var command = this.Connection.CreateCommand())
+                {
+                    command.CommandText = this.GetCreateVersionTableSql();
+                    command.ExecuteNonQuery();
+                }
+            }
         }
 
         /// <summary>
@@ -72,7 +96,7 @@ namespace SimpleMigrations
             this.EnsureSetup();
 
             long version = 0;
-            using (var command = this.connection.CreateCommand())
+            using (var command = this.Connection.CreateCommand())
             {
                 command.CommandText = this.GetCurrentVersionSql();
                 var result = command.ExecuteScalar();
@@ -108,7 +132,7 @@ namespace SimpleMigrations
                 newDescription = newDescription.Substring(0, this.MaxDescriptionLength - 3) + "...";
             }
 
-            using (var command = this.connection.CreateCommand())
+            using (var command = this.Connection.CreateCommand())
             {
                 command.CommandText = this.GetSetVersionSql();
 
@@ -136,13 +160,12 @@ namespace SimpleMigrations
 
             if (this.UseTransactionForEnsureCreated)
             {
-                using (var transaction = this.connection.BeginTransaction(IsolationLevel.Serializable))
+                using (var transaction = this.Connection.BeginTransaction(IsolationLevel.Serializable))
                 {
                     try
                     {
-                        using (var command = this.connection.CreateCommand())
+                        using (var command = this.Connection.CreateCommand())
                         {
-                            // Just in case we weren't given an ITransactionAwareDbConnection
                             command.Transaction = transaction;
                             action(command);
                         }
@@ -157,7 +180,7 @@ namespace SimpleMigrations
             }
             else
             {
-                using (var command = this.connection.CreateCommand())
+                using (var command = this.Connection.CreateCommand())
                 {
                     action(command);
                 }
@@ -185,5 +208,8 @@ namespace SimpleMigrations
         /// </remarks>
         /// <returns></returns>
         public abstract string GetSetVersionSql();
+
+        public virtual void AcquireDatabaseLock() { }
+        public virtual void ReleaseDatabaseLock() { }
     }
 }

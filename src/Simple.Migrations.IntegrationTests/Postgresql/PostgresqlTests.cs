@@ -13,7 +13,7 @@ namespace Simple.Migrations.IntegrationTests.Postgresql
     [TestFixture]
     public class PostgresqlTests : TestsBase
     {
-        protected override IDatabaseProvider<IDbConnection> DatabaseProvider => new PostgresqlDatabaseProvider();
+        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new PostgresqlDatabaseProvider();
 
         protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new PostgresqlStringsProvider();
 
