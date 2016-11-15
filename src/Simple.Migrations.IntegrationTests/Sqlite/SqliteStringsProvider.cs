@@ -7,10 +7,10 @@ namespace Simple.Migrations.IntegrationTests.Sqlite
 {
     public class SqliteStringsProvider : IMigrationStringsProvider
     {
-        public string CreateUsersTableDown => @"CREATE TABLE Users (
+        public string CreateUsersTableUp => @"CREATE TABLE Users (
                 Id SERIAL NOT NULL PRIMARY KEY,
                 Name TEXT NOT NULL
             )";
-        public string CreateUsersTableUp => "DROP TABLE Users";
+        public string CreateUsersTableDown => "DROP TABLE Users";
     }
 }

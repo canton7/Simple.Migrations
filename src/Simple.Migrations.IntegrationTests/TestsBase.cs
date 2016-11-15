@@ -31,12 +31,30 @@ namespace Simple.Migrations.IntegrationTests
         }
 
         [Test]
-        public void RunsConcurrentMigrations()
+        public void RunsConcurrentMigrationsUp()
         {
             Action<string> action = name =>
             {
                 var migrator = CreateMigrator(name, typeof(CreateUsersTable));
                 migrator.MigrateToLatest();
+            };
+
+            Task.WaitAll(
+                Task.Run(() => action("migrator1")),
+                Task.Run(() => action("migrator2"))
+            );
+        }
+
+        [Test]
+        public void RunsConcurrentMigrationsDown()
+        {
+            var migrator = CreateMigrator("setup", typeof(CreateUsersTable));
+            migrator.MigrateToLatest();
+
+            Action<string> action = name =>
+            {
+                var thisMigrator = CreateMigrator(name, typeof(CreateUsersTable));
+                thisMigrator.MigrateTo(0);
             };
 
             Task.WaitAll(

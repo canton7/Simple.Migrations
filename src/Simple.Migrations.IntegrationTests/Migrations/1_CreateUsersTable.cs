@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Simple.Migrations.IntegrationTests.Migrations
@@ -20,12 +21,14 @@ namespace Simple.Migrations.IntegrationTests.Migrations
 
         public override void Up()
         {
-            this.Execute(downSql);
+            this.Execute(upSql);
+            Thread.Sleep(200);
         }
 
         public override void Down()
         {
             this.Execute(downSql);
+            Thread.Sleep(200);
         }
     }
 }
