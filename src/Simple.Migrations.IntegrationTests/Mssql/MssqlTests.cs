@@ -6,36 +6,29 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
 using SimpleMigrations.DatabaseProvider;
+using System.Data;
 
 namespace Simple.Migrations.IntegrationTests.Mssql
 {
     [TestFixture]
-    public class MssqlTests
+    public class MssqlTests : TestsBase
     {
-        private SqlConnection connection;
-        private SimpleMigrator migrator;
+        protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new MssqlStringsProvider();
 
-        [SetUp]
-        public void SetUp()
+        protected override IDbConnection CreateConnection() => new SqlConnection(ConnectionStrings.MSSQL);
+
+        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new MssqlDatabaseProvider();
+
+        protected override void Clean()
         {
-            this.connection = new SqlConnection(ConnectionStrings.MSSQL);
-            var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MssqlDatabaseProvider(), new NUnitLogger("migrator"));
+            var connection = this.CreateConnection();
+            connection.Open();
 
-            this.migrator.Load();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            this.migrator.MigrateTo(0);
-            new SqlCommand(@"DROP TABLE VersionInfo", this.connection).ExecuteNonQuery();
-        }
-
-        [Test]
-        public void RunMigration()
-        {
-            this.migrator.MigrateToLatest();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"EXEC sp_MSforeachtable @command1 = ""DROP TABLE ?""";
+                command.ExecuteNonQuery();
+            }
         }
     }
 }
