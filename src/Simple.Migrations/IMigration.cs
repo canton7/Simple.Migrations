@@ -6,24 +6,6 @@
     /// <typeparam name="TConnection">Type of database connection which this migration will use</typeparam>
     public interface IMigration<TConnection>
     {
-        /// <summary>
-        /// Gets or sets the database to be used by this migration
-        /// </summary>
-        TConnection DB { get; set; }
-
-        /// <summary>
-        /// Gets or sets the logger to be used by this migration
-        /// </summary>
-        IMigrationLogger Logger { get; set; }
-
-        /// <summary>
-        /// Invoked when this migration should migrate up
-        /// </summary>
-        void Up();
-
-        /// <summary>
-        /// Invoked when this migration should migrate down
-        /// </summary>
-        void Down();
+        void Execute(TConnection connection, IMigrationLogger logger, MigrationDirection direction);
     }
 }

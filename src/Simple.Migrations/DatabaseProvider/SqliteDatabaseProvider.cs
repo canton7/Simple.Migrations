@@ -1,10 +1,21 @@
-﻿namespace SimpleMigrations.DatabaseProvider
+﻿using System;
+using System.Data.Common;
+
+namespace SimpleMigrations.DatabaseProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an SQLite database
     /// </summary>
     public class SqliteDatabaseProvider : DatabaseProviderBase
     {
+        public override void AcquireDatabaseLock(DbConnection connection)
+        {
+        }
+
+        public override void ReleaseDatabaseLock(DbConnection connection)
+        {
+        }
+
         /// <summary>
         /// Returns SQL to create the version table
         /// </summary>

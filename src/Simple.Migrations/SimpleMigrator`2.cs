@@ -12,6 +12,7 @@ namespace SimpleMigrations
     /// <typeparam name="TMigrationBase">Type of migration base class</typeparam>
     public class SimpleMigrator<TConnection, TMigrationBase>  : ISimpleMigrator
         where TMigrationBase : IMigration<TConnection>
+        where TConnection : IDisposable
     {
         /// <summary>
         /// Assembly to search for migrations
@@ -21,7 +22,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Connection provider
         /// </summary>
-        protected IConnectionProvider<TConnection> ConnectionProvider { get; }
+        protected Func<TConnection> ConnectionFactory { get; }
 
         /// <summary>
         /// Database provider, providing access to the version table, etc
@@ -59,21 +60,20 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
-            IConnectionProvider<TConnection> connectionProvider,
+            Func<TConnection> connectionFactory,
             IDatabaseProvider<TConnection> databaseProvider,
             ILogger logger = null)
         {
             if (migrationProvider == null)
                 throw new ArgumentNullException(nameof(migrationProvider));
-            if (connectionProvider == null)
-                throw new ArgumentNullException(nameof(connectionProvider));
+            if (connectionFactory == null)
+                throw new ArgumentNullException(nameof(connectionFactory));
             if (databaseProvider == null)
                 throw new ArgumentNullException(nameof(databaseProvider));
 
             this.MigrationProvider = migrationProvider;
-            this.ConnectionProvider = connectionProvider;
+            this.ConnectionFactory = connectionFactory;
             this.DatabaseProvider = databaseProvider;
-            this.DatabaseProvider.SetConnection(connectionProvider.Connection);
             this.Logger = logger;
         }
 
@@ -86,10 +86,10 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
-            IConnectionProvider<TConnection> connectionProvider,
+            Func<TConnection> connectionFactory,
             IDatabaseProvider<TConnection> databaseProvider,
             ILogger logger = null)
-            : this(new AssemblyMigrationProvider(migrationsAssembly), connectionProvider, databaseProvider, logger)
+            : this(new AssemblyMigrationProvider(migrationsAssembly), connectionFactory, databaseProvider, logger)
         {
         }
 
@@ -110,22 +110,17 @@ namespace SimpleMigrations
             if (this.isLoaded)
                 return;
 
-            try
+            long currentVersion;
+            using (var connection = this.ConnectionFactory())
             {
-                this.DatabaseProvider.AcquireDatabaseLock();
-
-                this.DatabaseProvider.EnsureCreated();
-
-                this.FindAndSetMigrations();
-                this.SetCurrentVersion();
-                this.LatestMigration = this.Migrations.Last();
-
-                this.isLoaded = true;
+                currentVersion = this.DatabaseProvider.EnsureCreatedAndGetCurrentVersion(connection);
             }
-            finally
-            {
-                this.DatabaseProvider.ReleaseDatabaseLock();
-            }
+
+            this.FindAndSetMigrations();
+            this.SetCurrentVersion(currentVersion);
+            this.LatestMigration = this.Migrations.Last();
+
+            this.isLoaded = true;
         }
 
         /// <summary>
@@ -158,9 +153,8 @@ namespace SimpleMigrations
         /// <summary>
         /// Set this.CurrentMigration, by inspecting the database
         /// </summary>
-        protected virtual void SetCurrentVersion()
+        protected virtual void SetCurrentVersion(long currentVersion)
         {
-            var currentVersion = this.DatabaseProvider.GetCurrentVersion();
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             if (currentMigration == null)
                 throw new MigrationException($"Unable to find migration with the current version: {currentVersion}");
@@ -200,78 +194,25 @@ namespace SimpleMigrations
             //// This is the last migration which was run (that we know about)
             //var lastMigrationData = this.CurrentMigration;
 
-            try
+            using (var versionConnection = this.ConnectionFactory())
+            using (var updatesConnection = this.ConnectionFactory())
             {
-                this.DatabaseProvider.AcquireDatabaseLock();
-
-                foreach (var migrationDataPair in migrations)
+                try
                 {
-                    var migrationDataToRun = (direction == MigrationDirection.Up) ? migrationDataPair.To : migrationDataPair.From;
+                    this.DatabaseProvider.AcquireDatabaseLock(updatesConnection);
 
-                    try
+                    foreach (var migrationDataPair in migrations)
                     {
-                        this.ConnectionProvider.BeginAndRecordTransaction();
-
-                        var currentVersion = this.DatabaseProvider.GetCurrentVersion();
-
-                        if (this.ShouldSkipMigrationOrThrowIfConflictingMigrators(direction, migrationDataPair, currentVersion))
-                            continue;
+                        var migrationDataToRun = (direction == MigrationDirection.Up) ? migrationDataPair.To : migrationDataPair.From;
 
                         try
                         {
                             this.Logger?.BeginMigration(migrationDataToRun, direction);
 
-                            // If the migration doesn't want a transaction, complete the current one
-                            if (!migrationDataToRun.UseTransaction)
-                                this.ConnectionProvider.CommitRecordedTransaction();
+                            this.RunMigration(direction, migrationDataToRun, updatesConnection);
+                            this.DatabaseProvider.UpdateVersion(versionConnection, migrationDataPair.From.Version, migrationDataPair.To.Version, migrationDataPair.To.FullName);
 
-                            this.RunMigration(direction, migrationDataToRun);
-
-                            // If we're in a transaction, we can just update the version table and commit.
-                            // If we're not, we have to open a new one, and do a read-modify-write
-                            if (migrationDataToRun.UseTransaction)
-                            {
-                                this.DatabaseProvider.UpdateVersion(currentVersion, migrationDataPair.To.Version, migrationDataPair.To.FullName);
-                                this.ConnectionProvider.CommitRecordedTransaction();
-
-                                this.Logger?.EndMigration(migrationDataToRun, direction);
-                            }
-                            else
-                            {
-                                this.ConnectionProvider.BeginAndRecordTransaction();
-
-                                var newCurrentVersion = this.DatabaseProvider.GetCurrentVersion();
-
-                                // newCurrentVersion should be == currentVersion. If it's gone in the opposite direction to the migration
-                                // direction, then that's an error. If it's gone in the same direction, log a warning but skip it
-
-                                if (newCurrentVersion == currentVersion)
-                                {
-                                    this.DatabaseProvider.UpdateVersion(currentVersion, migrationDataPair.To.Version, migrationDataPair.To.FullName);
-                                    this.ConnectionProvider.CommitRecordedTransaction();
-
-                                    this.Logger?.EndMigration(migrationDataToRun, direction);
-                                }
-                                else
-                                {
-                                    this.ConnectionProvider.RollbackTransaction();
-
-                                    if (direction == MigrationDirection.Up)
-                                    {
-                                        if (newCurrentVersion > currentVersion)
-                                            this.Logger?.EndMigrationWithSkippedVersionTableUpdate(migrationDataToRun, direction);
-                                        else
-                                            throw new ConflictingMigratorsException(migrationDataToRun, currentVersion, newCurrentVersion);
-                                    }
-                                    else
-                                    {
-                                        if (newCurrentVersion < currentVersion)
-                                            this.Logger?.EndMigrationWithSkippedVersionTableUpdate(migrationDataToRun, direction);
-                                        else
-                                            throw new ConflictingMigratorsException(migrationDataToRun, currentVersion, newCurrentVersion);
-                                    }
-                                }
-                            }
+                            this.Logger?.EndMigration(migrationDataToRun, direction);
                         }
                         catch (Exception e)
                         {
@@ -279,84 +220,169 @@ namespace SimpleMigrations
                             throw;
                         }
                     }
-                    finally
-                    {
-                        // Finally block for individual migrations: make sure transactions are sorted out
-
-                        if (this.ConnectionProvider.HasOpenTransaction)
-                            this.ConnectionProvider.RollbackTransaction();
-                    }
                 }
-
-                // Once all migrations are complete, tidy up
-                this.SetCurrentVersion();
-                this.Logger?.EndSequence(originalMigration, this.CurrentMigration);
-            }
-            catch (Exception e)
-            {
-                // If the whole sequence failed somewhere, try and tidy up, and log an error
-
-                try
+                finally
                 {
-                    this.SetCurrentVersion();
-                }
-                catch { }
+                    long currentVersion = this.DatabaseProvider.GetCurrentVersion(versionConnection);
+                    this.SetCurrentVersion(currentVersion);
 
-                this.Logger?.EndSequenceWithError(e, originalMigration, this.CurrentMigration);
-                throw;
+                    this.DatabaseProvider.ReleaseDatabaseLock(updatesConnection);
+                }
             }
-            finally
-            {
-                this.DatabaseProvider.ReleaseDatabaseLock();
-            }
+
+            //try
+            //{
+            //    this.DatabaseProvider.AcquireDatabaseLock();
+
+            //    foreach (var migrationDataPair in migrations)
+            //    {
+            //        var migrationDataToRun = (direction == MigrationDirection.Up) ? migrationDataPair.To : migrationDataPair.From;
+
+            //        try
+            //        {
+            //            this.ConnectionProvider.BeginAndRecordTransaction();
+
+            //            var currentVersion = this.DatabaseProvider.GetCurrentVersion();
+
+            //            if (this.ShouldSkipMigrationOrThrowIfConflictingMigrators(direction, migrationDataPair, currentVersion))
+            //                continue;
+
+            //            try
+            //            {
+            //                this.Logger?.BeginMigration(migrationDataToRun, direction);
+
+            //                // If the migration doesn't want a transaction, complete the current one
+            //                if (!migrationDataToRun.UseTransaction)
+            //                    this.ConnectionProvider.CommitRecordedTransaction();
+
+            //                this.RunMigration(direction, migrationDataToRun);
+
+            //                // If we're in a transaction, we can just update the version table and commit.
+            //                // If we're not, we have to open a new one, and do a read-modify-write
+            //                if (migrationDataToRun.UseTransaction)
+            //                {
+            //                    this.DatabaseProvider.UpdateVersion(currentVersion, migrationDataPair.To.Version, migrationDataPair.To.FullName);
+            //                    this.ConnectionProvider.CommitRecordedTransaction();
+
+            //                    this.Logger?.EndMigration(migrationDataToRun, direction);
+            //                }
+            //                else
+            //                {
+            //                    this.ConnectionProvider.BeginAndRecordTransaction();
+
+            //                    var newCurrentVersion = this.DatabaseProvider.GetCurrentVersion();
+
+            //                    // newCurrentVersion should be == currentVersion. If it's gone in the opposite direction to the migration
+            //                    // direction, then that's an error. If it's gone in the same direction, log a warning but skip it
+
+            //                    if (newCurrentVersion == currentVersion)
+            //                    {
+            //                        this.DatabaseProvider.UpdateVersion(currentVersion, migrationDataPair.To.Version, migrationDataPair.To.FullName);
+            //                        this.ConnectionProvider.CommitRecordedTransaction();
+
+            //                        this.Logger?.EndMigration(migrationDataToRun, direction);
+            //                    }
+            //                    else
+            //                    {
+            //                        this.ConnectionProvider.RollbackTransaction();
+
+            //                        if (direction == MigrationDirection.Up)
+            //                        {
+            //                            if (newCurrentVersion > currentVersion)
+            //                                this.Logger?.EndMigrationWithSkippedVersionTableUpdate(migrationDataToRun, direction);
+            //                            else
+            //                                throw new ConflictingMigratorsException(migrationDataToRun, currentVersion, newCurrentVersion);
+            //                        }
+            //                        else
+            //                        {
+            //                            if (newCurrentVersion < currentVersion)
+            //                                this.Logger?.EndMigrationWithSkippedVersionTableUpdate(migrationDataToRun, direction);
+            //                            else
+            //                                throw new ConflictingMigratorsException(migrationDataToRun, currentVersion, newCurrentVersion);
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //            catch (Exception e)
+            //            {
+            //                this.Logger?.EndMigrationWithError(e, migrationDataToRun, direction);
+            //                throw;
+            //            }
+            //        }
+            //        finally
+            //        {
+            //            // Finally block for individual migrations: make sure transactions are sorted out
+
+            //            if (this.ConnectionProvider.HasOpenTransaction)
+            //                this.ConnectionProvider.RollbackTransaction();
+            //        }
+            //    }
+
+            //    // Once all migrations are complete, tidy up
+            //    this.SetCurrentVersion();
+            //    this.Logger?.EndSequence(originalMigration, this.CurrentMigration);
+            //}
+            //catch (Exception e)
+            //{
+            //    // If the whole sequence failed somewhere, try and tidy up, and log an error
+
+            //    try
+            //    {
+            //        this.SetCurrentVersion();
+            //    }
+            //    catch { }
+
+            //    this.Logger?.EndSequenceWithError(e, originalMigration, this.CurrentMigration);
+            //    throw;
+            //}
+            //finally
+            //{
+            //    this.DatabaseProvider.ReleaseDatabaseLock();
+            //}
         }
 
-        protected virtual void RunMigration(MigrationDirection direction, MigrationData migrationData)
+        protected virtual void RunMigration(MigrationDirection direction, MigrationData migrationData, TConnection connection)
         {
             var migration = this.CreateMigration(migrationData);
-
-            if (direction == MigrationDirection.Up)
-                migration.Up();
-            else
-                migration.Down();
+            migration.Execute(connection, this.Logger ?? NullLogger.Instance, direction);
         }
 
-        protected virtual bool ShouldSkipMigrationOrThrowIfConflictingMigrators(MigrationDirection direction, MigrationDataPair migrationDataPair, long currentVersion)
-        {
-            // If the database is already at this migration (or further on), skip it.
-            // If the database has gone in the opposite direction, abort with an error
+        //protected virtual bool ShouldSkipMigrationOrThrowIfConflictingMigrators(MigrationDirection direction, MigrationDataPair migrationDataPair, long currentVersion)
+        //{
+        //    // If the database is already at this migration (or further on), skip it.
+        //    // If the database has gone in the opposite direction, abort with an error
 
-            bool shouldSkip = false;
+        //    bool shouldSkip = false;
 
-            if (direction == MigrationDirection.Up)
-            {
-                // currentVersion should == from version
-                if (currentVersion < migrationDataPair.From.Version)
-                {
-                    throw new ConflictingMigratorsException(migrationDataPair.To, migrationDataPair.From.Version, currentVersion);
-                }
-                else if (currentVersion > migrationDataPair.From.Version)
-                {
-                    this.Logger?.SkipMigrationBecauseAlreadyApplied(migrationDataPair.To, direction);
-                    shouldSkip = true;
-                }
-            }
-            else
-            {
-                // currentVersion should == to version
-                if (currentVersion > migrationDataPair.From.Version)
-                {
-                    throw new ConflictingMigratorsException(migrationDataPair.From, migrationDataPair.From.Version, currentVersion);
-                }
-                else if (currentVersion < migrationDataPair.From.Version)
-                {
-                    this.Logger?.SkipMigrationBecauseAlreadyApplied(migrationDataPair.To, direction);
-                    shouldSkip = true;
-                }
-            }
+        //    if (direction == MigrationDirection.Up)
+        //    {
+        //        // currentVersion should == from version
+        //        if (currentVersion < migrationDataPair.From.Version)
+        //        {
+        //            throw new ConflictingMigratorsException(migrationDataPair.To, migrationDataPair.From.Version, currentVersion);
+        //        }
+        //        else if (currentVersion > migrationDataPair.From.Version)
+        //        {
+        //            this.Logger?.SkipMigrationBecauseAlreadyApplied(migrationDataPair.To, direction);
+        //            shouldSkip = true;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // currentVersion should == to version
+        //        if (currentVersion > migrationDataPair.From.Version)
+        //        {
+        //            throw new ConflictingMigratorsException(migrationDataPair.From, migrationDataPair.From.Version, currentVersion);
+        //        }
+        //        else if (currentVersion < migrationDataPair.From.Version)
+        //        {
+        //            this.Logger?.SkipMigrationBecauseAlreadyApplied(migrationDataPair.To, direction);
+        //            shouldSkip = true;
+        //        }
+        //    }
 
-            return shouldSkip;
-        }
+        //    return shouldSkip;
+        //}
 
         /// <summary>
         /// Pretend that the database is at the given version, without running any migrations.
@@ -374,7 +400,21 @@ namespace SimpleMigrations
             if (migration == null)
                 throw new ArgumentException($"Could not find migration with version {version}", nameof(version));
 
-            this.DatabaseProvider.UpdateVersion(0, version, migration.FullName);
+            using (var connection = this.ConnectionFactory())
+            {
+                try
+                {
+                    this.DatabaseProvider.AcquireDatabaseLock(connection);
+
+                    this.DatabaseProvider.UpdateVersion(connection, 0, version, migration.FullName);
+                }
+                finally
+                {
+                    this.DatabaseProvider.ReleaseDatabaseLock(connection);
+                }
+            }
+
+                
             this.CurrentMigration = migration;
         }
 
@@ -410,7 +450,6 @@ namespace SimpleMigrations
             }
         }
 
-
         /// <summary>
         /// Create and configure an instance of a migration
         /// </summary>
@@ -430,9 +469,6 @@ namespace SimpleMigrations
             {
                 throw new MigrationException($"Unable to create migration {migrationData.FullName}", e);
             }
-
-            instance.DB = this.ConnectionProvider.Connection;
-            instance.Logger = this.Logger ?? NullLogger.Instance;
 
             return instance;
         }
