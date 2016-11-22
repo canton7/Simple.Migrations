@@ -30,13 +30,6 @@ namespace SimpleMigrations
         void EndSequenceWithError(Exception exception, MigrationData from, MigrationData currentVersion);
 
         /// <summary>
-        /// Invoked when the migrator skips a migration, because it was already applied, probably by a migrator running in parallel
-        /// </summary>
-        /// <param name="migration">Migration which was skipped</param>
-        /// <param name="direction">Direction of the migration</param>
-        void SkipMigrationBecauseAlreadyApplied(MigrationData migration, MigrationDirection direction);
-
-        /// <summary>
         /// Invoked when an individual migration is started
         /// </summary>
         /// <param name="migration">Migration being started</param>
@@ -57,13 +50,5 @@ namespace SimpleMigrations
         /// <param name="migration">Migration which failed</param>
         /// <param name="direction">Direction of the migration</param>
         void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction);
-
-        /// <summary>
-        /// Invoked when the migrator ran a migration outside of a transaction and then attempted to update the schema version,
-        /// but found that it had already been updated, probably by a migrator running in parallel
-        /// </summary>
-        /// <param name="migration">Migration which was run, but the version update was not performed</param>
-        /// <param name="direction">Direction of the migration</param>
-        void EndMigrationWithSkippedVersionTableUpdate(MigrationData migration, MigrationDirection direction);
     }
 }

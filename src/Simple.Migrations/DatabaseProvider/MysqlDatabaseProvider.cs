@@ -1,10 +1,38 @@
-﻿namespace SimpleMigrations.DatabaseProvider
+﻿using System;
+using System.Data.Common;
+
+namespace SimpleMigrations.DatabaseProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an MySQL database
     /// </summary>
     public class MysqlDatabaseProvider : DatabaseProviderBase
     {
+        private const string lockName = "SimpleMigratorExclusiveLock";
+
+        public MysqlDatabaseProvider()
+        {
+            this.AcquireDatabaseLockForEnsureCreatedAndGetCurrentVersion = true;
+        }
+
+        protected override void AcquireDatabaseLock(DbConnection connection)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT GET_LOCK('{lockName}', 600)";
+                command.ExecuteNonQuery();
+            }
+        }
+
+        protected override void ReleaseDatabaseLock(DbConnection connection)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT RELEASE_LOCK('{lockName}', 600)";
+                command.ExecuteNonQuery();
+            }
+        }
+
         /// <summary>
         /// Returns SQL to create the version table
         /// </summary>

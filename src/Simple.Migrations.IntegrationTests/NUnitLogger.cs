@@ -51,16 +51,6 @@ namespace Simple.Migrations.IntegrationTests
         }
 
         /// <summary>
-        /// Invoked when the migrator skips a migration, because it was already applied, probably by a migrator running in parallel
-        /// </summary>
-        /// <param name="migration">Migration which was skipped</param>
-        /// <param name="direction">Direction of the migration</param>
-        public void SkipMigrationBecauseAlreadyApplied(MigrationData migration, MigrationDirection direction)
-        {
-            this.WriteWarning($"{this.name}: {migration.Version}: {migration.FullName} SKIPPED as it has already been applied, probably by a migrator running in parallel");
-        }
-
-        /// <summary>
         /// Invoked when an individual migration is started
         /// </summary>
         /// <param name="migration">Migration being started</param>
@@ -90,17 +80,6 @@ namespace Simple.Migrations.IntegrationTests
         public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction)
         {
             this.WriteError($"{this.name}: {migration.Version}: {migration.FullName} ERROR {exception.Message}");
-        }
-
-        /// <summary>
-        /// Invoked when the migrator ran a migration outside of a transaction and then attempted to update the schema version,
-        /// but found that it had already been updated, probably by a migrator running in parallel
-        /// </summary>
-        /// <param name="migration">Migration which was run, but the version
-        public void EndMigrationWithSkippedVersionTableUpdate(MigrationData migration, MigrationDirection direction)
-        {
-            this.WriteWarning($"{this.name}: {migration.Version}: {migration.FullName} PARTIAL Migration was applied outside of a transaction, but another migrator " +
-                "running in parallel updated the version table at the same time, so it was not updated after this migration.");
         }
 
         /// <summary>

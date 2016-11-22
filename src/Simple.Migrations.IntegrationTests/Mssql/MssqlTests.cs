@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using SimpleMigrations.DatabaseProvider;
 using System.Data;
+using System.Data.Common;
 
 namespace Simple.Migrations.IntegrationTests.Mssql
 {
@@ -15,9 +16,11 @@ namespace Simple.Migrations.IntegrationTests.Mssql
     {
         protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new MssqlStringsProvider();
 
-        protected override IDbConnection CreateConnection() => new SqlConnection(ConnectionStrings.MSSQL);
+        protected override bool SupportConcurrentMigrators => true;
 
-        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new MssqlDatabaseProvider();
+        protected override DbConnection CreateConnection() => new SqlConnection(ConnectionStrings.MSSQL);
+
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MssqlDatabaseProvider();
 
         protected override void Clean()
         {

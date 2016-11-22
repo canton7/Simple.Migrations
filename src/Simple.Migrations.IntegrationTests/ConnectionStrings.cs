@@ -12,6 +12,6 @@ namespace Simple.Migrations.IntegrationTests
         public static readonly string SQLite = "DataSource=" + SQLiteDatabase;
         public static readonly string MSSQL = @"Server=.;Database=SimpleMigratorTests;Trusted_Connection=True;";
         public static readonly string MySQL = @"Server=localhost;Database=SimpleMigrator;Uid=SimpleMigrator;Pwd=SimpleMigrator;";
-        public static readonly string PostgreSQL = @"Server=localhost;Database=SimpleMigrator;User ID=SimpleMigrator;Password=SimpleMigrator";
+        public static readonly string PostgreSQL = @"Server=localhost;Port=5432;Database=SimpleMigrator;User ID=SimpleMigrator;Password=SimpleMigrator";
     }
 }

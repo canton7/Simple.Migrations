@@ -7,15 +7,18 @@ using SimpleMigrations;
 using NUnit.Framework;
 using SimpleMigrations.DatabaseProvider;
 using Npgsql;
+using System.Data.Common;
 
 namespace Simple.Migrations.IntegrationTests.Postgresql
 {
     [TestFixture]
     public class PostgresqlTests : TestsBase
     {
-        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new PostgresqlDatabaseProvider();
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new PostgresqlDatabaseProvider();
 
         protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new PostgresqlStringsProvider();
+
+        protected override bool SupportConcurrentMigrators => true;
 
         protected override void Clean()
         {
@@ -35,6 +38,6 @@ namespace Simple.Migrations.IntegrationTests.Postgresql
 
         private NpgsqlConnection CreatePgConnection() => new NpgsqlConnection(ConnectionStrings.PostgreSQL);
 
-        protected override IDbConnection CreateConnection() => this.CreatePgConnection();
+        protected override DbConnection CreateConnection() => this.CreatePgConnection();
     }
 }

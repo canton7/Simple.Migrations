@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
+using System.Data.Common;
 using System.Reflection;
 
 namespace SimpleMigrations
@@ -6,7 +8,7 @@ namespace SimpleMigrations
     /// <summary>
     /// Migrator which uses <see cref="IDbConnection"/> connections
     /// </summary>
-    public class SimpleMigrator : SimpleMigrator<ITransactionAwareDbConnection, IMigration<ITransactionAwareDbConnection>>
+    public class SimpleMigrator : SimpleMigrator<DbConnection, IMigration<DbConnection>>
     {
         /// <summary>
         /// Instantiates a new instance of the <see cref="SimpleMigrator"/> class
@@ -17,10 +19,10 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
-            IDbConnection connection,
-            IDatabaseProvider<IDbConnection> databaseProvider,
+            Func<DbConnection> connectionFactory,
+            IDatabaseProvider<DbConnection> databaseProvider,
             ILogger logger = null)
-            : base(migrationProvider, new ConnectionProvider(connection), databaseProvider, logger)
+            : base(migrationProvider, connectionFactory, databaseProvider, logger)
         {
         }
 
@@ -33,22 +35,11 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
-            IDbConnection connection,
-            IDatabaseProvider<IDbConnection> databaseProvider,
+            Func<DbConnection> connectionFactory,
+            IDatabaseProvider<DbConnection> databaseProvider,
             ILogger logger = null)
-            : base(migrationsAssembly, new ConnectionProvider(connection), databaseProvider, logger)
+            : base(migrationsAssembly, connectionFactory, databaseProvider, logger)
         {
-        }
-
-        /// <summary>
-        /// Opens the connection if necessary, loads all available migrations, and the current state of the database
-        /// </summary>
-        public override void Load()
-        {
-            if (this.ConnectionProvider.Connection.State == ConnectionState.Closed)
-                this.ConnectionProvider.Connection.Open();
-
-            base.Load();
         }
     }
 }

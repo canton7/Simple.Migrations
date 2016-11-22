@@ -9,15 +9,18 @@ using SimpleMigrations.DatabaseProvider;
 using System.IO;
 using System.Reflection;
 using Microsoft.Data.Sqlite;
+using System.Data.Common;
 
 namespace Simple.Migrations.IntegrationTests.Sqlite
 {
     [TestFixture]
     public class SqliteTests : TestsBase
     {
-        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new SqliteDatabaseProvider();
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new SqliteDatabaseProvider();
 
         protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new SqliteStringsProvider();
+
+        protected override bool SupportConcurrentMigrators => false;
 
         protected override void Clean()
         {
@@ -26,6 +29,6 @@ namespace Simple.Migrations.IntegrationTests.Sqlite
                 File.Delete(db);
         }
 
-        protected override IDbConnection CreateConnection() => new SqliteConnection(ConnectionStrings.SQLite);
+        protected override DbConnection CreateConnection() => new SqliteConnection(ConnectionStrings.SQLite);
     }
 }

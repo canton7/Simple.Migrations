@@ -7,15 +7,18 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Data.Common;
 
 namespace Simple.Migrations.IntegrationTests
 {
     public abstract class TestsBase
     {
-        protected abstract IDbConnection CreateConnection();
-        protected abstract IDatabaseProvider<IDbConnection> CreateDatabaseProvider();
+        protected abstract DbConnection CreateConnection();
+        protected abstract IDatabaseProvider<DbConnection> CreateDatabaseProvider();
         protected abstract IMigrationStringsProvider MigrationStringsProvider { get; }
         protected abstract void Clean();
+
+        protected abstract bool SupportConcurrentMigrators { get; }
 
         [SetUp]
         public void SetUp()
@@ -33,6 +36,9 @@ namespace Simple.Migrations.IntegrationTests
         [Test]
         public void RunsConcurrentMigrationsUp()
         {
+            if (!this.SupportConcurrentMigrators)
+                Assert.Ignore("Concurrent migrations not supported");
+
             Action<string> action = name =>
             {
                 var migrator = CreateMigrator(name, typeof(CreateUsersTable));
@@ -48,6 +54,9 @@ namespace Simple.Migrations.IntegrationTests
         [Test]
         public void RunsConcurrentMigrationsDown()
         {
+            if (!this.SupportConcurrentMigrators)
+                Assert.Ignore("Concurrent migrations not supported");
+
             var migrator = CreateMigrator("setup", typeof(CreateUsersTable));
             migrator.MigrateToLatest();
 
@@ -76,9 +85,8 @@ namespace Simple.Migrations.IntegrationTests
                 setupMethod.Invoke(null, new object[] { this.MigrationStringsProvider });
             }
 
-            var connection = this.CreateConnection();
             var migrationProvider = new CustomMigrationProvider(migrationTypes);
-            var migrator = new SimpleMigrator(migrationProvider, connection, this.CreateDatabaseProvider(), new NUnitLogger(name));
+            var migrator = new SimpleMigrator(migrationProvider, this.CreateConnection, this.CreateDatabaseProvider(), new NUnitLogger(name));
             migrator.Load();
             return migrator;
         }

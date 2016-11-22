@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
@@ -10,32 +11,19 @@ using SimpleMigrations.DatabaseProvider;
 namespace Simple.Migrations.IntegrationTests.Mysql
 {
     [TestFixture]
-    public class MysqlTests
+    public class MysqlTests : TestsBase
     {
-        private MySqlConnection connection;
-        private SimpleMigrator migrator;
+        protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new MysqlStringsProvider();
 
-        [SetUp]
-        public void SetUp()
+        protected override DbConnection CreateConnection() => new MySqlConnection(ConnectionStrings.MySQL);
+
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MysqlDatabaseProvider();
+
+        protected override bool SupportConcurrentMigrators => true;
+
+        protected override void Clean()
         {
-            this.connection = new MySqlConnection(ConnectionStrings.MySQL);
-            var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MysqlDatabaseProvider(), new NUnitLogger("migrator"));
 
-            this.migrator.Load();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            this.migrator.MigrateTo(0);
-            new MySqlCommand(@"DROP TABLE VersionInfo", this.connection).ExecuteNonQuery();
-        }
-
-        [Test]
-        public void RunMigration()
-        {
-            this.migrator.MigrateToLatest();
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace SimpleMigrations.DatabaseProvider
+﻿using System;
+using System.Data.Common;
+
+namespace SimpleMigrations.DatabaseProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an PostgreSQL database
@@ -6,6 +9,29 @@
     public class PostgresqlDatabaseProvider : DatabaseProviderBase
     {
         private const long advisoryLockKey = 2609878; // Chosen by fair dice roll
+
+        public PostgresqlDatabaseProvider()
+        {
+            this.AcquireDatabaseLockForEnsureCreatedAndGetCurrentVersion = true;
+        }
+
+        protected override void AcquireDatabaseLock(DbConnection connection)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT pg_advisory_lock({advisoryLockKey})";
+                command.ExecuteNonQuery();
+            }
+        }
+
+        protected override void ReleaseDatabaseLock(DbConnection connection)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT pg_advisory_unlock({advisoryLockKey})";
+                command.ExecuteNonQuery();
+            }
+        }
 
         /// <summary>
         /// Returns SQL to create the version table
@@ -39,22 +65,6 @@
             return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, CURRENT_TIMESTAMP, @Description)";
         }
 
-        public override void AcquireDatabaseLock()
-        {
-            using (var command = this.Connection.CreateCommand())
-            {
-                command.CommandText = $"SELECT pg_advisory_lock({advisoryLockKey})";
-                command.ExecuteNonQuery();
-            }
-        }
-
-        public override void ReleaseDatabaseLock()
-        {
-            using (var command = this.Connection.CreateCommand())
-            {
-                command.CommandText = $"SELECT pg_advisory_unlock({advisoryLockKey})";
-                command.ExecuteNonQuery();
-            }
-        }
+       
     }
 }

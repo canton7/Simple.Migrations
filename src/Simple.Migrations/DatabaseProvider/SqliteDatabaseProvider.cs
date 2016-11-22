@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.Common;
 
 namespace SimpleMigrations.DatabaseProvider
@@ -8,12 +9,13 @@ namespace SimpleMigrations.DatabaseProvider
     /// </summary>
     public class SqliteDatabaseProvider : DatabaseProviderBase
     {
-        public override void AcquireDatabaseLock(DbConnection connection)
-        {
-        }
+        private DbTransaction versionTableTransaction;
 
-        public override void ReleaseDatabaseLock(DbConnection connection)
+        public override DbConnection BeginOperation(Func<DbConnection> connectionFactory)
         {
+            this.VersionTableConnection = connectionFactory();
+            this.VersionTableConnection.Open();
+            return this.VersionTableConnection;
         }
 
         /// <summary>
@@ -47,5 +49,9 @@ namespace SimpleMigrations.DatabaseProvider
         {
             return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)";
         }
+
+        protected override void AcquireDatabaseLock(DbConnection connection) { }
+
+        protected override void ReleaseDatabaseLock(DbConnection connection) { }
     }
 }

@@ -1,16 +1,41 @@
-﻿namespace SimpleMigrations.DatabaseProvider
+﻿using System;
+using System.Data;
+using System.Data.Common;
+
+namespace SimpleMigrations.DatabaseProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an MSSQL database
     /// </summary>
     public class MssqlDatabaseProvider : DatabaseProviderBase
     {
+        private DbTransaction databaseLockTransaction;
+
         /// <summary>
         /// Initialises a new instance of the <see cref="MssqlDatabaseProvider"/> class
         /// </summary>
         public MssqlDatabaseProvider()
         {
             this.MaxDescriptionLength = 256;
+        }
+
+        protected override void AcquireDatabaseLock(DbConnection connection)
+        {
+            this.databaseLockTransaction = connection.BeginTransaction(IsolationLevel.Serializable);
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT * FROM {this.TableName} WITH (TABLOCKX)";
+                command.Transaction = this.databaseLockTransaction;
+                command.ExecuteNonQuery();
+            }
+        }
+
+        protected override void ReleaseDatabaseLock(DbConnection connection)
+        {
+            this.databaseLockTransaction?.Commit();
+            this.databaseLockTransaction?.Dispose();
+            this.databaseLockTransaction = null;
         }
 
         /// <summary>
@@ -47,5 +72,7 @@
         {
             return $@"INSERT INTO [dbo].[{this.TableName}] ([Version], [AppliedOn], [Description]) VALUES (@Version, GETDATE(), @Description);";
         }
+
+        
     }
 }
