@@ -86,7 +86,7 @@ namespace Simple.Migrations.IntegrationTests
             }
 
             var migrationProvider = new CustomMigrationProvider(migrationTypes);
-            var migrator = new SimpleMigrator(migrationProvider, this.CreateConnection, this.CreateDatabaseProvider(), new NUnitLogger(name));
+            var migrator = new SimpleMigrator(migrationProvider, this.CreateDatabaseProvider(), new NUnitLogger(name));
             migrator.Load();
             return migrator;
         }

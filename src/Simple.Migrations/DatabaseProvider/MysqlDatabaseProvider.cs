@@ -6,16 +6,16 @@ namespace SimpleMigrations.DatabaseProvider
     /// <summary>
     /// Class which can read from / write to a version table in an MySQL database
     /// </summary>
-    public class MysqlDatabaseProvider : DatabaseProviderBase
+    public class MysqlDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
         private const string lockName = "SimpleMigratorExclusiveLock";
 
-        public MysqlDatabaseProvider()
+        public MysqlDatabaseProvider(Func<DbConnection> connectionFactory)
+            : base(connectionFactory)
         {
-            this.AcquireDatabaseLockForEnsureCreatedAndGetCurrentVersion = true;
         }
 
-        protected override void AcquireDatabaseLock(DbConnection connection)
+        public override void AcquireAdvisoryLock(DbConnection connection)
         {
             using (var command = connection.CreateCommand())
             {
@@ -24,7 +24,7 @@ namespace SimpleMigrations.DatabaseProvider
             }
         }
 
-        protected override void ReleaseDatabaseLock(DbConnection connection)
+        public override void ReleaseAdvisoryLock(DbConnection connection)
         {
             using (var command = connection.CreateCommand())
             {

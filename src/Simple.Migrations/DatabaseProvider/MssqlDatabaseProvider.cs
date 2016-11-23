@@ -7,35 +7,34 @@ namespace SimpleMigrations.DatabaseProvider
     /// <summary>
     /// Class which can read from / write to a version table in an MSSQL database
     /// </summary>
-    public class MssqlDatabaseProvider : DatabaseProviderBase
+    public class MssqlDatabaseProvider : DatabaseProviderBaseWithVersionTableLock
     {
-        private DbTransaction databaseLockTransaction;
-
         /// <summary>
         /// Initialises a new instance of the <see cref="MssqlDatabaseProvider"/> class
         /// </summary>
-        public MssqlDatabaseProvider()
+        public MssqlDatabaseProvider(Func<DbConnection> connectionFactory)
+            : base(connectionFactory)
         {
             this.MaxDescriptionLength = 256;
         }
 
-        protected override void AcquireDatabaseLock(DbConnection connection)
+        protected override void AcquireVersionTableLock()
         {
-            this.databaseLockTransaction = connection.BeginTransaction(IsolationLevel.Serializable);
+            this.VersionTableLockTransaction = this.VersionTableConnection.BeginTransaction(IsolationLevel.Serializable);
 
-            using (var command = connection.CreateCommand())
+            using (var command = this.VersionTableConnection.CreateCommand())
             {
                 command.CommandText = $"SELECT * FROM {this.TableName} WITH (TABLOCKX)";
-                command.Transaction = this.databaseLockTransaction;
+                command.Transaction = this.VersionTableLockTransaction;
                 command.ExecuteNonQuery();
             }
         }
 
-        protected override void ReleaseDatabaseLock(DbConnection connection)
+        protected override void ReleaseVersionTableLock()
         {
-            this.databaseLockTransaction?.Commit();
-            this.databaseLockTransaction?.Dispose();
-            this.databaseLockTransaction = null;
+            this.VersionTableLockTransaction.Commit();
+            this.VersionTableLockTransaction.Dispose();
+            this.VersionTableLockTransaction = null;
         }
 
         /// <summary>
@@ -72,7 +71,5 @@ namespace SimpleMigrations.DatabaseProvider
         {
             return $@"INSERT INTO [dbo].[{this.TableName}] ([Version], [AppliedOn], [Description]) VALUES (@Version, GETDATE(), @Description);";
         }
-
-        
     }
 }

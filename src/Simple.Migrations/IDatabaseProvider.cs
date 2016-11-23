@@ -8,7 +8,7 @@ namespace SimpleMigrations
     /// <typeparam name="TConection">Type of database connection</typeparam>
     public interface IDatabaseProvider<TConnection>
     {
-        TConnection BeginOperation(Func<TConnection> connectionFactory);
+        TConnection BeginOperation();
         void EndOperation();
 
         ///// <summary>
@@ -19,7 +19,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Ensure that the version table exists, creating it if necessary
         /// </summary>
-        long EnsureCreatedAndGetCurrentVersion(Func<TConnection> connectionFactory);
+        long EnsureCreatedAndGetCurrentVersion();
 
         /// <summary>
         /// Return the current version from the version table

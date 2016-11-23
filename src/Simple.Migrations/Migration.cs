@@ -48,6 +48,7 @@ namespace SimpleMigrations
             using (var command = this.Connection.CreateCommand())
             {
                 command.CommandText = sql;
+                command.Transaction = this.Transaction;
                 command.ExecuteNonQuery();
             }
         }

@@ -6,16 +6,16 @@ namespace SimpleMigrations.DatabaseProvider
     /// <summary>
     /// Class which can read from / write to a version table in an PostgreSQL database
     /// </summary>
-    public class PostgresqlDatabaseProvider : DatabaseProviderBase
+    public class PostgresqlDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
         private const long advisoryLockKey = 2609878; // Chosen by fair dice roll
 
-        public PostgresqlDatabaseProvider()
+        public PostgresqlDatabaseProvider(Func<DbConnection> connectionFactory)
+            : base(connectionFactory)
         {
-            this.AcquireDatabaseLockForEnsureCreatedAndGetCurrentVersion = true;
         }
 
-        protected override void AcquireDatabaseLock(DbConnection connection)
+        public override void AcquireAdvisoryLock(DbConnection connection)
         {
             using (var command = connection.CreateCommand())
             {
@@ -24,7 +24,7 @@ namespace SimpleMigrations.DatabaseProvider
             }
         }
 
-        protected override void ReleaseDatabaseLock(DbConnection connection)
+        public override void ReleaseAdvisoryLock(DbConnection connection)
         {
             using (var command = connection.CreateCommand())
             {
@@ -64,7 +64,5 @@ namespace SimpleMigrations.DatabaseProvider
         {
             return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, CURRENT_TIMESTAMP, @Description)";
         }
-
-       
     }
 }

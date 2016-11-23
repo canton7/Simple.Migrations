@@ -7,15 +7,19 @@ namespace SimpleMigrations.DatabaseProvider
     /// <summary>
     /// Class which can read from / write to a version table in an SQLite database
     /// </summary>
-    public class SqliteDatabaseProvider : DatabaseProviderBase
+    public class SqliteDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
-        private DbTransaction versionTableTransaction;
-
-        public override DbConnection BeginOperation(Func<DbConnection> connectionFactory)
+        public SqliteDatabaseProvider(Func<DbConnection> connectionFactory)
+            : base(connectionFactory)
         {
-            this.VersionTableConnection = connectionFactory();
-            this.VersionTableConnection.Open();
-            return this.VersionTableConnection;
+        }
+
+        public override void AcquireAdvisoryLock(DbConnection connection)
+        {
+        }
+
+        public override void ReleaseAdvisoryLock(DbConnection connection)
+        {
         }
 
         /// <summary>
@@ -49,9 +53,5 @@ namespace SimpleMigrations.DatabaseProvider
         {
             return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)";
         }
-
-        protected override void AcquireDatabaseLock(DbConnection connection) { }
-
-        protected override void ReleaseDatabaseLock(DbConnection connection) { }
     }
 }

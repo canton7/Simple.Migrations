@@ -14,15 +14,13 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator"/> class
         /// </summary>
         /// <param name="migrationProvider">Migration provider to use to find migration classes</param>
-        /// <param name="connection">Connection to use to communicate with the database</param>
         /// <param name="databaseProvider"><see cref="IDatabaseProvider{TDatabase}"/> implementation to use</param>
         /// <param name="logger">Logger to use to log progress</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
-            Func<DbConnection> connectionFactory,
             IDatabaseProvider<DbConnection> databaseProvider,
             ILogger logger = null)
-            : base(migrationProvider, connectionFactory, databaseProvider, logger)
+            : base(migrationProvider, databaseProvider, logger)
         {
         }
 
@@ -30,15 +28,13 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator"/> class
         /// </summary>
         /// <param name="migrationsAssembly">Assembly to search for migrations</param>
-        /// <param name="connection">Connection to use to communicate with the database</param>
         /// <param name="databaseProvider"><see cref="IDatabaseProvider{TDatabase}"/> implementation to use</param>
         /// <param name="logger">Logger to use to log progress</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
-            Func<DbConnection> connectionFactory,
             IDatabaseProvider<DbConnection> databaseProvider,
             ILogger logger = null)
-            : base(migrationsAssembly, connectionFactory, databaseProvider, logger)
+            : base(migrationsAssembly, databaseProvider, logger)
         {
         }
     }
