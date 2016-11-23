@@ -10,8 +10,8 @@ namespace SimpleMigrations.DatabaseProvider
     {
         private const string lockName = "SimpleMigratorExclusiveLock";
 
-        public MysqlDatabaseProvider(Func<DbConnection> connectionFactory)
-            : base(connectionFactory)
+        public MysqlDatabaseProvider(DbConnection connection)
+            : base(connection)
         {
         }
 

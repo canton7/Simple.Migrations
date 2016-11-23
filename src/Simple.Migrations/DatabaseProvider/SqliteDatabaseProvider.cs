@@ -9,8 +9,8 @@ namespace SimpleMigrations.DatabaseProvider
     /// </summary>
     public class SqliteDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
-        public SqliteDatabaseProvider(Func<DbConnection> connectionFactory)
-            : base(connectionFactory)
+        public SqliteDatabaseProvider(DbConnection connection)
+            : base(connection)
         {
         }
 

@@ -9,8 +9,6 @@ namespace SimpleMigrations.DatabaseProvider
     /// </summary>
     public abstract class DatabaseProviderBase : IDatabaseProvider<DbConnection>
     {
-        protected Func<DbConnection> ConnectionFactory { get; }
-
         /// <summary>
         /// Table name used to store version info. Defaults to 'VersionInfo'
         /// </summary>
@@ -29,11 +27,6 @@ namespace SimpleMigrations.DatabaseProvider
         /// Database providers which put a maximum length on the Description field should set this to that length
         /// </remarks>
         protected int MaxDescriptionLength { get; set; }
-
-        public DatabaseProviderBase(Func<DbConnection> connectionFactory)
-        {
-            this.ConnectionFactory = connectionFactory;
-        }
 
         public abstract DbConnection BeginOperation();
         public abstract void EndOperation();

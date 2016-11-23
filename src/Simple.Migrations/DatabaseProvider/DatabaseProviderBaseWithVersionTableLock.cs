@@ -8,14 +8,16 @@ namespace SimpleMigrations.DatabaseProvider
 {
     public abstract class DatabaseProviderBaseWithVersionTableLock : DatabaseProviderBase
     {
+        protected Func<DbConnection> ConnectionFactory { get; }
+
         protected DbConnection VersionTableConnection { get; set; }
         protected DbTransaction VersionTableLockTransaction { get; set; }
 
         protected DbConnection MigrationsConnection { get; set; }
 
         public DatabaseProviderBaseWithVersionTableLock(Func<DbConnection> connectionFactory)
-            : base(connectionFactory)
         {
+            this.ConnectionFactory = connectionFactory;
         }
 
         public override DbConnection BeginOperation()

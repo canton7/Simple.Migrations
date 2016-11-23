@@ -25,7 +25,7 @@ namespace Simple.Migrations.IntegrationTests
             var migrations = from type in this.MigrationTypes
                              let attribute = type.GetCustomAttribute<MigrationAttribute>()
                              where attribute != null
-                             select new MigrationData(attribute.Version, attribute.Description, type.GetTypeInfo(), attribute.UseTransaction);
+                             select new MigrationData(attribute.Version, attribute.Description, type.GetTypeInfo());
             return migrations;
         }
     }

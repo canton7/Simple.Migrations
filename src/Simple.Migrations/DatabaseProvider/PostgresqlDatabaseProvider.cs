@@ -10,8 +10,8 @@ namespace SimpleMigrations.DatabaseProvider
     {
         private const long advisoryLockKey = 2609878; // Chosen by fair dice roll
 
-        public PostgresqlDatabaseProvider(Func<DbConnection> connectionFactory)
-            : base(connectionFactory)
+        public PostgresqlDatabaseProvider(DbConnection connection)
+            : base(connection)
         {
         }
 

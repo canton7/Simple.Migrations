@@ -17,7 +17,7 @@ namespace Simple.Migrations.IntegrationTests.Mysql
 
         protected override DbConnection CreateConnection() => new MySqlConnection(ConnectionStrings.MySQL);
 
-        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MysqlDatabaseProvider(this.CreateConnection);
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MysqlDatabaseProvider(this.CreateConnection());
 
         protected override bool SupportConcurrentMigrators => true;
 

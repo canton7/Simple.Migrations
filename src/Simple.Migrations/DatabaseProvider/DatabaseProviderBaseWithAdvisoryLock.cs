@@ -8,18 +8,16 @@ namespace SimpleMigrations.DatabaseProvider
 {
     public abstract class DatabaseProviderBaseWithAdvisoryLock : DatabaseProviderBase
     {
-        protected DbConnection Connection { get; set; }
+        protected DbConnection Connection { get; }
 
-        public DatabaseProviderBaseWithAdvisoryLock(Func<DbConnection> connectionFactory)
-            : base(connectionFactory)
+        public DatabaseProviderBaseWithAdvisoryLock(DbConnection connection)
         {
+            this.Connection = connection;
+            this.Connection.Open();
         }
 
         public override DbConnection BeginOperation()
         {
-            this.Connection = this.ConnectionFactory();
-            this.Connection.Open();
-
             this.AcquireAdvisoryLock(this.Connection);
             return this.Connection;
         }
@@ -27,27 +25,19 @@ namespace SimpleMigrations.DatabaseProvider
         public override void EndOperation()
         {
             this.ReleaseAdvisoryLock(this.Connection);
-
-            this.Connection.Dispose();
-            this.Connection = null;
         }
 
         public override long EnsureCreatedAndGetCurrentVersion()
         {
-            using (var connection = this.ConnectionFactory())
+            try
             {
-                connection.Open();
+                this.AcquireAdvisoryLock(this.Connection);
 
-                try
-                {
-                    this.AcquireAdvisoryLock(connection);
-
-                    return this.EnsureCreatedAndGetCurrentVersion(connection);
-                }
-                finally
-                {
-                    this.ReleaseAdvisoryLock(connection);
-                }
+                return this.EnsureCreatedAndGetCurrentVersion(this.Connection);
+            }
+            finally
+            {
+                this.ReleaseAdvisoryLock(this.Connection);
             }
         }
 

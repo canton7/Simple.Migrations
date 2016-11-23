@@ -16,7 +16,7 @@ namespace Simple.Migrations.IntegrationTests.Sqlite
     [TestFixture]
     public class SqliteTests : TestsBase
     {
-        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new SqliteDatabaseProvider(this.CreateConnection);
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new SqliteDatabaseProvider(this.CreateConnection());
 
         protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new SqliteStringsProvider();
 
