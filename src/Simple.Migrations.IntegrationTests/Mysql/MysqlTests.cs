@@ -23,7 +23,33 @@ namespace Simple.Migrations.IntegrationTests.Mysql
 
         protected override void Clean()
         {
+            using (var connection = this.CreateConnection())
+            {
+                connection.Open();
 
+                var tables = new List<string>();
+
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "SHOW TABLES";
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            tables.Add(reader.GetString(0));
+                        }
+                    }
+                }
+
+                foreach (var table in tables)
+                {
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = $"DROP TABLE `{table}`";
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Simple.Migrations.IntegrationTests.Mysql
     public class MysqlStringsProvider : IMigrationStringsProvider
     {
         public string CreateUsersTableUp => @"CREATE TABLE Users (
-                `Id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT
+                `Id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
                 `Name` TEXT NOT NULL
             );";
 

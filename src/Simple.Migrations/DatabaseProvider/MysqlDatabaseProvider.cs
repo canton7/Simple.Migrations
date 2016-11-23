@@ -28,7 +28,7 @@ namespace SimpleMigrations.DatabaseProvider
         {
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = $"SELECT RELEASE_LOCK('{lockName}', 600)";
+                command.CommandText = $"SELECT RELEASE_LOCK('{lockName}')";
                 command.ExecuteNonQuery();
             }
         }
