@@ -10,17 +10,24 @@ namespace SimpleMigrations
     /// </summary>
     public abstract class Migration : IMigration<DbConnection>
     {
+        protected virtual bool UseTransaction { get; } = true;
+
         /// <summary>
         /// Gets or sets the database to be used by this migration
         /// </summary>
-        public DbConnection Connection { get; private set; }
+        protected DbConnection Connection { get; private set; }
+
+        [Obsolete("Use this.Connection instead")]
+        protected DbConnection DB => this.Connection;
 
         /// <summary>
         /// Gets or sets the logger to be used by this migration
         /// </summary>
-        public IMigrationLogger Logger { get; private set; }
+        protected IMigrationLogger Logger { get; private set; }
 
-        public DbTransaction Transaction { get; private set; }
+        protected DbTransaction Transaction { get; private set; }
+
+        // These should really be 'protected', but in the name of backwards compatibility...
 
         /// <summary>
         /// Invoked when this migration should migrate up
@@ -58,25 +65,32 @@ namespace SimpleMigrations
             this.Connection = connection;
             this.Logger = logger;
 
-            try
+            if (this.UseTransaction)
             {
-                this.Transaction = connection.BeginTransaction(IsolationLevel.Serializable);
+                using (this.Transaction = connection.BeginTransaction(IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        if (direction == MigrationDirection.Up)
+                            this.Up();
+                        else
+                            this.Down();
 
+                        this.Transaction.Commit();
+                    }
+                    catch
+                    {
+                        this.Transaction?.Rollback();
+                        throw;
+                    }
+                }
+            }
+            else
+            {
                 if (direction == MigrationDirection.Up)
                     this.Up();
                 else
                     this.Down();
-
-                this.Transaction.Commit();
-            }
-            catch
-            {
-                this.Transaction?.Rollback();
-                throw;
-            }
-            finally
-            {
-                this.Transaction?.Dispose();
             }
         }
     }

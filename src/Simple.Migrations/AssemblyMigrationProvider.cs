@@ -33,7 +33,7 @@ namespace SimpleMigrations
             var migrations = from type in this.migrationAssembly.DefinedTypes
                              let attribute = type.GetCustomAttribute<MigrationAttribute>()
                              where attribute != null
-                             select new MigrationData(attribute.Version, attribute.Description, type, attribute.UseTransaction);
+                             select new MigrationData(attribute.Version, attribute.Description, type);
 
             if (!migrations.Any())
                 throw new MigrationException($"Could not find any migrations in the assembly you provided ({this.migrationAssembly.GetName().Name}). Migrations must be decorated with [Migration]");
