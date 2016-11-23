@@ -4,6 +4,7 @@ using SimpleMigrations;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,42 +14,40 @@ namespace Simple.Migrations.UnitTests
     [TestFixture]
     public class SimpleMigratorLoadTests : AssertionHelper
     {
-        private class MigrationNotDerivedFromBase : Migration<IDbConnection>
+        private class MigrationNotDerivedFromBase : IMigration<IDbConnection>
+        {
+            public void Execute(IDbConnection connection, IMigrationLogger logger, MigrationDirection direction)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ValidMigration1 : Migration
         {
             public override void Down() { }
             public override void Up() { }
         }
 
-        private class ValidMigration1 : Migration<ITransactionAwareDbConnection>
+        private class ValidMigration2 : Migration
         {
             public override void Down() { }
             public override void Up() { }
         }
 
-        private class ValidMigration2 : Migration<ITransactionAwareDbConnection>
-        {
-            public override void Down() { }
-            public override void Up() { }
-        }
-
-        private Mock<ITransactionAwareDbConnection> connection;
+        private Mock<DbConnection> connection;
         private Mock<IMigrationProvider> migrationProvider;
-        private Mock<IConnectionProvider<ITransactionAwareDbConnection>> connectionProvider;
-        private Mock<IDatabaseProvider<ITransactionAwareDbConnection>> databaseProvider;
+        private Mock<IDatabaseProvider<DbConnection>> databaseProvider;
 
-        private SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>> migrator;
+        private SimpleMigrator<DbConnection, Migration> migrator;
 
         [SetUp]
         public void SetUp()
         {
-            this.connection = new Mock<ITransactionAwareDbConnection>();
+            this.connection = new Mock<DbConnection>();
             this.migrationProvider = new Mock<IMigrationProvider>();
-            this.connectionProvider = new Mock<IConnectionProvider<ITransactionAwareDbConnection>>();
-            this.databaseProvider = new Mock<IDatabaseProvider<ITransactionAwareDbConnection>>();
+            this.databaseProvider = new Mock<IDatabaseProvider<DbConnection>>();
 
-            this.connectionProvider.Setup(x => x.Connection).Returns(this.connection.Object);
-
-            this.migrator = new SimpleMigrator<ITransactionAwareDbConnection, Migration<ITransactionAwareDbConnection>>(this.migrationProvider.Object, this.connectionProvider.Object, this.databaseProvider.Object);
+            this.migrator = new SimpleMigrator<DbConnection, Migration>(this.migrationProvider.Object, this.databaseProvider.Object);
         }
 
         [Test]
@@ -66,7 +65,7 @@ namespace Simple.Migrations.UnitTests
         {
             var migrations = new List<MigrationData>()
             {
-                new MigrationData(1, "Migration", typeof(MigrationNotDerivedFromBase).GetTypeInfo(), true),
+                new MigrationData(1, "Migration", typeof(MigrationNotDerivedFromBase).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
@@ -78,7 +77,7 @@ namespace Simple.Migrations.UnitTests
         {
             var migrations = new List<MigrationData>()
             {
-                new MigrationData(0, "Migration", typeof(ValidMigration1).GetTypeInfo(), true),
+                new MigrationData(0, "Migration", typeof(ValidMigration1).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
@@ -90,8 +89,8 @@ namespace Simple.Migrations.UnitTests
         {
             var migrations = new List<MigrationData>()
             {
-                new MigrationData(2, "Migration", typeof(ValidMigration1).GetTypeInfo(), true),
-                new MigrationData(2, "Migration", typeof(ValidMigration2).GetTypeInfo(), true),
+                new MigrationData(2, "Migration", typeof(ValidMigration1).GetTypeInfo()),
+                new MigrationData(2, "Migration", typeof(ValidMigration2).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
@@ -103,8 +102,8 @@ namespace Simple.Migrations.UnitTests
         {
             var migrations = new List<MigrationData>()
             {
-                new MigrationData(2, "Migration 2", typeof(ValidMigration2).GetTypeInfo(), true),
-                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo(), true),
+                new MigrationData(2, "Migration 2", typeof(ValidMigration2).GetTypeInfo()),
+                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
@@ -123,11 +122,11 @@ namespace Simple.Migrations.UnitTests
         {
             var migrations = new List<MigrationData>()
             {
-                new MigrationData(2, "Migration 1", typeof(ValidMigration1).GetTypeInfo(), true),
+                new MigrationData(2, "Migration 1", typeof(ValidMigration1).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
-            this.databaseProvider.Setup(x => x.GetCurrentVersion()).Returns(1);
+            this.databaseProvider.Setup(x => x.EnsureCreatedAndGetCurrentVersion()).Returns(1);
 
             Assert.That(() => this.migrator.Load(), Throws.InstanceOf<MigrationException>());
         }
@@ -137,11 +136,11 @@ namespace Simple.Migrations.UnitTests
         {
             var migrations = new List<MigrationData>()
             {
-                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo(), true),
-                new MigrationData(2, "Migration 2", typeof(ValidMigration2).GetTypeInfo(), true),
+                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo()),
+                new MigrationData(2, "Migration 2", typeof(ValidMigration2).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
-            this.databaseProvider.Setup(x => x.GetCurrentVersion()).Returns(2);
+            this.databaseProvider.Setup(x => x.EnsureCreatedAndGetCurrentVersion()).Returns(2);
 
             this.migrator.Load();
 
@@ -153,7 +152,7 @@ namespace Simple.Migrations.UnitTests
         {
             var migrations = new List<MigrationData>()
             {
-                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo(), true),
+                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
@@ -168,13 +167,13 @@ namespace Simple.Migrations.UnitTests
         {
             var migrations = new List<MigrationData>()
             {
-                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo(), true),
+                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
             this.migrator.Load();
 
-            this.databaseProvider.Verify(x => x.EnsureCreated());
+            this.databaseProvider.Verify(x => x.EnsureCreatedAndGetCurrentVersion());
         }
     }
 }
