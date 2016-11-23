@@ -1,34 +1,49 @@
-﻿using System;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace SimpleMigrations.DatabaseProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an PostgreSQL database
     /// </summary>
+    /// <remarks>
+    /// PostgreSQL supports advisory locks, so these are used to guard against concurrent migrators.
+    /// </remarks>
     public class PostgresqlDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
-        private const long advisoryLockKey = 2609878; // Chosen by fair dice roll
+        /// <summary>
+        /// Gets or sets the key to use when acquiring the advisory lock
+        /// </summary>
+        public int AdvisoryLockKey { get; set; } = 2609878; // Chosen by fair dice roll
 
+        /// <summary>
+        /// Initialises a new instance of the <see cref="PostgresqlDatabaseProvider"/> class
+        /// </summary>
+        /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
         public PostgresqlDatabaseProvider(DbConnection connection)
             : base(connection)
         {
         }
 
-        public override void AcquireAdvisoryLock(DbConnection connection)
+        /// <summary>
+        /// Acquires an advisory lock using Connection
+        /// </summary>
+        public override void AcquireAdvisoryLock()
         {
-            using (var command = connection.CreateCommand())
+            using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"SELECT pg_advisory_lock({advisoryLockKey})";
+                command.CommandText = $"SELECT pg_advisory_lock({this.AdvisoryLockKey})";
                 command.ExecuteNonQuery();
             }
         }
 
-        public override void ReleaseAdvisoryLock(DbConnection connection)
+        /// <summary>
+        /// Releases the advisory lock held on Connection
+        /// </summary>
+        public override void ReleaseAdvisoryLock()
         {
-            using (var command = connection.CreateCommand())
+            using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"SELECT pg_advisory_unlock({advisoryLockKey})";
+                command.CommandText = $"SELECT pg_advisory_unlock({this.AdvisoryLockKey})";
                 command.ExecuteNonQuery();
             }
         }

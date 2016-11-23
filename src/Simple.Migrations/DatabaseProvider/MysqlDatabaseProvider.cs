@@ -6,29 +6,50 @@ namespace SimpleMigrations.DatabaseProvider
     /// <summary>
     /// Class which can read from / write to a version table in an MySQL database
     /// </summary>
+    /// <remarks>
+    /// MySQL supports advisory locks, so these are used to guard against concurrent migrators.
+    /// </remarks>
     public class MysqlDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
-        private const string lockName = "SimpleMigratorExclusiveLock";
+        /// <summary>
+        /// Gets or sets the name of the advisory lock to acquire
+        /// </summary>
+        public string LockName { get; set; } = "SimpleMigratorExclusiveLock";
 
+        /// <summary>
+        /// Gets or sets the timeout when acquiring the advisory lock
+        /// </summary>
+        public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(600);
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="MysqlDatabaseProvider"/> class
+        /// </summary>
+        /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
         public MysqlDatabaseProvider(DbConnection connection)
             : base(connection)
         {
         }
 
-        public override void AcquireAdvisoryLock(DbConnection connection)
+        /// <summary>
+        /// Acquires an advisory lock using Connection
+        /// </summary>
+        public override void AcquireAdvisoryLock()
         {
-            using (var command = connection.CreateCommand())
+            using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"SELECT GET_LOCK('{lockName}', 600)";
+                command.CommandText = $"SELECT GET_LOCK('{this.LockName}', {(int)this.LockTimeout.TotalSeconds})";
                 command.ExecuteNonQuery();
             }
         }
 
-        public override void ReleaseAdvisoryLock(DbConnection connection)
+        /// <summary>
+        /// Releases the advisory lock held on Connection
+        /// </summary>
+        public override void ReleaseAdvisoryLock()
         {
-            using (var command = connection.CreateCommand())
+            using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"SELECT RELEASE_LOCK('{lockName}')";
+                command.CommandText = $"SELECT RELEASE_LOCK('{this.LockName}')";
                 command.ExecuteNonQuery();
             }
         }

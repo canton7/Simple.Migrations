@@ -23,7 +23,7 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="version">Version of this migration</param>
         /// <param name="description">Optional description of this migration</param>
-        public MigrationAttribute(long version, string description = null, bool useTransaction = true)
+        public MigrationAttribute(long version, string description = null)
         {
             this.Version = version;
             this.Description = description;

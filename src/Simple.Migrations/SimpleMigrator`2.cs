@@ -49,7 +49,6 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
         /// <param name="migrationProvider">Migration provider to use to find migration classes</param>
-        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
         /// <param name="databaseProvider">Database provider to use to interact with the version table, etc</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
@@ -71,7 +70,6 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
         /// <param name="migrationsAssembly">Assembly to search for migrations</param>
-        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
         /// <param name="databaseProvider">Database provider to use to interact with the version table, etc</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
@@ -217,6 +215,12 @@ namespace SimpleMigrations
             }
         }
 
+        /// <summary>
+        /// Instantiate and execute a single migration
+        /// </summary>
+        /// <param name="direction">Diretion to run the migration in</param>
+        /// <param name="migrationData"><see cref="MigrationData"/> describing to migration to instantiate and execute</param>
+        /// <param name="connection">Connection to use to execute the migration</param>
         protected virtual void RunMigration(MigrationDirection direction, MigrationData migrationData, TConnection connection)
         {
             var migration = this.CreateMigration(migrationData);
@@ -308,11 +312,26 @@ namespace SimpleMigrations
             return instance;
         }
 
+        /// <summary>
+        /// Helper structure containing a pair of <see cref="MigrationData"/>s, describing a step from one version to another
+        /// </summary>
         protected struct MigrationDataPair
         {
+            /// <summary>
+            /// Gets the <see cref="MigrationData"/> this migration goes from
+            /// </summary>
             public MigrationData From { get; }
+
+            /// <summary>
+            /// Gets the <see cref="MigrationData"/> this migration goes to
+            /// </summary>
             public MigrationData To { get; }
 
+            /// <summary>
+            /// Initialises a new instance of the <see cref="MigrationDataPair"/> structure
+            /// </summary>
+            /// <param name="from"><see cref="MigrationData"/> this migration goes from</param>
+            /// <param name="to"><see cref="MigrationData"/> this migration goes to</param>
             public MigrationDataPair(MigrationData from, MigrationData to)
             {
                 this.From = from;

@@ -10,13 +10,25 @@ namespace SimpleMigrations
     /// </summary>
     public abstract class Migration : IMigration<DbConnection>
     {
-        protected virtual bool UseTransaction { get; } = true;
+        /// <summary>
+        /// Gets or sets a value indicating whether calls to <see cref="Execute(string)"/> should be run inside of a transaction.
+        /// </summary>
+        /// <remarks>
+        /// If this is false, <see cref="Transaction"/> will not be set.
+        /// </remarks>
+        protected virtual bool UseTransaction { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the database to be used by this migration
         /// </summary>
         protected DbConnection Connection { get; private set; }
 
+        /// <summary>
+        /// Gets or sets the database to be used by this migration
+        /// </summary>
+        /// <remarks>
+        /// This is obselete - use <see cref="Connection"/> instead
+        /// </remarks>
         [Obsolete("Use this.Connection instead")]
         protected DbConnection DB => this.Connection;
 
@@ -25,9 +37,15 @@ namespace SimpleMigrations
         /// </summary>
         protected IMigrationLogger Logger { get; private set; }
 
+        /// <summary>
+        /// Gets the transaction to use when running comments.
+        /// </summary>
+        /// <remarks>
+        /// This is set only if <see cref="UseTransaction"/> is true.
+        /// </remarks>
         protected DbTransaction Transaction { get; private set; }
 
-        // These should really be 'protected', but in the name of backwards compatibility...
+        // Up and Down should really be 'protected', but in the name of backwards compatibility...
 
         /// <summary>
         /// Invoked when this migration should migrate up
@@ -46,9 +64,9 @@ namespace SimpleMigrations
         public virtual void Execute(string sql)
         {
             if (this.Connection == null)
-                throw new InvalidOperationException("this.DB has not yet been set. This should have been set by the SimpleMigrator");
+                throw new InvalidOperationException("this.Connection has not yet been set. This should have been set by Execute(DbConnection, IMigrationLogger, MigrationDirection)");
             if (this.Logger == null)
-                throw new InvalidOperationException("this.Logger has not yet been set. This should have been set by the SimpleMigrator");
+                throw new InvalidOperationException("this.Logger has not yet been set. This should have been set by Execute(DbConnection, IMigrationLogger, MigrationDirection)");
 
             this.Logger.LogSql(sql);
 
@@ -82,6 +100,10 @@ namespace SimpleMigrations
                     {
                         this.Transaction?.Rollback();
                         throw;
+                    }
+                    finally
+                    {
+                        this.Transaction = null;
                     }
                 }
             }
