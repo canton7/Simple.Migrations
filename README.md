@@ -16,11 +16,10 @@ It does however provide a set of simple, extendable, and composable tools for in
 2. [Quick Start](#quick-start)
 3. [Migrations](#migrations)
 4. [Database Providers](#database-providers)
-5. [Connection Providers](#connection-providers)
-6. [SimpleMigrator](#simplemigrator)
-7. [ConsoleRunner](#consolerunner)
-8. [Finding Migrations](#finding-migrations)
-9. [Example: Using sqlite-net](#example-using-sqlite-net)
+5. [SimpleMigrator](#simplemigrator)
+6. [ConsoleRunner](#consolerunner)
+7. [Finding Migrations](#finding-migrations)
+8. [Example: Using sqlite-net](#example-using-sqlite-net)
 
 Installation
 ------------
@@ -189,7 +188,7 @@ The currently supported database engines are:
 
 #### MSSQL
 
-##### Usage
+Usage:
 
 ```csharp
 var databaseProvider = new DatabaseProviders.MssqlDatabaseProvider(() => new SqlConnection("Connection String"));
@@ -197,15 +196,13 @@ var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
 migrator.MigrateToLatest();
 ```
 
-##### Concurrent Migrator Support
-
-Works be acquiring a lock on the VersionTable table.
+Concurrent migrator support works by acquiring a lock on the VersionTable table.
 There is a race if this table doesn't exist and two migrators try and create it at the same time: this cannot be avoided.
 There is no race if the VersionTable already exists.
 
 #### SQLite
 
-##### Usage
+Usage:
 
 ```csharp
 using (var connection = new SqliteConnection("Connection String"))
@@ -216,13 +213,11 @@ using (var connection = new SqliteConnection("Connection String"))
 }
 ```
 
-##### Concurrent Migrator Support
-
-Does not support concurrent migrators.
+SQLite does not support concurrent migrators.
 
 #### PostgreSQL
 
-##### Usage
+Usage:
 
 ```csharp
 using (var connection = new NpgsqlConnection("Connection String"))
@@ -233,9 +228,7 @@ using (var connection = new NpgsqlConnection("Connection String"))
 }
 ```
 
-##### Concurrent Migrator Support
-
-Provides full support for concurrent migrators, by using advisory locks.
+PostgreSLQ provides full support for concurrent migrators, by using advisory locks.
 
 #### MySQL
 
@@ -248,9 +241,7 @@ using (var connection = new MySqlConnection("Connection String"))
 }
 ```
 
-##### Concurrent Migrator Support
-
-Provides full support for concurrent migrators, by using advisory locks.
+MySQL provides full support for concurrent migrators, by using advisory locks.
 
 
 ### Writing your own database provider
@@ -362,49 +353,19 @@ It is not an ADO.NET implementation, and so makes a good example for seeing how 
 First off, create a new Console Application, and install the sqlite-net NuGet package.
 You'll also need to download `sqlite.dll` and add it to your project.
 
-Next, we'll need to create a number of classes to tell Simple.Migrations how to work with sqlite-net: we'll need a database provider, connection provider, and a base class for the migrations.
+Next, we'll need to create a number of classes to tell Simple.Migrations how to work with sqlite-net: we'll need a database provider and a base class for the migrations.
 
-### `IConnectionProvider`
-
-Let's start with the `IConnectionProvider` implementation.
-This is a class which knows how to work with transactions.
-As you can see, there's not very much to it:
-
-```csharp
-public class SQLiteNetConnectionProvider : IConnectionProvider<SQLiteConnection>
-{
-    public SQLiteConnection Connection { get; }
-
-    public SQLiteNetConnectionProvider(SQLiteConnection connection)
-    {
-        this.Connection = connection;
-    }
-
-    public void BeginTransaction()
-    {
-        this.Connection.BeginTransaction();
-    }
-
-    public void CommitTransaction()
-    {
-        this.Connection.Commit();
-    }
-
-    public void RollbackTransaction()
-    {
-        this.Connection.Rollback();
-    }
-}
-```
 
 ### `IDatabaseProvider`
 
-Next, the `IDatabaseProvider` implementation.
+First, the `IDatabaseProvider` implementation.
 This is the class which lets Simple.Migrations work with the 'SchemaVersion' table in your database.
 Since sqlite-net includes a micro-ORM, let's use that to create, read, and modify the SchemaVersion table, rather than executing raw SQL.
 
 Note that it's not normally advisable to write migrations using C# models: migrations by definition work with lots of different versions of a table, whereas a C# class can only encapsulate one version of a table.
 However, since our SchemaVersion table is never going to change, it's an acceptable shortcut here.
+
+We're not going to worry about concurrent migrators here.
 
 Our table model:
 
@@ -424,16 +385,27 @@ And our `IDatabaseProvider` implementation:
 ```csharp
 public class SQLiteNetDatabaseProvider : IDatabaseProvider<SQLiteConnection>
 {
-    private SQLiteConnection connection;
+    private readonly SQLiteConnection connection;
 
-    public void Setconnection(SQLiteConnection connection)
+    public SQLiteNetDatabaseProvider(SQLiteConnection connection)
     {
         this.connection = connection;
     }
 
-    public void EnsureCreated()
+    public SQLiteConnection BeginOperation()
+    {
+        // This is the connect that will be used for migrations
+        return this.connection;
+    }
+
+    public void EndOperation()
+    {
+    }
+
+    public long EnsureCreatedAndGetCurrentVersion()
     {
         this.connection.CreateTable<SchemaVersion>();
+        return this.GetCurrentVersion();
     }
 
     public long GetCurrentVersion()
@@ -457,15 +429,14 @@ public class SQLiteNetDatabaseProvider : IDatabaseProvider<SQLiteConnection>
 
 ### Migration base class
 
-Now we don't strictly need to create a migration base class: we could have each migration implement `IMigration<SQLiteConnection>`.
-However, if we do create one we can automatically log all executed SQL, which would be nice...
+Now we need a migration base class, which knows how to execute queries using sqlite-net.
 
 ```csharp
 public abstract class SQLiteNetMigration : IMigration<SQLiteConnection>
 {
-    public SQLiteConnection DB { get; set; }
+    protected SQLiteConnection Connection { get; set; }
 
-    public IMigrationLogger Logger { get; set; }
+    protected IMigrationLogger Logger { get; set; }
 
     public abstract void Down();
 
@@ -474,7 +445,30 @@ public abstract class SQLiteNetMigration : IMigration<SQLiteConnection>
     public void Execute(string sql)
     {
         this.Logger.LogSql(sql);
-        this.DB.Execute(sql);
+        this.Connection.Execute(sql);
+    }
+
+    void IMigration<SQLiteConnection>.Execute(SQLiteConnection connection, IMigrationLogger logger, MigrationDirection direction)
+    {
+        this.Connection = connection;
+        this.Logger = logger;
+
+        try
+        {
+            connection.BeginTransaction();
+
+            if (direction == MigrationDirection.Up)
+                this.Up();
+            else
+                this.Down();
+
+            connection.Commit();
+        }
+        catch
+        {
+            connection.Rollback();
+            throw;
+        }
     }
 }
 ``` 
@@ -509,17 +503,13 @@ Finally, let's use all of our components to actually run some migrations.
 Note how we have to use `SimpleMigrator<TConnection, TMigrationBase>` here:
 
 ```csharp
-using (var connection = new SQLiteConnection("SQLiteNetDatabase.sqlite"))
+using (var connection = new SQLiteConnection("SQLiteNetdatabase.sqlite"))
 {
-    var migrationsAssembly = Assembly.GetExecutingAssembly();
-    var connectionProvider = new SQLiteNetConnectionProvider(connection);
-    var databaseProvider = new SQLiteNetDatabaseProvider();
+    var databaseProvider = new SQLiteNetDatabaseProvider(connection);
 
     var migrator = new SimpleMigrator<SQLiteConnection, SQLiteNetMigration>(
-        migrationsAssembly, connectionProvider, databaseProvider
-    );
-    migrator.Load();
-
-    migrator.MigrateToLatest();
+        Assembly.GetEntryAssembly(), databaseProvider);
+    var runner = new ConsoleRunner(migrator);
+    runner.Run(args);
 }
 ```
