@@ -62,7 +62,7 @@ namespace SimpleMigrations.DatabaseProvider
         {
             return $@"CREATE TABLE IF NOT EXISTS {this.TableName} (
                         `Id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-                        `Version` INT NOT NULL,
+                        `Version` BIGINT NOT NULL,
                         `AppliedOn` DATETIME NOT NULL,
                         `Description` TEXT NOT NULL
                     )";

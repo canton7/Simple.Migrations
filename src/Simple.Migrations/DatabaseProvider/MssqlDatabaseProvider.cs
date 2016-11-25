@@ -59,7 +59,7 @@ namespace SimpleMigrations.DatabaseProvider
                 BEGIN
                 CREATE TABLE [dbo].[{this.TableName}](
                     [Id] [int] IDENTITY(1,1) PRIMARY KEY NOT NULL,
-                    [Version] [int] NOT NULL,
+                    [Version] [bigint] NOT NULL,
                     [AppliedOn] [datetime] NOT NULL,
                     [Description] [nvarchar]({this.MaxDescriptionLength}) NOT NULL,
                 )
