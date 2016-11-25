@@ -2,7 +2,7 @@
 using System.Reflection;
 using SimpleMigrations;
 using SimpleMigrations.Console;
-using SimpleMigrations.VersionProvider;
+using SimpleMigrations.DatabaseProvider;
 
 namespace SeparateMigrator
 {
@@ -11,13 +11,15 @@ namespace SeparateMigrator
         static void Main(string[] args)
         {
             var migrationsAssembly = typeof(Program).Assembly;
-            var db = new SQLiteConnection("DataSource=database.sqlite");
-            var versionProvider = new SqliteVersionProvider();
+            using (var connection = new SQLiteConnection("DataSource=database.sqlite"))
+            {
+                var databaseProvider = new SqliteDatabaseProvider(connection);
 
-            var migrator = new SimpleMigrator(migrationsAssembly, db, versionProvider);
+                var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
 
-            var runner = new ConsoleRunner(migrator);
-            runner.Run(args);
+                var runner = new ConsoleRunner(migrator);
+                runner.Run(args);
+            }
         }
     }
 }

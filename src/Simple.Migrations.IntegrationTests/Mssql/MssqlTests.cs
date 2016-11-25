@@ -5,37 +5,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
-using SimpleMigrations.VersionProvider;
+using SimpleMigrations.DatabaseProvider;
+using System.Data;
+using System.Data.Common;
 
 namespace Simple.Migrations.IntegrationTests.Mssql
 {
     [TestFixture]
-    public class MssqlTests
+    public class MssqlTests : TestsBase
     {
-        private SqlConnection connection;
-        private SimpleMigrator migrator;
+        protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new MssqlStringsProvider();
 
-        [SetUp]
-        public void SetUp()
+        protected override bool SupportConcurrentMigrators => true;
+
+        protected override DbConnection CreateConnection() => new SqlConnection(ConnectionStrings.MSSQL);
+
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MssqlDatabaseProvider(this.CreateConnection);
+
+        protected override void Clean()
         {
-            this.connection = new SqlConnection(ConnectionStrings.MSSQL);
-            var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MssqlVersionProvider(), new NUnitLogger());
+            var connection = this.CreateConnection();
+            connection.Open();
 
-            this.migrator.Load();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            this.migrator.MigrateTo(0);
-            new SqlCommand(@"DROP TABLE VersionInfo", this.connection).ExecuteNonQuery();
-        }
-
-        [Test]
-        public void RunMigration()
-        {
-            this.migrator.MigrateToLatest();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"EXEC sp_MSforeachtable @command1 = ""DROP TABLE ?""";
+                command.ExecuteNonQuery();
+            }
         }
     }
 }

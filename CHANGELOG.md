@@ -1,6 +1,60 @@
 Changelog
 =========
 
+v0.9.7
+------
+
+**BREAKING CHANGE**: The architecture has been altnered reasonably significantly to allow support for concurrent migrators (#7).
+
+In particular:
+
+   - `IConnectionProvider<TConnection>` has gone.
+   - `IVersionProvider<TConnection>` has been renamed to `IDatabaseProvider<TConnection>`, and has taken on additional responsibilities: it now owns the database connection (or database connection factory), and can do locking on the database.
+   - `Migration<TConnection>` has gone.
+   - `Migration` has taken on responsibility for opening a transaction if necessary. If you have a migration that must run outside of a transaction, this is no longer configured in the `[Migration]` attribute: instead set the `UseTransaction` property in the migration itself.
+
+The way in which you instantiate a `SimpleMigrator` has changed. Instead of doing this:
+
+```csharp
+using SimpleMigrations;
+using SimpleMigrations.VersionProviders;
+
+var migrationsAssembly = Assembly.GetEntryAssembly();
+using (var connection = new ConnectionProvider(/* connection string */))
+{
+    var versionProvider = new SQLiteVersionProvider();
+
+    var migrator = new SimpleMigrator(migrationsAssembly, connection, versionProvider);
+    migrator.Load();
+}
+```
+
+You now do this:
+
+```csharp
+using SimpleMigrations;
+using SimpleMigrations.DatabaseProvider;
+
+var migrationsAssembly = Assembly.GetEntryAssembly();
+using (var connection = new ConnectionProvider(/* connection string */))
+{
+    var databaseProvider = new SQLiteVersionProvider(connection);
+
+    var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
+    migrator.Load();
+}
+```
+
+See the README for more details.
+
+If you have written your own `IVersionProvider<TConnection>`, this will have to be updated.
+Instead of deriving from `VersionProviderBase`, you should derive from either `DatabaseProviderBaseWithAdvisoryLock` or `DatabaseProviderBaseWithVersionTableLock`, depending on whether you want to use an advisory lock or lock on the version table to prevent concurrent migrators, see the README for more details.
+
+If you do not want to worry about concurrent migrators, then derive from `DatabaseProviderBaseWithAdvisoryLock` and override `AcquireAdvisoryLock` and `ReleaseAdvisoryLock` to do nothing, see `SqliteDatabaseProvider` for an example.
+
+
+
+
 v0.9.6
 ------
 

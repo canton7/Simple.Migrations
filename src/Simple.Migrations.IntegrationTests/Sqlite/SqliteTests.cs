@@ -1,42 +1,34 @@
-﻿using Microsoft.Data.Sqlite;
-using NUnit.Framework;
-using SimpleMigrations;
-using SimpleMigrations.VersionProvider;
+﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using SimpleMigrations;
+using System.Data;
+using SimpleMigrations.DatabaseProvider;
+using System.IO;
+using System.Reflection;
+using Microsoft.Data.Sqlite;
+using System.Data.Common;
 
 namespace Simple.Migrations.IntegrationTests.Sqlite
 {
     [TestFixture]
-    public class SqliteTests
+    public class SqliteTests : TestsBase
     {
-        private SqliteConnection connection;
-        private SimpleMigrator migrator;
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new SqliteDatabaseProvider(this.CreateConnection());
 
-        [SetUp]
-        public void SetUp()
+        protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new SqliteStringsProvider();
+
+        protected override bool SupportConcurrentMigrators => false;
+
+        protected override void Clean()
         {
-            this.connection = new SqliteConnection(ConnectionStrings.SQLite);
-            var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new SqliteVersionProvider(), new NUnitLogger());
-
-            this.migrator.Load();
+            var db = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ConnectionStrings.SQLiteDatabase);
+            if (File.Exists(db))
+                File.Delete(db);
         }
 
-        [TearDown]
-        public void TearDown()
-        {
-            this.migrator.MigrateTo(0);
-            new SqliteCommand(@"DROP TABLE VersionInfo", this.connection).ExecuteNonQuery();
-        }
-
-        [Test]
-        public void RunMigration()
-        {
-            this.migrator.MigrateToLatest();
-        }
+        protected override DbConnection CreateConnection() => new SqliteConnection(ConnectionStrings.SQLite);
     }
 }

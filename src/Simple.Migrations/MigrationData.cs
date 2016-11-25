@@ -31,18 +31,12 @@ namespace SimpleMigrations
         public string FullName { get; }
 
         /// <summary>
-        /// Whether or not this migration should be run inside a transaction
-        /// </summary>
-        public bool UseTransaction { get; }
-
-        /// <summary>
         /// Initialises a new instance of the <see cref="MigrationData"/> class
         /// </summary>
         /// <param name="version">Version of this migration</param>
         /// <param name="description">Description of this migration. May be null</param>
         /// <param name="typeInfo">Type of class implementing this migration</param>
-        /// <param name="useTransaction">Whether or not this migration should be run inside a transactio</param>
-        public MigrationData(long version, string description, TypeInfo typeInfo, bool useTransaction)
+        public MigrationData(long version, string description, TypeInfo typeInfo)
         {
             // 'version' is verified to be >0 in SimpleMigrator
             if (typeInfo == null)
@@ -51,7 +45,6 @@ namespace SimpleMigrations
             this.Version = version;
             this.Description = description;
             this.TypeInfo = typeInfo;
-            this.UseTransaction = useTransaction;
 
             var descriptionPart = String.IsNullOrWhiteSpace(this.Description) ? "" : $" ({this.Description})";
             this.FullName = this.TypeInfo.Name + descriptionPart;
@@ -66,7 +59,6 @@ namespace SimpleMigrations
             this.Description = "Empty Schema";
             this.FullName = "Empty Schema";
             this.TypeInfo = null;
-            this.UseTransaction = false;
         }
 
         /// <summary>
@@ -75,7 +67,7 @@ namespace SimpleMigrations
         /// <returns>A string representation of the object</returns>
         public override string ToString()
         {
-            return $"<{nameof(MigrationData)} Version={this.Version} Description={this.Description} FullName={this.FullName} TypeInfo={this.TypeInfo} UseTransaction={this.UseTransaction}>";
+            return $"<{nameof(MigrationData)} Version={this.Version} Description={this.Description} FullName={this.FullName} TypeInfo={this.TypeInfo}>";
         }
     }
 }

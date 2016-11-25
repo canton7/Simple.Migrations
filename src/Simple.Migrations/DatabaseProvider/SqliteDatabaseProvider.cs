@@ -1,14 +1,37 @@
-﻿namespace SimpleMigrations.VersionProvider
+﻿using System;
+using System.Data;
+using System.Data.Common;
+
+namespace SimpleMigrations.DatabaseProvider
 {
     /// <summary>
     /// Class which can read from / write to a version table in an SQLite database
     /// </summary>
-    public class SqliteVersionProvider : VersionProviderBase
+    /// <remarks>
+    /// SQLite does not support advisory locks, and its transaction model means that we cannot use a transaction on the
+    /// VersionInfo table to guard against concurrent migrators. Therefore this database does not provide support for
+    /// concurrent migrators.
+    /// </remarks>
+    public class SqliteDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
         /// <summary>
-        /// Gets or sets the name of the table to use. Defaults to 'VersionInfo'
+        /// Initialises a new instance of the <see cref="SqliteDatabaseProvider"/> class
         /// </summary>
-        public string TableName { get; set; } = DefaultTableName;
+        /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
+        public SqliteDatabaseProvider(DbConnection connection)
+            : base(connection)
+        {
+        }
+
+        /// <summary>
+        /// No-op: SQLite does not support advisory locks
+        /// </summary>
+        public override void AcquireAdvisoryLock() { }
+
+        /// <summary>
+        /// No-op: SQLite does not support advisory locks
+        /// </summary>
+        public override void ReleaseAdvisoryLock() { }
 
         /// <summary>
         /// Returns SQL to create the version table

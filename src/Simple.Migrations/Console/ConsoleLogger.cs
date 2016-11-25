@@ -24,7 +24,7 @@
         {
             this.foregroundColor = Console.ForegroundColor;
 
-            this.WriteHeader("Migrating from {0}: {1} to {2}: {3}", from.Version, from.FullName, to.Version, to.FullName);
+            this.WriteHeader($"Migrating from {from.Version}: {from.FullName} to {to.Version}: {to.FullName}");
         }
 
         /// <summary>
@@ -59,7 +59,7 @@
         public void BeginMigration(MigrationData migration, MigrationDirection direction)
         {
             var term = direction == MigrationDirection.Up ? "migrating" : "reverting";
-            this.WriteHeader("{0}: {1} {2}", migration.Version, migration.FullName, term);
+            this.WriteHeader($"{migration.Version}: {migration.FullName} {term}");
         }
 
         /// <summary>
@@ -80,7 +80,7 @@
         /// <param name="direction">Direction of the migration</param>
         public void EndMigrationWithError(Exception exception, MigrationData migration, MigrationDirection direction)
         {
-            this.WriteError("{0}: {1} ERROR {2}", migration.Version, migration.FullName, exception.Message);
+            this.WriteError($"{migration.Version}: {migration.FullName} ERROR {exception.Message}");
         }
 
         /// <summary>
@@ -102,22 +102,31 @@
                 Console.WriteLine(message);
         }
 
-        private void WriteHeader(string format, params object[] args)
+        private void WriteHeader(string message)
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(new String('-', Console.WindowWidth - 1));
-            Console.WriteLine(format, args);
+            Console.WriteLine(message);
             Console.WriteLine(new String('-', Console.WindowWidth - 1));
             Console.WriteLine();
             Console.ForegroundColor = this.foregroundColor;
         }
 
-        private void WriteError(string format, params object[] args)
+        private void WriteError(string message)
         {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(new String('-', Console.WindowWidth - 1));
-            Console.WriteLine(format, args);
+            Console.WriteLine(message);
+            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.ForegroundColor = this.foregroundColor;
+        }
+
+        private void WriteWarning(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine(message);
             Console.WriteLine(new String('-', Console.WindowWidth - 1));
             Console.ForegroundColor = this.foregroundColor;
         }
