@@ -9,6 +9,7 @@ It doesn't provide SQL generation, or an out-of-the-box command-line tool, or ot
 It does however provide a set of simple, extendable, and composable tools for integrating migrations into your application.
 
 **WARNING: Until Simple.Migrations reaches version 1.0, I reserve the right to make minor backwards-incompatible changes to the API.**
+API breakages are documented in [the CHANGELOG](CHANGELOG.md).
 
 ### Table of Contents
 
