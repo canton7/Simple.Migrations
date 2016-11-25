@@ -36,7 +36,16 @@ namespace SimpleMigrations
         /// <summary>
         /// Gets the latest available migration
         /// </summary>
-        public MigrationData LatestMigration { get; private set; }
+        public MigrationData LatestMigration
+        {
+            get
+            {
+                if (this.Migrations == null || this.Migrations.Count == 0)
+                    return null;
+
+                return this.Migrations.Last();
+            }
+        }
 
         /// <summary>
         /// Gets all available migrations
@@ -97,11 +106,10 @@ namespace SimpleMigrations
             if (this.isLoaded)
                 return;
 
-            long currentVersion = this.DatabaseProvider.EnsureCreatedAndGetCurrentVersion();
-
             this.FindAndSetMigrations();
+
+            long currentVersion = this.DatabaseProvider.EnsureCreatedAndGetCurrentVersion();
             this.SetCurrentVersion(currentVersion);
-            this.LatestMigration = this.Migrations.Last();
 
             this.isLoaded = true;
         }
