@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
@@ -10,32 +11,45 @@ using SimpleMigrations.DatabaseProvider;
 namespace Simple.Migrations.IntegrationTests.Mysql
 {
     [TestFixture]
-    public class MysqlTests
+    public class MysqlTests : TestsBase
     {
-        private MySqlConnection connection;
-        private SimpleMigrator migrator;
+        protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new MysqlStringsProvider();
 
-        [SetUp]
-        public void SetUp()
+        protected override DbConnection CreateConnection() => new MySqlConnection(ConnectionStrings.MySQL);
+
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MysqlDatabaseProvider(this.CreateConnection());
+
+        protected override bool SupportConcurrentMigrators => true;
+
+        protected override void Clean()
         {
-            this.connection = new MySqlConnection(ConnectionStrings.MySQL);
-            var migrationProvider = new CustomMigrationProvider(typeof(AddTable));
-            this.migrator = new SimpleMigrator(migrationProvider, this.connection, new MysqlDatabaseProvider(), new NUnitLogger());
+            using (var connection = this.CreateConnection())
+            {
+                connection.Open();
 
-            this.migrator.Load();
-        }
+                var tables = new List<string>();
 
-        [TearDown]
-        public void TearDown()
-        {
-            this.migrator.MigrateTo(0);
-            new MySqlCommand(@"DROP TABLE VersionInfo", this.connection).ExecuteNonQuery();
-        }
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "SHOW TABLES";
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            tables.Add(reader.GetString(0));
+                        }
+                    }
+                }
 
-        [Test]
-        public void RunMigration()
-        {
-            this.migrator.MigrateToLatest();
+                foreach (var table in tables)
+                {
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = $"DROP TABLE `{table}`";
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
         }
     }
 }

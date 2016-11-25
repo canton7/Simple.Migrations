@@ -1,25 +1,37 @@
-﻿using System;
+﻿using SimpleMigrations.DatabaseProvider;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SimpleMigrations;
+using System.Data.Common;
 using SQLite;
+using SimpleMigrations;
 
 namespace SQLiteNet
 {
-    public class SQLiteNetVersionProvider : IVersionProvider<SQLiteConnection>
+    public class SQLiteNetDatabaseProvider : IDatabaseProvider<SQLiteConnection>
     {
-        private SQLiteConnection connection;
+        private readonly SQLiteConnection connection;
 
-        public void SetConnection(SQLiteConnection connection)
+        public SQLiteNetDatabaseProvider(SQLiteConnection connection)
         {
             this.connection = connection;
         }
 
-        public void EnsureCreated()
+        public SQLiteConnection BeginOperation()
+        {
+            return this.connection;
+        }
+
+        public void EndOperation()
+        {
+        }
+
+        public long EnsureCreatedAndGetCurrentVersion()
         {
             this.connection.CreateTable<SchemaVersion>();
+            return this.GetCurrentVersion();
         }
 
         public long GetCurrentVersion()

@@ -10,7 +10,8 @@
     "dotnet-test-nunit": "3.4.0-beta-2",
     "Microsoft.Data.SQLite": "1.0.0",
     "System.Data.SqlClient": "4.1.0",
-    "MySql.Data": "6.9.9"
+    "MySql.Data": "6.9.9",
+    "Npgsql": "3.1.8"
   },
 
   "testRunner": "nunit",

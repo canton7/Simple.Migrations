@@ -10,9 +10,11 @@ namespace SQLiteNet
 {
     public abstract class SQLiteNetMigration : IMigration<SQLiteConnection>
     {
-        public SQLiteConnection DB { get; set; }
+        protected bool UseTransaction { get; set; }
 
-        public IMigrationLogger Logger { get; set; }
+        protected SQLiteConnection Connection { get; set; }
+
+        protected IMigrationLogger Logger { get; set; }
 
         public abstract void Down();
 
@@ -21,7 +23,40 @@ namespace SQLiteNet
         public void Execute(string sql)
         {
             this.Logger.LogSql(sql);
-            this.DB.Execute(sql);
+            this.Connection.Execute(sql);
+        }
+
+        void IMigration<SQLiteConnection>.Execute(SQLiteConnection connection, IMigrationLogger logger, MigrationDirection direction)
+        {
+            this.Connection = connection;
+            this.Logger = logger;
+
+            if (this.UseTransaction)
+            {
+                try
+                {
+                    connection.BeginTransaction();
+
+                    if (direction == MigrationDirection.Up)
+                        this.Up();
+                    else
+                        this.Down();
+
+                    connection.Commit();
+                }
+                catch
+                {
+                    connection.Rollback();
+                    throw;
+                }
+            }
+            else
+            {
+                if (direction == MigrationDirection.Up)
+                    this.Up();
+                else
+                    this.Down();
+            }
         }
     }
 }

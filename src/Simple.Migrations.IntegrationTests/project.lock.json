@@ -156,6 +156,15 @@
           "lib/net45/Newtonsoft.Json.dll": {}
         }
       },
+      "Npgsql/3.1.8": {
+        "type": "package",
+        "compile": {
+          "lib/net451/Npgsql.dll": {}
+        },
+        "runtime": {
+          "lib/net451/Npgsql.dll": {}
+        }
+      },
       "NuGet.Common/3.5.0-beta2-1484": {
         "type": "package",
         "frameworkAssemblies": [
@@ -433,7 +442,7 @@
   },
   "libraries": {
     "dotnet-test-nunit/3.4.0-beta-2": {
-      "sha512": "ImRqxsZMFzn+bM33emu5ZMzIUe8GOHPxdA2NkUIsawWd4YjvcFzdIo5iNuejlY0lw1M+RMwRbpd/cKkhKft52g==",
+      "sha512": "za5Bip/Ollig+8pwQi/Lrvi0oVaoBYf2oMrha8+vjfyBWGAa0kSFMCVgrGTt2JyzrYtk9SKzwG3OLHQKuXcwlg==",
       "type": "package",
       "path": "dotnet-test-nunit/3.4.0-beta-2",
       "files": [
@@ -533,7 +542,7 @@
       ]
     },
     "Microsoft.NETCore.Platforms/1.0.1": {
-      "sha512": "2G6OjjJzwBfNOO8myRV/nFrbTw5iA+DEm0N+qUqhrOmaVtn4pC77h38I1jsXGw5VH55+dPfQsqHD0We9sCl9FQ==",
+      "sha512": "QDOHmWJLnLYk1itIRUwlWUNMaa1xZSQUyX6lKouv4LSG+6mG/ETq+PYk8UZcWPhd7Qi8SBu2nysPNpkVcFu/cQ==",
       "type": "package",
       "path": "Microsoft.NETCore.Platforms/1.0.1",
       "files": [
@@ -582,6 +591,21 @@
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.dll",
         "lib/portable-net45+wp80+win8+wpa81/Newtonsoft.Json.xml",
         "tools/install.ps1"
+      ]
+    },
+    "Npgsql/3.1.8": {
+      "sha512": "KkIIz4b4wQptzQsROXHv3dlnSfejuoSQ4I0a5BeRMLWCrxQ46pHPZIWBT/pJvb6i7wR2IYhw460d7Zq7IcYwWg==",
+      "type": "package",
+      "path": "Npgsql/3.1.8",
+      "files": [
+        "Npgsql.3.1.8.nupkg.sha512",
+        "Npgsql.nuspec",
+        "lib/net45/Npgsql.dll",
+        "lib/net45/Npgsql.xml",
+        "lib/net451/Npgsql.dll",
+        "lib/net451/Npgsql.xml",
+        "lib/netstandard1.3/Npgsql.dll",
+        "lib/netstandard1.3/Npgsql.xml"
       ]
     },
     "NuGet.Common/3.5.0-beta2-1484": {
@@ -703,7 +727,7 @@
       ]
     },
     "NUnit.Portable.Agent/3.4.0-beta-2": {
-      "sha512": "91XarG692I/gCwDi3d1k5tRc1J4mPo6l6nHrYRKWSgc9M2a0SX1YNS/uJwth3bXQEn+499mdZ02NTuvJstRq1A==",
+      "sha512": "ybpAVygz7TMj5FKvR/xnYncDOwwZ7omHFbwVRBVMHee5N8AIP2gebNVWPY4DoHFoJwtE2eZ/oBQBtf3/hiLx5w==",
       "type": "package",
       "path": "NUnit.Portable.Agent/3.4.0-beta-2",
       "files": [
@@ -737,7 +761,7 @@
       ]
     },
     "System.Collections.Immutable/1.2.0": {
-      "sha512": "Cma8cBW6di16ZLibL8LYQ+cLjGzoKxpOTu/faZfDcx94ZjAGq6Nv5RO7+T1YZXqEXTZP9rt1wLVEONVpURtUqw==",
+      "sha512": "MqbLaniA7gyvHJZ7DU3PK5P0ADFelS9OaCiiwanLtpUzB/ee6lC983pqRuGOhS8C3LeVjvNxAqQOYnr5pHvC9Q==",
       "type": "package",
       "path": "System.Collections.Immutable/1.2.0",
       "files": [
@@ -854,7 +878,7 @@
       ]
     },
     "System.Diagnostics.Debug/4.0.11": {
-      "sha512": "w5U95fVKHY4G8ASs/K5iK3J5LY+/dLFd4vKejsnI/ZhBsWS9hQakfx3Zr7lRWKg4tAw9r4iktyvsTagWkqYCiw==",
+      "sha512": "1HqgGVDsWqq5Zk8RtytLdnbrXkE0HLoZWl0U8zufPafMGeRpjZZ8RrcA4cVTzW38UWDoV4sn+OOkeAOzutRgWQ==",
       "type": "package",
       "path": "System.Diagnostics.Debug/4.0.11",
       "files": [
@@ -953,7 +977,7 @@
       ]
     },
     "System.Reflection.Metadata/1.3.0": {
-      "sha512": "jMSCxA4LSyKBGRDm/WtfkO03FkcgRzHxwvQRib1bm2GZ8ifKM1MX1al6breGCEQK280mdl9uQS7JNPXRYk90jw==",
+      "sha512": "rFO1/g5A1RGMEro7exc9S9WOhJcdDVdJd2eoz7cMgz04W+aCDZIhsVEkMCsaKd0Yrj0PuEVVCaC39GiMMbVBWw==",
       "type": "package",
       "path": "System.Reflection.Metadata/1.3.0",
       "files": [
@@ -968,7 +992,7 @@
       ]
     },
     "System.Runtime/4.1.0": {
-      "sha512": "v6c/4Yaa9uWsq+JMhnOFewrYkgdNHNG2eMKuNqRn8P733rNXeRCGvV5FkkjBXn2dbVkPXOsO0xjsEeM1q2zC0g==",
+      "sha512": "1bxnz/TddiHZ/u+Itna5YokiicEqS+5NfG1JgV9YqHrQPqGbcJQ5l684qCpcsf95jDJ4Tw26nzisjyrQontsTw==",
       "type": "package",
       "path": "System.Runtime/4.1.0",
       "files": [
@@ -1058,7 +1082,7 @@
       ]
     },
     "System.Runtime.InteropServices/4.1.0": {
-      "sha512": "16eu3kjHS633yYdkjwShDHZLRNMKVi/s0bY8ODiqJ2RfMhDMAwxZaUaWVnZ2P71kr/or+X9o/xFWtNqz8ivieQ==",
+      "sha512": "WHyJxd4EajOXgZExr4udxkdP8I9jHlIpabHTsNUwSAD84fZCO/HX1dhIuIo6M+NCFzTgp7/le7kl2ms+YRU8gA==",
       "type": "package",
       "path": "System.Runtime.InteropServices/4.1.0",
       "files": [
@@ -1156,6 +1180,7 @@
       "Microsoft.Data.SQLite >= 1.0.0",
       "MySql.Data >= 6.9.9",
       "NUnit >= 3.4.1",
+      "Npgsql >= 3.1.8",
       "Simple.Migrations",
       "System.Data.SqlClient >= 4.1.0",
       "System.Reflection.Extensions >= 4.0.0",

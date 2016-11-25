@@ -14,13 +14,15 @@ namespace SQLiteNet
     {
         static void Main(string[] args)
         {
-            var connection = new SQLiteNetConnectionProvider(new SQLiteConnection("SQLiteNetdatabase.sqlite"));
-            var versionProvider = new SQLiteNetVersionProvider();
+            using (var connection = new SQLiteConnection("SQLiteNetdatabase.sqlite"))
+            {
+                var databaseProvider = new SQLiteNetDatabaseProvider(connection);
 
-            var migrator = new SimpleMigrator<SQLiteConnection, SQLiteNetMigration>(
-                Assembly.GetEntryAssembly(), connection, versionProvider);
-            var runner = new ConsoleRunner(migrator);
-            runner.Run(args);
+                var migrator = new SimpleMigrator<SQLiteConnection, SQLiteNetMigration>(
+                    Assembly.GetEntryAssembly(), databaseProvider);
+                var runner = new ConsoleRunner(migrator);
+                runner.Run(args);
+            }
         }
     }
 }

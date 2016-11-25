@@ -19,11 +19,6 @@ namespace SimpleMigrations
         protected IMigrationProvider MigrationProvider { get; }
 
         /// <summary>
-        /// Connection provider
-        /// </summary>
-        protected IConnectionProvider<TConnection> ConnectionProvider { get; }
-
-        /// <summary>
         /// Database provider, providing access to the version table, etc
         /// </summary>
         protected IDatabaseProvider<TConnection> DatabaseProvider { get; }
@@ -54,26 +49,20 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
         /// <param name="migrationProvider">Migration provider to use to find migration classes</param>
-        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
         /// <param name="databaseProvider">Database provider to use to interact with the version table, etc</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
-            IConnectionProvider<TConnection> connectionProvider,
             IDatabaseProvider<TConnection> databaseProvider,
             ILogger logger = null)
         {
             if (migrationProvider == null)
                 throw new ArgumentNullException(nameof(migrationProvider));
-            if (connectionProvider == null)
-                throw new ArgumentNullException(nameof(connectionProvider));
             if (databaseProvider == null)
                 throw new ArgumentNullException(nameof(databaseProvider));
 
             this.MigrationProvider = migrationProvider;
-            this.ConnectionProvider = connectionProvider;
             this.DatabaseProvider = databaseProvider;
-            this.DatabaseProvider.SetConnection(connectionProvider.Connection);
             this.Logger = logger;
         }
 
@@ -81,15 +70,13 @@ namespace SimpleMigrations
         /// Instantiates a new instance of the <see cref="SimpleMigrator{TDatabase, TMigrationBase}"/> class
         /// </summary>
         /// <param name="migrationsAssembly">Assembly to search for migrations</param>
-        /// <param name="connectionProvider">Connection provider to use to communicate with the database</param>
         /// <param name="databaseProvider">Database provider to use to interact with the version table, etc</param>
         /// <param name="logger">Logger to use to log progress and messages</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
-            IConnectionProvider<TConnection> connectionProvider,
             IDatabaseProvider<TConnection> databaseProvider,
             ILogger logger = null)
-            : this(new AssemblyMigrationProvider(migrationsAssembly), connectionProvider, databaseProvider, logger)
+            : this(new AssemblyMigrationProvider(migrationsAssembly), databaseProvider, logger)
         {
         }
 
@@ -110,10 +97,10 @@ namespace SimpleMigrations
             if (this.isLoaded)
                 return;
 
-            this.DatabaseProvider.EnsureCreated();
+            long currentVersion = this.DatabaseProvider.EnsureCreatedAndGetCurrentVersion();
 
             this.FindAndSetMigrations();
-            this.SetCurrentVersion();
+            this.SetCurrentVersion(currentVersion);
             this.LatestMigration = this.Migrations.Last();
 
             this.isLoaded = true;
@@ -149,9 +136,8 @@ namespace SimpleMigrations
         /// <summary>
         /// Set this.CurrentMigration, by inspecting the database
         /// </summary>
-        protected virtual void SetCurrentVersion()
+        protected virtual void SetCurrentVersion(long currentVersion)
         {
-            var currentVersion = this.DatabaseProvider.GetCurrentVersion();
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             if (currentMigration == null)
                 throw new MigrationException($"Unable to find migration with the current version: {currentVersion}");
@@ -177,17 +163,68 @@ namespace SimpleMigrations
         {
             this.EnsureLoaded();
 
-            if (!this.Migrations.Any(x => x.Version == newVersion))
-                throw new ArgumentException($"Could not find migration with version {newVersion}", nameof(newVersion));
+            try
+            {
+                var migrationsConnection = this.DatabaseProvider.BeginOperation();
+                // Need to fetch the current version again after we've acquired the database lock, since someone else running
+                // concurrently might have changed things.
 
-            var direction = newVersion > this.CurrentMigration.Version ? MigrationDirection.Up : MigrationDirection.Down;
-            var migrations = this.FindMigrationsToRun(newVersion, direction).ToList();
+                long currentVersion = this.DatabaseProvider.GetCurrentVersion();
+                this.SetCurrentVersion(currentVersion);
 
-            // Nothing to do?
-            if (!migrations.Any())
-                return;
+                var toMigration = this.Migrations.FirstOrDefault(x => x.Version == newVersion);
+                if (toMigration == null)
+                    throw new ArgumentException($"Could not find migration with version {newVersion}", nameof(newVersion));
 
-            this.RunMigrations(migrations, direction);
+                var direction = newVersion > this.CurrentMigration.Version ? MigrationDirection.Up : MigrationDirection.Down;
+                var migrations = this.FindMigrationsToRun(newVersion, direction);
+
+                this.Logger?.BeginSequence(this.CurrentMigration, toMigration);
+
+                try
+                {
+                    foreach (var migrationDataPair in migrations)
+                    {
+                        var migrationDataToRun = (direction == MigrationDirection.Up) ? migrationDataPair.To : migrationDataPair.From;
+
+                        try
+                        {
+                            this.Logger?.BeginMigration(migrationDataToRun, direction);
+
+                            this.RunMigration(direction, migrationDataToRun, migrationsConnection);
+                            this.DatabaseProvider.UpdateVersion(migrationDataPair.From.Version, migrationDataPair.To.Version, migrationDataPair.To.FullName);
+
+                            this.Logger?.EndMigration(migrationDataToRun, direction);
+                        }
+                        catch (Exception e)
+                        {
+                            this.Logger?.EndMigrationWithError(e, migrationDataToRun, direction);
+                            throw;
+                        }
+                    }
+                }
+                finally
+                {
+                    long finalVersion = this.DatabaseProvider.GetCurrentVersion();
+                    this.SetCurrentVersion(finalVersion);
+                }
+            }
+            finally
+            {
+                this.DatabaseProvider.EndOperation();
+            }
+        }
+
+        /// <summary>
+        /// Instantiate and execute a single migration
+        /// </summary>
+        /// <param name="direction">Diretion to run the migration in</param>
+        /// <param name="migrationData"><see cref="MigrationData"/> describing to migration to instantiate and execute</param>
+        /// <param name="connection">Connection to use to execute the migration</param>
+        protected virtual void RunMigration(MigrationDirection direction, MigrationData migrationData, TConnection connection)
+        {
+            var migration = this.CreateMigration(migrationData);
+            migration.Execute(connection, this.Logger ?? NullLogger.Instance, direction);
         }
 
         /// <summary>
@@ -206,7 +243,17 @@ namespace SimpleMigrations
             if (migration == null)
                 throw new ArgumentException($"Could not find migration with version {version}", nameof(version));
 
-            this.DatabaseProvider.UpdateVersion(0, version, migration.FullName);
+            try
+            {
+                this.DatabaseProvider.BeginOperation();
+
+                this.DatabaseProvider.UpdateVersion(0, version, migration.FullName);
+            }
+            finally
+            {
+                this.DatabaseProvider.EndOperation();
+            }
+                
             this.CurrentMigration = migration;
         }
 
@@ -216,101 +263,29 @@ namespace SimpleMigrations
         /// <param name="newVersion">Version to bring the database to</param>
         /// <param name="direction">Direction of migrations</param>
         /// <returns>A sorted list of migrations to run, with the first migration to run being first in the collection</returns>
-        protected virtual IEnumerable<MigrationData> FindMigrationsToRun(long newVersion, MigrationDirection direction)
+        protected virtual IEnumerable<MigrationDataPair> FindMigrationsToRun(long newVersion, MigrationDirection direction)
         {
-            IEnumerable<MigrationData> migrations;
+            // We require that 'this.Migrations' is ordered, and a migration with version 'newVersions' exists
+
             if (direction == MigrationDirection.Up)
             {
-                migrations = this.Migrations.Where(x => x.Version > this.CurrentMigration.Version && x.Version <= newVersion).OrderBy(x => x.Version);
+                for (int i = 0; i < this.Migrations.Count; i++)
+                {
+                    if (this.Migrations[i].Version > this.CurrentMigration.Version && this.Migrations[i].Version <= newVersion)
+                    {
+                        yield return new MigrationDataPair(this.Migrations[i - 1], this.Migrations[i]);
+                    }
+                }
             }
             else
             {
-                migrations = this.Migrations.Where(x => x.Version < this.CurrentMigration.Version && x.Version >= newVersion).OrderByDescending(x => x.Version);
-            }
-
-            return migrations;
-        }
-
-        /// <summary>
-        /// Run the given list of migrations
-        /// </summary>
-        /// <param name="migrations">Migrations to run, must be sorted</param>
-        /// <param name="direction">Direction of mgirations</param>
-        protected virtual void RunMigrations(IEnumerable<MigrationData> migrations, MigrationDirection direction)
-        {
-            if (migrations == null)
-                throw new ArgumentNullException(nameof(migrations));
-
-            // Migrations must be sorted
-
-            // this.CurrentMigration is updated by MigrateStep
-            var originalMigration = this.CurrentMigration;
-
-            var oldMigration = this.CurrentMigration;
-            this.Logger?.BeginSequence(originalMigration, migrations.Last());
-            try
-            {
-                foreach (var newMigration in migrations)
+                for (int i = this.Migrations.Count - 1; i >= 0; i--)
                 {
-                    this.MigrateStep(oldMigration, newMigration, direction);
-                    oldMigration = newMigration;
+                    if (this.Migrations[i].Version <= this.CurrentMigration.Version && this.Migrations[i].Version > newVersion)
+                    {
+                        yield return new MigrationDataPair(this.Migrations[i], this.Migrations[i - 1]);
+                    }
                 }
-
-                this.Logger?.EndSequence(originalMigration, this.CurrentMigration);
-            }
-            catch (Exception e)
-            {
-                this.Logger?.EndSequenceWithError(e, originalMigration, this.CurrentMigration);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Perform a single migration
-        /// </summary>
-        /// <param name="oldMigration">Migration to migrate from</param>
-        /// <param name="newMigration">Migration to migrate to</param>
-        /// <param name="direction">Direction of the migration</param>
-        protected virtual void MigrateStep(MigrationData oldMigration, MigrationData newMigration, MigrationDirection direction)
-        {
-            if (oldMigration == null)
-                throw new ArgumentNullException(nameof(oldMigration));
-            if (newMigration == null)
-                throw new ArgumentNullException(nameof(newMigration));
-
-            var migrationToRun = direction == MigrationDirection.Up ? newMigration : oldMigration;
-
-            try
-            {
-                if (migrationToRun.UseTransaction)
-                    this.ConnectionProvider.BeginTransaction();
-
-                var migration = this.CreateMigration(migrationToRun);
-
-                this.Logger?.BeginMigration(migrationToRun, direction);
-
-                if (direction == MigrationDirection.Up)
-                    migration.Up();
-                else
-                    migration.Down();
-
-                this.DatabaseProvider.UpdateVersion(oldMigration.Version, newMigration.Version, newMigration.FullName);
-
-                this.Logger?.EndMigration(migrationToRun, direction);
-
-                if (migrationToRun.UseTransaction)
-                    this.ConnectionProvider.CommitTransaction();
-
-                this.CurrentMigration = newMigration;
-            }
-            catch (Exception e)
-            {
-                if (migrationToRun.UseTransaction)
-                    this.ConnectionProvider.RollbackTransaction();
-
-                this.Logger?.EndMigrationWithError(e, migrationToRun, direction);
-
-                throw;
             }
         }
 
@@ -334,10 +309,34 @@ namespace SimpleMigrations
                 throw new MigrationException($"Unable to create migration {migrationData.FullName}", e);
             }
 
-            instance.DB = this.ConnectionProvider.Connection;
-            instance.Logger = this.Logger ?? NullLogger.Instance;
-
             return instance;
+        }
+
+        /// <summary>
+        /// Helper structure containing a pair of <see cref="MigrationData"/>s, describing a step from one version to another
+        /// </summary>
+        protected struct MigrationDataPair
+        {
+            /// <summary>
+            /// Gets the <see cref="MigrationData"/> this migration goes from
+            /// </summary>
+            public MigrationData From { get; }
+
+            /// <summary>
+            /// Gets the <see cref="MigrationData"/> this migration goes to
+            /// </summary>
+            public MigrationData To { get; }
+
+            /// <summary>
+            /// Initialises a new instance of the <see cref="MigrationDataPair"/> structure
+            /// </summary>
+            /// <param name="from"><see cref="MigrationData"/> this migration goes from</param>
+            /// <param name="to"><see cref="MigrationData"/> this migration goes to</param>
+            public MigrationDataPair(MigrationData from, MigrationData to)
+            {
+                this.From = from;
+                this.To = to;
+            }
         }
     }
 }
