@@ -12,13 +12,13 @@
           "lib/net45/Castle.Core.dll": {}
         }
       },
-      "dotnet-test-nunit/3.4.0-beta-2": {
+      "dotnet-test-nunit/3.4.0-beta-3": {
         "type": "package",
         "dependencies": {
           "Microsoft.Extensions.DependencyModel": "1.0.0",
           "Microsoft.Extensions.Testing.Abstractions": "1.0.0-preview2-003121",
           "Microsoft.NETCore.Platforms": "1.0.1",
-          "NUnit.Portable.Agent": "3.4.0-beta-2"
+          "NUnit.Portable.Agent": "3.4.0-beta-3"
         },
         "compile": {
           "lib/net451/dotnet-test-nunit.exe": {}
@@ -132,7 +132,7 @@
           "lib/netstandard1.0/_._": {}
         }
       },
-      "Moq/4.5.23": {
+      "Moq/4.5.28": {
         "type": "package",
         "dependencies": {
           "Castle.Core": "3.3.3"
@@ -249,7 +249,7 @@
           "lib/net45/NuGet.Versioning.dll": {}
         }
       },
-      "NUnit/3.4.1": {
+      "NUnit/3.5.0": {
         "type": "package",
         "compile": {
           "lib/net45/nunit.framework.dll": {}
@@ -258,7 +258,7 @@
           "lib/net45/nunit.framework.dll": {}
         }
       },
-      "NUnit.Portable.Agent/3.4.0-beta-2": {
+      "NUnit.Portable.Agent/3.4.0-beta-3": {
         "type": "package",
         "frameworkAssemblies": [
           "System.Globalization",
@@ -382,12 +382,12 @@
         "readme.txt"
       ]
     },
-    "dotnet-test-nunit/3.4.0-beta-2": {
-      "sha512": "za5Bip/Ollig+8pwQi/Lrvi0oVaoBYf2oMrha8+vjfyBWGAa0kSFMCVgrGTt2JyzrYtk9SKzwG3OLHQKuXcwlg==",
+    "dotnet-test-nunit/3.4.0-beta-3": {
+      "sha512": "TCprFJd60JQrNSygKAinVFBF2zQK3V2BRm1jeBvAGKF/6omeMrjO1tBD3UKlZSGvHFNyiocPn7bgU68cNz94ug==",
       "type": "package",
-      "path": "dotnet-test-nunit/3.4.0-beta-2",
+      "path": "dotnet-test-nunit/3.4.0-beta-3",
       "files": [
-        "dotnet-test-nunit.3.4.0-beta-2.nupkg.sha512",
+        "dotnet-test-nunit.3.4.0-beta-3.nupkg.sha512",
         "dotnet-test-nunit.nuspec",
         "lib/net451/dotnet-test-nunit.exe",
         "lib/netcoreapp1.0/dotnet-test-nunit.dll",
@@ -470,7 +470,7 @@
       ]
     },
     "Microsoft.NETCore.Platforms/1.0.1": {
-      "sha512": "QDOHmWJLnLYk1itIRUwlWUNMaa1xZSQUyX6lKouv4LSG+6mG/ETq+PYk8UZcWPhd7Qi8SBu2nysPNpkVcFu/cQ==",
+      "sha512": "2G6OjjJzwBfNOO8myRV/nFrbTw5iA+DEm0N+qUqhrOmaVtn4pC77h38I1jsXGw5VH55+dPfQsqHD0We9sCl9FQ==",
       "type": "package",
       "path": "Microsoft.NETCore.Platforms/1.0.1",
       "files": [
@@ -482,12 +482,12 @@
         "runtime.json"
       ]
     },
-    "Moq/4.5.23": {
-      "sha512": "oS7D0vA+ltfyrZ/wXd1HYl8j5B9MAnTiluTeZXiyE07dQPRWG/i9O5+HJpor5F3sVoWLU/gDb8lQgHeb5dfrsg==",
+    "Moq/4.5.28": {
+      "sha512": "Vt+0fc8+CHpO9OKLcmZ86whC4bMkolCNKxLs/sTENfqbGwTCs+WgzI+p1NP7po1Mh4gfzQZBk6kzzA6HJ1T78g==",
       "type": "package",
-      "path": "Moq/4.5.23",
+      "path": "Moq/4.5.28",
       "files": [
-        "Moq.4.5.23.nupkg.sha512",
+        "Moq.4.5.28.nupkg.sha512",
         "Moq.nuspec",
         "lib/net45/Moq.dll",
         "lib/net45/Moq.xml"
@@ -610,15 +610,15 @@
         "lib/netstandard1.0/NuGet.Versioning.xml"
       ]
     },
-    "NUnit/3.4.1": {
-      "sha512": "G/9h/ENn8+GvT5DvBqVNrUhIWuxtAr0/oVGN2ljKVUw50EAZYBzeWSy9s6nqMswaQACpQzljql1sWQ/peE2eJg==",
+    "NUnit/3.5.0": {
+      "sha512": "z/03NfC+ci3/OzlIlClH+nd0LZ99OU3wS74nAtLVnPo1oq6nvd+CGxTHZAc8n8xxDLeLMofZ8AjahxlROEhf/Q==",
       "type": "package",
-      "path": "NUnit/3.4.1",
+      "path": "NUnit/3.5.0",
       "files": [
         "CHANGES.txt",
         "LICENSE.txt",
         "NOTICES.txt",
-        "NUnit.3.4.1.nupkg.sha512",
+        "NUnit.3.5.0.nupkg.sha512",
         "NUnit.nuspec",
         "lib/dotnet/nunit.framework.dll",
         "lib/dotnet/nunit.framework.xml",
@@ -635,19 +635,19 @@
         "lib/portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10/nunit.framework.xml"
       ]
     },
-    "NUnit.Portable.Agent/3.4.0-beta-2": {
-      "sha512": "ybpAVygz7TMj5FKvR/xnYncDOwwZ7omHFbwVRBVMHee5N8AIP2gebNVWPY4DoHFoJwtE2eZ/oBQBtf3/hiLx5w==",
+    "NUnit.Portable.Agent/3.4.0-beta-3": {
+      "sha512": "BcgxOFtivkK8+eu5krwxxTWw6RtASfp7q/nQ18Z5a2rEvDHZz9h+U2fJjIrw4P9CtqbzZwNuGHprUnhoVqlZrw==",
       "type": "package",
-      "path": "NUnit.Portable.Agent/3.4.0-beta-2",
+      "path": "NUnit.Portable.Agent/3.4.0-beta-3",
       "files": [
-        "NUnit.Portable.Agent.3.4.0-beta-2.nupkg.sha512",
+        "NUnit.Portable.Agent.3.4.0-beta-3.nupkg.sha512",
         "NUnit.Portable.Agent.nuspec",
         "lib/net45/NUnit.Portable.Agent.dll",
         "lib/netstandard1.3/NUnit.Portable.Agent.dll"
       ]
     },
     "System.Collections.Immutable/1.2.0": {
-      "sha512": "MqbLaniA7gyvHJZ7DU3PK5P0ADFelS9OaCiiwanLtpUzB/ee6lC983pqRuGOhS8C3LeVjvNxAqQOYnr5pHvC9Q==",
+      "sha512": "Cma8cBW6di16ZLibL8LYQ+cLjGzoKxpOTu/faZfDcx94ZjAGq6Nv5RO7+T1YZXqEXTZP9rt1wLVEONVpURtUqw==",
       "type": "package",
       "path": "System.Collections.Immutable/1.2.0",
       "files": [
@@ -662,7 +662,7 @@
       ]
     },
     "System.Diagnostics.Debug/4.0.11": {
-      "sha512": "1HqgGVDsWqq5Zk8RtytLdnbrXkE0HLoZWl0U8zufPafMGeRpjZZ8RrcA4cVTzW38UWDoV4sn+OOkeAOzutRgWQ==",
+      "sha512": "w5U95fVKHY4G8ASs/K5iK3J5LY+/dLFd4vKejsnI/ZhBsWS9hQakfx3Zr7lRWKg4tAw9r4iktyvsTagWkqYCiw==",
       "type": "package",
       "path": "System.Diagnostics.Debug/4.0.11",
       "files": [
@@ -728,7 +728,7 @@
       ]
     },
     "System.Reflection.Metadata/1.3.0": {
-      "sha512": "rFO1/g5A1RGMEro7exc9S9WOhJcdDVdJd2eoz7cMgz04W+aCDZIhsVEkMCsaKd0Yrj0PuEVVCaC39GiMMbVBWw==",
+      "sha512": "jMSCxA4LSyKBGRDm/WtfkO03FkcgRzHxwvQRib1bm2GZ8ifKM1MX1al6breGCEQK280mdl9uQS7JNPXRYk90jw==",
       "type": "package",
       "path": "System.Reflection.Metadata/1.3.0",
       "files": [
@@ -743,7 +743,7 @@
       ]
     },
     "System.Runtime/4.1.0": {
-      "sha512": "1bxnz/TddiHZ/u+Itna5YokiicEqS+5NfG1JgV9YqHrQPqGbcJQ5l684qCpcsf95jDJ4Tw26nzisjyrQontsTw==",
+      "sha512": "v6c/4Yaa9uWsq+JMhnOFewrYkgdNHNG2eMKuNqRn8P733rNXeRCGvV5FkkjBXn2dbVkPXOsO0xjsEeM1q2zC0g==",
       "type": "package",
       "path": "System.Runtime/4.1.0",
       "files": [
@@ -833,7 +833,7 @@
       ]
     },
     "System.Runtime.InteropServices/4.1.0": {
-      "sha512": "WHyJxd4EajOXgZExr4udxkdP8I9jHlIpabHTsNUwSAD84fZCO/HX1dhIuIo6M+NCFzTgp7/le7kl2ms+YRU8gA==",
+      "sha512": "16eu3kjHS633yYdkjwShDHZLRNMKVi/s0bY8ODiqJ2RfMhDMAwxZaUaWVnZ2P71kr/or+X9o/xFWtNqz8ivieQ==",
       "type": "package",
       "path": "System.Runtime.InteropServices/4.1.0",
       "files": [
@@ -928,10 +928,10 @@
   },
   "projectFileDependencyGroups": {
     "": [
-      "Moq >= 4.5.23",
-      "NUnit >= 3.4.1",
+      "Moq >= 4.5.28",
+      "NUnit >= 3.5.0",
       "Simple.Migrations",
-      "dotnet-test-nunit >= 3.4.0-beta-2"
+      "dotnet-test-nunit >= 3.4.0-beta-3"
     ],
     ".NETFramework,Version=v4.5.1": []
   },
