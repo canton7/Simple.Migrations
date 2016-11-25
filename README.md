@@ -19,7 +19,8 @@ It does however provide a set of simple, extendable, and composable tools for in
 5. [SimpleMigrator](#simplemigrator)
 6. [ConsoleRunner](#consolerunner)
 7. [Finding Migrations](#finding-migrations)
-8. [Example: Using sqlite-net](#example-using-sqlite-net)
+8. [Writing your own Database Provider](#writing-your-own-database-provider)
+9. [Example: Using sqlite-net](#example-using-sqlite-net)
 
 Installation
 ------------
@@ -191,9 +192,9 @@ The currently supported database engines are:
 Usage:
 
 ```csharp
-var databaseProvider = new DatabaseProviders.MssqlDatabaseProvider(() => new SqlConnection("Connection String"));
+var databaseProvider = new MssqlDatabaseProvider(() => new SqlConnection("Connection String"));
 var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
-migrator.MigrateToLatest();
+migrator.Load();
 ```
 
 Concurrent migrator support works by acquiring a lock on the VersionTable table.
@@ -209,7 +210,7 @@ using (var connection = new SqliteConnection("Connection String"))
 {
     var databaseProvider = new SqliteDatabaseProvider(connection);
     var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
-    migrator.MigrateToLatest();
+    migrator.Load();
 }
 ```
 
@@ -224,7 +225,7 @@ using (var connection = new NpgsqlConnection("Connection String"))
 {
     var databaseProvider = new PostgresqlDatabaseProvider(connection);
     var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
-    migrator.MigrateToLatest();
+    migrator.Load();
 }
 ```
 
@@ -237,30 +238,11 @@ using (var connection = new MySqlConnection("Connection String"))
 {
     var databaseProvider = new MysqlDatabaseProvider(connection);
     var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
-    migrator.MigrateToLatest();
+    migrator.Load();
 }
 ```
 
 MySQL provides full support for concurrent migrators, by using advisory locks.
-
-
-### Writing your own database provider
-
-If you want to write your own database provider, first figure out whether you want to support concurrent migrators, and if so, whether you are going to use advisory locks (if you database supports them), or locking on the VersionInfo table.
-
-If you don't want to support concurrent migrators, then subclass `DatabaseProviderBaseWithAdvisoryLock`.
-Override `AcquireAdvisoryLock()` and `ReleaseAdvisoryLock()` to do nothing, and override `GetcreateVersionTableSql()`, `GetCurrentVersionSql()`, and `GetSetVersionSql()` to return SQL suitable for your database (see the docs on `DatabaseProviderBaseWithAdvisoryLock` for details).
-
-If you want to support concurrent migrators by using an advisory lock, then subclass `DatabaseProviderBaseWithAdvisoryLock`.
-Override `AcquireAdvisoryLock()` to acquire the advisory lock using `this.Connection`, and override `ReleaseAdvisoryLock()` to release that lock.
-Override `GetcreateVersionTableSql()`, `GetCurrentVersionSql()`, and `GetSetVersionSql()` to return SQL suitable for your database (see the docs on `DatabaseProviderBaseWithAdvisoryLock` for details).
-
-If you want to support concurrent migrators by using a lock on the SchemaVersion table, then subclass `DatabaseProviderBaseWithVersionTableLock`.
-Override `AcquireVersionTableLock()`, and inside create a new transaction using `this.VersionTableConnection`, assign it to `this.VersionTableLockTransaction`, and execute whatever SQL is necessary to convince the database engine that it may not allow other connections to query the VersionInfo table.
-Override `ReleaseVersionTableLock()` to destroy `this.VersionTableLockTransaction`.
-Override `GetcreateVersionTableSql()`, `GetCurrentVersionSql()`, and `GetSetVersionSql()` to return SQL suitable for your database (see the docs on `DatabaseProviderBaseWithAdvisoryLock` for details).
-
-See the pre-existing database providers, and the documentation on the classes `DatabaseProviderBase`, `DatabaseProviderBaseWithAdvisoryLock`, and `DatabaseProviderBaseWithVersionTableLock` for more details.
 
 
 SimpleMigrator
@@ -272,7 +254,20 @@ It is also responsible for finding migrations, and for instantiating and configu
 
 `SimpleMigrator` comes in two flavours: `SimpleMigrator<TConnection, TMigrationBase>` which allows you to use any sort of database connection (not just ADO.NET) and any migration base class, and `SimpleMigrator`, which assumes you're using ADO.NET and `Migration`.
 
-You'll want to use this class directly in any scenario where you're not using the `ConsoleRunner` to provide a command-line interface for you [see below](#consolerunner).
+You'll want to use this class directly in any scenario where you're not using the `ConsoleRunner` to provide a command-line interface for you, [see below](#consolerunner).
+
+After instantiating a `SimpleMigrator`, but before doing anything else with it, you'll need to call `.Load()`.
+This discovers your migrations, and queries your database to find the current version.
+
+`SimpleMigrator` offers the following important properties and methods:
+
+ - `Load()` - must be called before anything else. Populates the properties documented below.
+ - `CurrentMigration` - gets the current version of your database schema.
+ - `Migrations` - gets a list of all of your migrations, ordered from oldest to newest.
+ - `LatestMigration` - gets the latest migration (the last element in `Migrations`).
+ - `MigrateTo(n)` - migrates the database to version `n`. There must be a migration in `Migrations` with version `n`. Will migrate up or down as necessary. Use `MigrateTo(0)` to remove all migrations.
+ - `MigrateToLatest()` - shortcut for `MigrateTo(Migrations.Last())`.
+ - `Baseline(n)` - updates the VersionInfo table to indicate that the database is on version `n`, but don't run any migrations. This is useful if you've got a pre-existing database which doesn't use migrations: create a migration with version 1 which describes the schema of your database, and use `.Baseline(1)`.
 
 For example, if you want to migrate to the latest version on startup (not particularly recommended):
 
@@ -312,8 +307,6 @@ migrator.MigrateTo(3);
 
 To remove all migrations, use `.MigrateTo(0)`.
 
-If you've got a pre-existing database, then you can add a migration which describes the schema of your database, then call `.Baseline(1)` to tell the SimpleMigrator to update the VersionInfo table to be at version 1, but without actually running any migrations.
-
 
 ConsoleRunner
 -------------
@@ -342,7 +335,27 @@ Some common configurations are:
 
 You can customize how migrations are found by implementing `IMigrationProvider`.
 This returns a collection of `MigrationData` - see `AssemblyMigrationProvider` for an example.
+Then pass your migration provider to the appropriate `SimpleMigrator` constructor.
 
+
+Writing your own Database Provider
+---------------------------------
+
+If you want to write your own database provider, first figure out whether you want to support concurrent migrators, and if so, whether you are going to use advisory locks (if you database supports them), or locking on the VersionInfo table.
+
+If you don't want to support concurrent migrators, then subclass `DatabaseProviderBaseWithAdvisoryLock`.
+Override `AcquireAdvisoryLock()` and `ReleaseAdvisoryLock()` to do nothing, and override `GetcreateVersionTableSql()`, `GetCurrentVersionSql()`, and `GetSetVersionSql()` to return SQL suitable for your database (see the docs on `DatabaseProviderBaseWithAdvisoryLock` for details).
+
+If you want to support concurrent migrators by using an advisory lock, then subclass `DatabaseProviderBaseWithAdvisoryLock`.
+Override `AcquireAdvisoryLock()` to acquire the advisory lock using `this.Connection`, and override `ReleaseAdvisoryLock()` to release that lock.
+Override `GetcreateVersionTableSql()`, `GetCurrentVersionSql()`, and `GetSetVersionSql()` to return SQL suitable for your database (see the docs on `DatabaseProviderBaseWithAdvisoryLock` for details).
+
+If you want to support concurrent migrators by using a lock on the SchemaVersion table, then subclass `DatabaseProviderBaseWithVersionTableLock`.
+Override `AcquireVersionTableLock()`, and inside create a new transaction using `this.VersionTableConnection`, assign it to `this.VersionTableLockTransaction`, and execute whatever SQL is necessary to convince the database engine that it may not allow other connections to query the VersionInfo table.
+Override `ReleaseVersionTableLock()` to destroy `this.VersionTableLockTransaction`.
+Override `GetcreateVersionTableSql()`, `GetCurrentVersionSql()`, and `GetSetVersionSql()` to return SQL suitable for your database (see the docs on `DatabaseProviderBaseWithAdvisoryLock` for details).
+
+See the pre-existing database providers, and the documentation on the classes `DatabaseProviderBase`, `DatabaseProviderBaseWithAdvisoryLock`, and `DatabaseProviderBaseWithVersionTableLock` for more details.
 
 Example: Using sqlite-net
 -------------------------
