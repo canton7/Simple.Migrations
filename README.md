@@ -193,15 +193,15 @@ The currently supported database engines are:
 Usage:
 
 ```csharp
-var databaseProvider = new MssqlDatabaseProvider(() => new SqlConnection("Connection String"));
-var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
-migrator.Load();
+using (var connection = new SqlConnection("Connection String"))
+{
+    var databaseProvider = new MssqlDatabaseProvider(connection);
+    var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
+    migrator.Load();
+}
 ```
 
-Concurrent migrator support works by acquiring a lock on the VersionTable table.
-There is a race if this table doesn't exist and two migrators try and create it at the same time: this cannot be avoided.
-There is no race if the VersionTable already exists.
-
+MSSQL provides full support for concurrent migrators, by using app locks.
 #### SQLite
 
 Usage:
