@@ -1,5 +1,4 @@
 ﻿using SimpleMigrations.DatabaseProvider;
-using System;
 
 namespace SimpleMigrations
 {

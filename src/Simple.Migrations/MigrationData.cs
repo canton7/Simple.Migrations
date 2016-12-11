@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 
 namespace SimpleMigrations
 {
@@ -23,7 +22,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Type of class implementing this migration
         /// </summary>
-        public TypeInfo TypeInfo { get; }
+        public Type Type { get; }
 
         /// <summary>
         /// Name of the migration, including the type name and description
@@ -35,19 +34,19 @@ namespace SimpleMigrations
         /// </summary>
         /// <param name="version">Version of this migration</param>
         /// <param name="description">Description of this migration. May be null</param>
-        /// <param name="typeInfo">Type of class implementing this migration</param>
-        public MigrationData(long version, string description, TypeInfo typeInfo)
+        /// <param name="type">Type of class implementing this migration</param>
+        public MigrationData(long version, string description, Type type)
         {
             // 'version' is verified to be >0 in SimpleMigrator
-            if (typeInfo == null)
-                throw new ArgumentNullException(nameof(typeInfo));
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
 
             this.Version = version;
             this.Description = description;
-            this.TypeInfo = typeInfo;
+            this.Type = type;
 
             var descriptionPart = String.IsNullOrWhiteSpace(this.Description) ? "" : $" ({this.Description})";
-            this.FullName = this.TypeInfo.Name + descriptionPart;
+            this.FullName = this.Type.Name + descriptionPart;
         }
 
         /// <summary>
@@ -58,7 +57,7 @@ namespace SimpleMigrations
             this.Version = 0;
             this.Description = "Empty Schema";
             this.FullName = "Empty Schema";
-            this.TypeInfo = null;
+            this.Type = null;
         }
 
         /// <summary>
@@ -67,7 +66,7 @@ namespace SimpleMigrations
         /// <returns>A string representation of the object</returns>
         public override string ToString()
         {
-            return $"<{nameof(MigrationData)} Version={this.Version} Description={this.Description} FullName={this.FullName} TypeInfo={this.TypeInfo}>";
+            return $"<{nameof(MigrationData)} Version={this.Version} Description={this.Description} FullName={this.FullName} TypeInfo={this.Type}>";
         }
     }
 }

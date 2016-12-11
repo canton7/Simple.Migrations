@@ -4,7 +4,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Simple.Migrations.svg)](https://www.nuget.org/packages/Simple.Migrations/)
 [![Build status](https://ci.appveyor.com/api/projects/status/iub4g6p0qs7onn2b?svg=true)](https://ci.appveyor.com/project/canton7/simplemigrations)
 
-Simple.Migrations is a simple bare-bones migration framework for .NET Core (.NET Standard 1.2 and .NET 4.5). 
+Simple.Migrations is a simple bare-bones migration framework for .NET Core (.NET Standard 1.2 and .NET 4.0). 
 It doesn't provide SQL generation, or an out-of-the-box command-line tool, or other fancy features.
 It does however provide a set of simple, extendable, and composable tools for integrating migrations into your application.
 
@@ -118,7 +118,7 @@ class Program
 
             // Or turn it into a console application
 
-            // Note: ConsoleRunner is only available in .NET Standard 1.3 and .NET 4.5 (not .NET Standard 1.2)
+            // Note: ConsoleRunner is only available in .NET Standard 1.3 and .NET 4.0 (not .NET Standard 1.2)
             var consoleRunner = new ConsoleRunner(migrator);
             consoleRunner.Run(args);
         }
@@ -317,7 +317,7 @@ It uses a `SimpleMigrator`, takes your command-line arguments, and uses the latt
 
 You can use it, extend it (look at the `SubCommands` property), or write your own version: it's not critical in any way.
 
-This is only available when targetting .NET Standard 1.3 (or above) and .NET 4.5.
+This is only available when targetting .NET Standard 1.3 (or above) and .NET 4.0.
 The Console is not available in .NET Standard 1.2.
 
 

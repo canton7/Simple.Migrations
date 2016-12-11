@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace SimpleMigrations
 {
@@ -25,7 +26,11 @@ namespace SimpleMigrations
         /// <summary>
         /// Gets all available migrations
         /// </summary>
+#if NET40
+        ReadOnlyCollection<MigrationData> Migrations { get; }
+#else
         IReadOnlyList<MigrationData> Migrations { get; }
+#endif
 
         /// <summary>
         /// Load all available migrations, and the current state of the database
