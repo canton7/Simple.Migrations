@@ -1,10 +1,34 @@
 Changelog
 =========
 
+v0.9.8
+------
+
+**BREAKING CHANGE**: The MssqlDatabaseProvider now uses an advisory lock, so the way you instantiate it has changed from:
+
+```csharp
+var databaseProvider = new MssqlDatabaseProvider(() => new SqlConnection("Connection String"));
+var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
+migrator.Load();
+```
+
+To this:
+
+```csharp
+using (var connection = new SqlConnection("Connection String"))
+{
+    var databaseProvider = new MssqlDatabaseProvider(connection);
+    var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
+    migrator.Load();
+}
+```
+
+Also add support for .NET 4.0.
+
 v0.9.7
 ------
 
-**BREAKING CHANGE**: The architecture has been altnered reasonably significantly to allow support for concurrent migrators (#7).
+**BREAKING CHANGE**: The architecture has been altered reasonably significantly to allow support for concurrent migrators (#7).
 
 In particular:
 
