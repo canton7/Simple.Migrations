@@ -17,11 +17,6 @@ namespace SimpleMigrations.DatabaseProvider
         public string LockName { get; set; } = "SimpleMigratorExclusiveLock";
 
         /// <summary>
-        /// Gets or sets the timeout when acquiring the advisory lock
-        /// </summary>
-        public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(600);
-
-        /// <summary>
         /// Initialises a new instance of the <see cref="MssqlDatabaseProvider"/> class
         /// </summary>
         /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
@@ -39,6 +34,7 @@ namespace SimpleMigrations.DatabaseProvider
             using (var command = this.Connection.CreateCommand())
             {
                 command.CommandText = $"sp_getapplock @Resource = '{this.LockName}', @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = '{(int)this.LockTimeout.TotalMilliseconds}'";
+                command.CommandTimeout = 0; // The lock will time out by itself
                 command.ExecuteNonQuery();
             }
         }
