@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 using System.Data.Common;
 
 namespace SimpleMigrations.DatabaseProvider
@@ -8,47 +7,50 @@ namespace SimpleMigrations.DatabaseProvider
     /// Class which can read from / write to a version table in an MSSQL database
     /// </summary>
     /// <remarks>
-    /// MSSQL does not support advisory locks, therefore we had to use a transaction on the VersionInfo table.
-    /// There is a race when creating the VersionInfo table for the first time, where two migrators will both attempt to
-    /// create it at this same time. This cannot be avoided.
+    /// MSSQL supports advisory locks, so these are used to guard against concurrent migrators.
     /// </remarks>
-    public class MssqlDatabaseProvider : DatabaseProviderBaseWithVersionTableLock
+    public class MssqlDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
+        /// <summary>
+        /// Gets or sets the name of the advisory lock to acquire
+        /// </summary>
+        public string LockName { get; set; } = "SimpleMigratorExclusiveLock";
+
         /// <summary>
         /// Initialises a new instance of the <see cref="MssqlDatabaseProvider"/> class
         /// </summary>
-        /// <param name="connectionFactory">Factory to use to create new connections to the database</param>
-        public MssqlDatabaseProvider(Func<DbConnection> connectionFactory)
-            : base(connectionFactory)
+        /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
+        public MssqlDatabaseProvider(DbConnection connection)
+            : base(connection)
         {
             this.MaxDescriptionLength = 256;
         }
 
         /// <summary>
-        /// Creates and sets VersionTableLockTransaction, and uses it to lock the VersionInfo table
+        /// Acquires an advisory lock using Connection
         /// </summary>
-        protected override void AcquireVersionTableLock()
+        public override void AcquireAdvisoryLock()
         {
-            this.VersionTableLockTransaction = this.VersionTableConnection.BeginTransaction(IsolationLevel.Serializable);
-
-            using (var command = this.VersionTableConnection.CreateCommand())
+            using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"SELECT * FROM {this.TableName} WITH (TABLOCKX)";
-                command.Transaction = this.VersionTableLockTransaction;
+                command.CommandText = $"sp_getapplock @Resource = '{this.LockName}', @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = '{(int)this.LockTimeout.TotalMilliseconds}'";
+                command.CommandTimeout = 0; // The lock will time out by itself
                 command.ExecuteNonQuery();
             }
         }
 
         /// <summary>
-        /// Destroys VersionTableLockTransaction, thus releasing the VersionInfo table lock
+        /// Releases the advisory lock held on Connection
         /// </summary>
-        protected override void ReleaseVersionTableLock()
+        public override void ReleaseAdvisoryLock()
         {
-            this.VersionTableLockTransaction.Commit();
-            this.VersionTableLockTransaction.Dispose();
-            this.VersionTableLockTransaction = null;
+            using (var command = this.Connection.CreateCommand())
+            {
+                command.CommandText = $"sp_releaseapplock @Resource = '{this.LockName}', @LockOwner = 'Session'";
+                command.ExecuteNonQuery();
+            }
         }
-
+        
         /// <summary>
         /// Returns SQL to create the version table
         /// </summary>

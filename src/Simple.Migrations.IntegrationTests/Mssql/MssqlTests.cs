@@ -20,7 +20,7 @@ namespace Simple.Migrations.IntegrationTests.Mssql
 
         protected override DbConnection CreateConnection() => new SqlConnection(ConnectionStrings.MSSQL);
 
-        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MssqlDatabaseProvider(this.CreateConnection);
+        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MssqlDatabaseProvider(this.CreateConnection());
 
         protected override void Clean()
         {

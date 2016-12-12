@@ -32,6 +32,7 @@ namespace SimpleMigrations.DatabaseProvider
             using (var command = this.Connection.CreateCommand())
             {
                 command.CommandText = $"SELECT pg_advisory_lock({this.AdvisoryLockKey})";
+                command.CommandTimeout = (int)this.LockTimeout.TotalSeconds;
                 command.ExecuteNonQuery();
             }
         }

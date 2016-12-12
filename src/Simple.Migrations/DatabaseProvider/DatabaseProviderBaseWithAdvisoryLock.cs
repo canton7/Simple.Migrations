@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.Common;
 
 namespace SimpleMigrations.DatabaseProvider
@@ -16,6 +17,11 @@ namespace SimpleMigrations.DatabaseProvider
         /// Gets the connection used for all database operations
         /// </summary>
         protected DbConnection Connection { get; }
+
+        /// <summary>
+        /// Gets or sets the timeout when acquiring the advisory lock
+        /// </summary>
+        public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(600);
 
         /// <summary>
         /// Initialises a new instance of the <see cref="DatabaseProviderBaseWithAdvisoryLock"/> class

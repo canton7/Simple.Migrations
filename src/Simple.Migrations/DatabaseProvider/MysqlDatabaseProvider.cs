@@ -17,11 +17,6 @@ namespace SimpleMigrations.DatabaseProvider
         public string LockName { get; set; } = "SimpleMigratorExclusiveLock";
 
         /// <summary>
-        /// Gets or sets the timeout when acquiring the advisory lock
-        /// </summary>
-        public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(600);
-
-        /// <summary>
         /// Initialises a new instance of the <see cref="MysqlDatabaseProvider"/> class
         /// </summary>
         /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
@@ -38,6 +33,7 @@ namespace SimpleMigrations.DatabaseProvider
             using (var command = this.Connection.CreateCommand())
             {
                 command.CommandText = $"SELECT GET_LOCK('{this.LockName}', {(int)this.LockTimeout.TotalSeconds})";
+                command.CommandTimeout = 0; // The lock will time out by itself
                 command.ExecuteNonQuery();
             }
         }
