@@ -7,22 +7,26 @@ using SimpleMigrations.Platform;
 namespace SimpleMigrations
 {
     /// <summary>
-    /// <see cref="IMigrationProvider"/>  which finds migrations by scanning an assembly
+    /// <see cref="IMigrationProvider"/>  which finds migrations by scanning an assembly, optionally
+    /// filtering by namespace.
     /// </summary>
     public class AssemblyMigrationProvider : IMigrationProvider
     {
         private readonly Assembly migrationAssembly;
+        private readonly string migrationNamespace;
 
         /// <summary>
         /// Instantiates a new instance of the <see cref="AssemblyMigrationProvider"/> class
         /// </summary>
         /// <param name="migrationAssembly">Assembly to scan for migrations</param>
-        public AssemblyMigrationProvider(Assembly migrationAssembly)
+        /// <param name="migrationNamespace">Optional namespace. If specified, only finds migrations in that namespace</param>
+        public AssemblyMigrationProvider(Assembly migrationAssembly, string migrationNamespace = null)
         {
             if (migrationAssembly == null)
                 throw new ArgumentNullException(nameof(migrationAssembly));
 
             this.migrationAssembly = migrationAssembly;
+            this.migrationNamespace = migrationNamespace;
         }
 
         /// <summary>
@@ -34,6 +38,7 @@ namespace SimpleMigrations
             var migrations = from type in this.migrationAssembly.GetDefinedTypes()
                              let attribute = type.GetCustomAttribute<MigrationAttribute>()
                              where attribute != null
+                             where this.migrationNamespace == null || type.Namespace == this.migrationNamespace
                              select new MigrationData(attribute.Version, attribute.Description, type.AsType());
 
             if (!migrations.Any())
