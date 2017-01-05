@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using SimpleMigrations.Platform;
 
 namespace SimpleMigrations
 {
@@ -52,11 +50,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Gets all available migrations
         /// </summary>
-#if NET40
-        public ReadOnlyCollection<MigrationData> Migrations { get; private set; }
-#else
         public IReadOnlyList<MigrationData> Migrations { get; private set; }
-#endif
 
         private bool isLoaded;
 
@@ -131,7 +125,7 @@ namespace SimpleMigrations
                 throw new MigrationException("The configured MigrationProvider did not find any migrations");
 
             var migrationBaseTypeInfo = typeof(TMigrationBase).GetTypeInfo();
-            var firstNotImplementingTMigrationBase = migrations.FirstOrDefault(x => !migrationBaseTypeInfo.IsAssignableFrom(x.Type.GetTypeInfo()));
+            var firstNotImplementingTMigrationBase = migrations.FirstOrDefault(x => !migrationBaseTypeInfo.IsAssignableFrom(x.TypeInfo));
             if (firstNotImplementingTMigrationBase != null)
                 throw new MigrationException($"Migration {firstNotImplementingTMigrationBase.FullName} must derive from / implement {typeof(TMigrationBase).Name}");
 
@@ -144,7 +138,7 @@ namespace SimpleMigrations
             if (firstDuplicate != null)
                 throw new MigrationException($"Found more than one migration with version {firstDuplicate.Key} ({String.Join(", ", firstDuplicate)})");
 
-            this.Migrations = new[] { MigrationData.EmptySchema }.Concat(migrations.OrderBy(x => x.Version)).ToList().AsReadOnly();
+            this.Migrations = new[] { MigrationData.EmptySchema }.Concat(migrations.OrderBy(x => x.Version)).ToList();
         }
 
         /// <summary>
@@ -316,7 +310,7 @@ namespace SimpleMigrations
             TMigrationBase instance;
             try
             {
-                instance = (TMigrationBase)Activator.CreateInstance(migrationData.Type);
+                instance = (TMigrationBase)Activator.CreateInstance(migrationData.TypeInfo.AsType());
             }
             catch (Exception e)
             {

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SimpleMigrations.Platform;
 
 namespace SimpleMigrations
 {
@@ -35,11 +34,11 @@ namespace SimpleMigrations
         /// <returns>All migration info</returns>
         public IEnumerable<MigrationData> LoadMigrations()
         {
-            var migrations = from type in this.migrationAssembly.GetDefinedTypes()
+            var migrations = from type in this.migrationAssembly.DefinedTypes
                              let attribute = type.GetCustomAttribute<MigrationAttribute>()
                              where attribute != null
                              where this.migrationNamespace == null || type.Namespace == this.migrationNamespace
-                             select new MigrationData(attribute.Version, attribute.Description, type.AsType());
+                             select new MigrationData(attribute.Version, attribute.Description, type);
 
             if (!migrations.Any())
                 throw new MigrationException($"Could not find any migrations in the assembly you provided ({this.migrationAssembly.GetName().Name}). Migrations must be decorated with [Migration]");

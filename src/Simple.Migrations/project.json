@@ -19,8 +19,7 @@
       "buildOptions": {
         "compile": {
           "exclude": [ "Console" ]
-        },
-        "define": [ "NETSTANDARD12" ]
+        }
       }
     },
 
@@ -35,15 +34,6 @@
         "System.Data.SqlClient": "4.1.0",
 
         "System.Console": "4.0.0"
-      }
-    },
-
-    "net40": {
-      "frameworkAssemblies": {
-        "System.Data": "4.0.0.0"
-      },
-      "buildOptions": {
-        "define": [ "NET40" ]
       }
     },
 
