@@ -101,6 +101,10 @@ namespace SimpleMigrations
         /// <summary>
         /// Load all available migrations, and the current state of the database
         /// </summary>
+        /// <exception cref="MissingMigrationException">
+        /// No <see cref="IMigration{TConnection}"/> could be found which corresponds to the version in the version table
+        /// in your database.
+        /// </exception>
         public virtual void Load()
         {
             if (this.isLoaded)
@@ -148,7 +152,7 @@ namespace SimpleMigrations
         {
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             if (currentMigration == null)
-                throw new MigrationException($"Unable to find migration with the current version: {currentVersion}");
+                throw new MissingMigrationException(currentVersion);
 
             this.CurrentMigration = currentMigration;
         }
@@ -156,6 +160,11 @@ namespace SimpleMigrations
         /// <summary>
         /// Migrate up to the latest version
         /// </summary>
+        /// <exception cref="MissingMigrationException">
+        /// After acquiring exclusive access to the database, SimpleMigrator checks its version. This is thrown if
+        /// no <see cref="IMigration{TConnection}"/> could be found which corresponds to the new version in the
+        /// version table in your database.
+        /// </exception>
         public virtual void MigrateToLatest()
         {
             this.EnsureLoaded();
@@ -167,6 +176,11 @@ namespace SimpleMigrations
         /// Migrate to a specific version
         /// </summary>
         /// <param name="newVersion">Version to migrate to</param>
+        /// <exception cref="MissingMigrationException">
+        /// After acquiring exclusive access to the database, SimpleMigrator checks its version. This is thrown if
+        /// no <see cref="IMigration{TConnection}"/> could be found which corresponds to the new version in the
+        /// version table in your database.
+        /// </exception>
         public virtual void MigrateTo(long newVersion)
         {
             this.EnsureLoaded();
