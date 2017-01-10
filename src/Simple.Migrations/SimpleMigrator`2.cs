@@ -107,10 +107,12 @@ namespace SimpleMigrations
         /// </exception>
         public virtual void Load()
         {
-            if (this.isLoaded)
-                return;
+            // Always reload the current version
 
-            this.FindAndSetMigrations();
+            if (!this.isLoaded)
+            {
+                this.FindAndSetMigrations();
+            }
 
             long currentVersion = this.DatabaseProvider.EnsureCreatedAndGetCurrentVersion();
             this.SetCurrentVersion(currentVersion);
