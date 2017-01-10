@@ -11,7 +11,7 @@ namespace SimpleMigrations
     public abstract class Migration : IMigration<DbConnection>
     {
         /// <summary>
-        /// Gets or sets a value indicating whether calls to <see cref="Execute(string)"/> should be run inside of a transaction.
+        /// Gets or sets a value indicating whether calls to <see cref="Execute(string, int?)"/> should be run inside of a transaction.
         /// </summary>
         /// <remarks>
         /// If this is false, <see cref="Transaction"/> will not be set.
@@ -61,21 +61,46 @@ namespace SimpleMigrations
         /// Execute and log an SQL query (which returns no data)
         /// </summary>
         /// <param name="sql">SQL to execute</param>
-        public virtual void Execute(string sql)
+        /// <param name="commandTimeout">The command timeout to use (in seconds), or null to use the default from your ADO.NET provider</param>
+        protected virtual void Execute(string sql, int? commandTimeout = null)
         {
-            if (this.Connection == null)
-                throw new InvalidOperationException("this.Connection has not yet been set. This should have been set by Execute(DbConnection, IMigrationLogger, MigrationDirection)");
             if (this.Logger == null)
                 throw new InvalidOperationException("this.Logger has not yet been set. This should have been set by Execute(DbConnection, IMigrationLogger, MigrationDirection)");
 
             this.Logger.LogSql(sql);
 
-            using (var command = this.Connection.CreateCommand())
+            using (var command = this.CreateCommand(sql, commandTimeout))
             {
-                command.CommandText = sql;
-                command.Transaction = this.Transaction;
                 command.ExecuteNonQuery();
             }
+        }
+
+        /// <summary>
+        /// Creates a <see cref="DbCommand"/>, which is used by <see cref="Execute(string, int?)"/> to execute SQL commands
+        /// </summary>
+        /// <remarks>
+        /// You can use this method to create commands if you want to set parameters, or access the result of a query.
+        /// Override this method if you want to customise how commands are created, e.g. by setting other properties on <see cref="DbCommand"/>.
+        /// </remarks>
+        /// <param name="sql">SQL to execute</param>
+        /// <param name="commandTimeout">The command timeout to use (in seconds), or null to use the default from your ADO.NET provider</param>
+        /// <returns>
+        /// A <see cref="DbCommand"/> which is configured with the <see cref="DbCommand.CommandText"/>, <see cref="DbCommand.Transaction"/>,
+        /// and <see cref="DbCommand.CommandTimeout"/> properties set.
+        /// </returns>
+        protected virtual DbCommand CreateCommand(string sql, int? commandTimeout)
+        {
+            if (this.Connection == null)
+                throw new InvalidOperationException("this.Connection has not yet been set. This should have been set by Execute(DbConnection, IMigrationLogger, MigrationDirection)");
+
+            var command = this.Connection.CreateCommand();
+            command.CommandText = sql;
+            command.Transaction = this.Transaction;
+
+            if (commandTimeout != null)
+                command.CommandTimeout = commandTimeout.Value;
+
+            return command;
         }
 
         void IMigration<DbConnection>.Execute(DbConnection connection, IMigrationLogger logger, MigrationDirection direction)

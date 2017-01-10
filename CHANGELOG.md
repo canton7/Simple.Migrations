@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v0.9.9
+------
+
+ - Remove .NET 4.0 support: it hasn't been requested, isn't supported by Microsoft any more, and might get in the way of possible future async support.
+ - Allow the command timeout used in migratinos to be configured (#14).
+ - Throw a specific exception if migration data is missing (#15).
+ - SimpleMigrator.Load() will reload the current version if called multiple times.
+
 v0.9.8
 ------
 

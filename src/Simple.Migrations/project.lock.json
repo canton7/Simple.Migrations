@@ -2,7 +2,6 @@
   "locked": false,
   "version": 2,
   "targets": {
-    ".NETFramework,Version=v4.0": {},
     ".NETFramework,Version=v4.5": {},
     ".NETStandard,Version=v1.2": {
       "Microsoft.NETCore.Platforms/1.0.1": {
@@ -3695,9 +3694,6 @@
   },
   "projectFileDependencyGroups": {
     "": [],
-    ".NETFramework,Version=v4.0": [
-      "System.Data >= 4.0.0"
-    ],
     ".NETFramework,Version=v4.5": [
       "System.Data >= 4.0.0"
     ],

@@ -128,7 +128,7 @@ namespace Simple.Migrations.UnitTests
 
             this.databaseProvider.Setup(x => x.EnsureCreatedAndGetCurrentVersion()).Returns(1);
 
-            Assert.That(() => this.migrator.Load(), Throws.InstanceOf<MigrationException>());
+            Assert.That(() => this.migrator.Load(), Throws.InstanceOf<MissingMigrationException>());
         }
 
         [Test]

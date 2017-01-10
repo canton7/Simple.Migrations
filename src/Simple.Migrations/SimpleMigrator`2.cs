@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using SimpleMigrations.Platform;
 
 namespace SimpleMigrations
 {
@@ -52,11 +50,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Gets all available migrations
         /// </summary>
-#if NET40
-        public ReadOnlyCollection<MigrationData> Migrations { get; private set; }
-#else
         public IReadOnlyList<MigrationData> Migrations { get; private set; }
-#endif
 
         private bool isLoaded;
 
@@ -98,6 +92,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Ensure that .Load() has bene called
         /// </summary>
+        /// <exception cref="InvalidOperationException"><see cref="Load"/> hasn't yet been called</exception>
         protected void EnsureLoaded()
         {
             if (!this.isLoaded)
@@ -107,12 +102,21 @@ namespace SimpleMigrations
         /// <summary>
         /// Load all available migrations, and the current state of the database
         /// </summary>
+        /// <exception cref="MissingMigrationException">
+        /// No <see cref="IMigration{TConnection}"/> could be found which corresponds to the version in the version table
+        /// in your database.
+        /// </exception>
+        /// <exception cref="MigrationLoadFailedException">
+        /// There is a problem with the migrations returned by the <see cref="IMigrationProvider"/>
+        /// </exception>
         public virtual void Load()
         {
-            if (this.isLoaded)
-                return;
+            // Always reload the current version
 
-            this.FindAndSetMigrations();
+            if (!this.isLoaded)
+            {
+                this.FindAndSetMigrations();
+            }
 
             long currentVersion = this.DatabaseProvider.EnsureCreatedAndGetCurrentVersion();
             this.SetCurrentVersion(currentVersion);
@@ -123,38 +127,45 @@ namespace SimpleMigrations
         /// <summary>
         /// Load the migrations, and set <see cref="Migrations"/>
         /// </summary>
+        /// <exception cref="MigrationLoadFailedException">
+        /// There is a problem with the migrations returned by the <see cref="IMigrationProvider"/>
+        /// </exception>
         protected virtual void FindAndSetMigrations()
         {
             var migrations = this.MigrationProvider.LoadMigrations()?.ToList();
 
             if (migrations == null || migrations.Count == 0)
-                throw new MigrationException("The configured MigrationProvider did not find any migrations");
+                throw new MigrationLoadFailedException("The configured MigrationProvider did not find any migrations");
 
             var migrationBaseTypeInfo = typeof(TMigrationBase).GetTypeInfo();
-            var firstNotImplementingTMigrationBase = migrations.FirstOrDefault(x => !migrationBaseTypeInfo.IsAssignableFrom(x.Type.GetTypeInfo()));
+            var firstNotImplementingTMigrationBase = migrations.FirstOrDefault(x => !migrationBaseTypeInfo.IsAssignableFrom(x.TypeInfo));
             if (firstNotImplementingTMigrationBase != null)
-                throw new MigrationException($"Migration {firstNotImplementingTMigrationBase.FullName} must derive from / implement {typeof(TMigrationBase).Name}");
+                throw new MigrationLoadFailedException($"Migration {firstNotImplementingTMigrationBase.FullName} must derive from / implement {typeof(TMigrationBase).Name}");
 
             var firstWithInvalidVersion = migrations.FirstOrDefault(x => x.Version <= 0);
             if (firstWithInvalidVersion != null)
-                throw new MigrationException($"Migration {firstWithInvalidVersion.FullName} must have a version > 0");
+                throw new MigrationLoadFailedException($"Migration {firstWithInvalidVersion.FullName} must have a version > 0");
 
             var versionLookup = migrations.ToLookup(x => x.Version);
             var firstDuplicate = versionLookup.FirstOrDefault(x => x.Count() > 1);
             if (firstDuplicate != null)
-                throw new MigrationException($"Found more than one migration with version {firstDuplicate.Key} ({String.Join(", ", firstDuplicate)})");
+                throw new MigrationLoadFailedException($"Found more than one migration with version {firstDuplicate.Key} ({String.Join(", ", firstDuplicate)})");
 
-            this.Migrations = new[] { MigrationData.EmptySchema }.Concat(migrations.OrderBy(x => x.Version)).ToList().AsReadOnly();
+            this.Migrations = new[] { MigrationData.EmptySchema }.Concat(migrations.OrderBy(x => x.Version)).ToList();
         }
 
         /// <summary>
-        /// Set this.CurrentMigration, by inspecting the database
+        /// Sets <see cref="CurrentMigration"/>, by inspecting the database
         /// </summary>
+        /// <exception cref="MissingMigrationException">
+        /// No <see cref="IMigration{TConnection}"/> could be found which corresponds to the version in the version table
+        /// in your database.
+        /// </exception>
         protected virtual void SetCurrentVersion(long currentVersion)
         {
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             if (currentMigration == null)
-                throw new MigrationException($"Unable to find migration with the current version: {currentVersion}");
+                throw new MissingMigrationException(currentVersion);
 
             this.CurrentMigration = currentMigration;
         }
@@ -162,6 +173,12 @@ namespace SimpleMigrations
         /// <summary>
         /// Migrate up to the latest version
         /// </summary>
+        /// <exception cref="InvalidOperationException"><see cref="Load"/> has not yet been called</exception>
+        /// <exception cref="MissingMigrationException">
+        /// After acquiring exclusive access to the database, SimpleMigrator checks its version. This is thrown if
+        /// no <see cref="IMigration{TConnection}"/> could be found which corresponds to the new version in the
+        /// version table in your database.
+        /// </exception>
         public virtual void MigrateToLatest()
         {
             this.EnsureLoaded();
@@ -173,6 +190,15 @@ namespace SimpleMigrations
         /// Migrate to a specific version
         /// </summary>
         /// <param name="newVersion">Version to migrate to</param>
+        /// <exception cref="InvalidOperationException"><see cref="Load"/> has not yet been called</exception>
+        /// <exception cref="ArgumentException">
+        /// The newVersion parameter does not correspond to a migration in <see cref="Migrations"/>
+        /// </exception>
+        /// <exception cref="MissingMigrationException">
+        /// After acquiring exclusive access to the database, SimpleMigrator checks its version. This is thrown if
+        /// no <see cref="IMigration{TConnection}"/> could be found which corresponds to the new version in the
+        /// version table in your database.
+        /// </exception>
         public virtual void MigrateTo(long newVersion)
         {
             this.EnsureLoaded();
@@ -246,6 +272,10 @@ namespace SimpleMigrations
         /// This is useful for introducing SimpleMigrations to an existing database.
         /// </summary>
         /// <param name="version">Version to introduce</param>
+        /// <exception cref="InvalidOperationException">The database has had migrations applied to it</exception>
+        /// <exception cref="ArgumentException">
+        /// The version parameter does not correspond to a migration in <see cref="Migrations"/>
+        /// </exception>
         public virtual void Baseline(long version)
         {
             this.EnsureLoaded();
@@ -316,7 +346,7 @@ namespace SimpleMigrations
             TMigrationBase instance;
             try
             {
-                instance = (TMigrationBase)Activator.CreateInstance(migrationData.Type);
+                instance = (TMigrationBase)Activator.CreateInstance(migrationData.TypeInfo.AsType());
             }
             catch (Exception e)
             {
