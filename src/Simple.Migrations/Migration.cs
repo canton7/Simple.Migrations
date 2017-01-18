@@ -103,18 +103,18 @@ namespace SimpleMigrations
             return command;
         }
 
-        void IMigration<DbConnection>.Execute(DbConnection connection, IMigrationLogger logger, MigrationDirection direction)
+        void IMigration<DbConnection>.RunMigration(MigrationRunData<DbConnection> data)
         {
-            this.Connection = connection;
-            this.Logger = logger;
+            this.Connection = data.Connection;
+            this.Logger = data.Logger;
 
             if (this.UseTransaction)
             {
-                using (this.Transaction = connection.BeginTransaction(IsolationLevel.Serializable))
+                using (this.Transaction = this.Connection.BeginTransaction(IsolationLevel.Serializable))
                 {
                     try
                     {
-                        if (direction == MigrationDirection.Up)
+                        if (data.Direction == MigrationDirection.Up)
                             this.Up();
                         else
                             this.Down();
@@ -134,7 +134,7 @@ namespace SimpleMigrations
             }
             else
             {
-                if (direction == MigrationDirection.Up)
+                if (data.Direction == MigrationDirection.Up)
                     this.Up();
                 else
                     this.Down();

@@ -16,7 +16,7 @@ namespace Simple.Migrations.UnitTests
     {
         private class MigrationNotDerivedFromBase : IMigration<IDbConnection>
         {
-            public void Execute(IDbConnection connection, IMigrationLogger logger, MigrationDirection direction)
+            public void RunMigration(MigrationRunData<IDbConnection> data)
             {
                 throw new NotImplementedException();
             }

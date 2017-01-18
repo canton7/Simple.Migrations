@@ -264,7 +264,8 @@ namespace SimpleMigrations
         protected virtual void RunMigration(MigrationDirection direction, MigrationData migrationData, TConnection connection)
         {
             var migration = this.CreateMigration(migrationData);
-            migration.Execute(connection, this.Logger ?? NullLogger.Instance, direction);
+            var data = new MigrationRunData<TConnection>(connection, this.Logger ?? NullLogger.Instance, direction);
+            migration.RunMigration(data);
         }
 
         /// <summary>
