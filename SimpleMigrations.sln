@@ -1,18 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26127.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Simple.Migrations", "src\Simple.Migrations\Simple.Migrations.xproj", "{D9EBA58B-647F-4196-AA67-0EE9CABC16D4}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Simple.Migrations.IntegrationTests", "src\Simple.Migrations.IntegrationTests\Simple.Migrations.IntegrationTests.xproj", "{801BE904-9ADE-4F8A-8F2C-CB3517C63B05}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Simple.Migrations.UnitTests", "src\Simple.Migrations.UnitTests\Simple.Migrations.UnitTests.xproj", "{E255C6ED-F507-4E92-8420-FB135B729EBF}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D9FF6CA2-297E-4C3C-BB03-9B70313E52D3}"
 	ProjectSection(SolutionItems) = preProject
 		global.json = global.json
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simple.Migrations", "src\Simple.Migrations\Simple.Migrations.csproj", "{D9EBA58B-647F-4196-AA67-0EE9CABC16D4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simple.Migrations.IntegrationTests", "src\Simple.Migrations.IntegrationTests\Simple.Migrations.IntegrationTests.csproj", "{801BE904-9ADE-4F8A-8F2C-CB3517C63B05}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simple.Migrations.UnitTests", "src\Simple.Migrations.UnitTests\Simple.Migrations.UnitTests.csproj", "{E255C6ED-F507-4E92-8420-FB135B729EBF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
