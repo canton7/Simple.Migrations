@@ -230,7 +230,7 @@ using (var connection = new NpgsqlConnection("Connection String"))
 }
 ```
 
-PostgreSLQ provides full support for concurrent migrators, by using advisory locks.
+PostgreSQL provides full support for concurrent migrators, by using advisory locks.
 
 #### MySQL
 
