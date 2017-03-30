@@ -63,15 +63,18 @@ namespace SimpleMigrations.DatabaseProvider
         /// <returns>SQL to create the version table</returns>
         public override string GetCreateVersionTableSql()
         {
-            return $@"IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID('[{this.SchemaName}].[{this.TableName}]') AND type in (N'U'))
-                BEGIN
-                CREATE TABLE [{this.SchemaName}].[{this.TableName}](
-                    [Id] [int] IDENTITY(1,1) PRIMARY KEY NOT NULL,
-                    [Version] [bigint] NOT NULL,
-                    [AppliedOn] [datetime] NOT NULL,
-                    [Description] [nvarchar]({this.MaxDescriptionLength}) NOT NULL,
-                )
-                END;";
+            return $@"
+                IF NOT EXISTS (select * from sys.schemas WHERE name ='{this.SchemaName}')
+                    EXECUTE ('CREATE SCHEMA [{this.SchemaName}]');
+                IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID('[{this.SchemaName}].[{this.TableName}]') AND type in (N'U'))
+                    BEGIN
+                    CREATE TABLE [{this.SchemaName}].[{this.TableName}](
+                        [Id] [int] IDENTITY(1,1) PRIMARY KEY NOT NULL,
+                        [Version] [bigint] NOT NULL,
+                        [AppliedOn] [datetime] NOT NULL,
+                        [Description] [nvarchar]({this.MaxDescriptionLength}) NOT NULL,
+                    )
+                    END;";
         }
 
         /// <summary>
