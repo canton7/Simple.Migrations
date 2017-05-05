@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeparateMigrator", "SeparateMigrator\SeparateMigrator.csproj", "{8E3DDC33-1D0F-470A-8F55-9AE3B8234083}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLiteNet", "SQLiteNet\SQLiteNet.csproj", "{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simple.Migrations", "..\src\Simple.Migrations\Simple.Migrations.csproj", "{43F0C90B-C696-4BC6-B204-480E4ECA43CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1298770C-FF0A-48EA-AAEA-1519DDE13F1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43F0C90B-C696-4BC6-B204-480E4ECA43CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43F0C90B-C696-4BC6-B204-480E4ECA43CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43F0C90B-C696-4BC6-B204-480E4ECA43CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43F0C90B-C696-4BC6-B204-480E4ECA43CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

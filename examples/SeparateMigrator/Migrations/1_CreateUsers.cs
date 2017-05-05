@@ -5,7 +5,7 @@ namespace SeparateMigrator.Migrations
     [Migration(1)]
     public class CreateUsers : Migration
     {
-        public override void Up()
+        protected override void Up()
         {
             Execute(@"CREATE TABLE Users (
                 Id SERIAL NOT NULL PRIMARY KEY,
@@ -13,7 +13,7 @@ namespace SeparateMigrator.Migrations
             );");
         }
 
-        public override void Down()
+        protected override void Down()
         {
             Execute("DROP TABLE Users");
         }
