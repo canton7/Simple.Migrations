@@ -208,17 +208,17 @@ namespace SimpleMigrations.DatabaseProvider
         /// <remarks>
         /// Don't override if the database has no concept of schemas
         /// </remarks>
-        public virtual string GetCreateSchemaTableSql() => null;
+        protected virtual string GetCreateSchemaTableSql() => null;
 
         /// <summary>
         /// Should return 'CREATE TABLE IF NOT EXISTS', or similar
         /// </summary>
-        public abstract string GetCreateVersionTableSql();
+        protected abstract string GetCreateVersionTableSql();
 
         /// <summary>
         /// Should return SQL which selects a single long value - the current version - or 0/NULL if there is no current version
         /// </summary>
-        public abstract string GetCurrentVersionSql();
+        protected abstract string GetCurrentVersionSql();
 
         /// <summary>
         /// Returns SQL which upgrades to a particular version.
@@ -228,6 +228,6 @@ namespace SimpleMigrations.DatabaseProvider
         ///  - @Version - the long version to set
         ///  - @Description - the description of the version
         /// </remarks>
-        public abstract string GetSetVersionSql();
+        protected abstract string GetSetVersionSql();
     }
 }

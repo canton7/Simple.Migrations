@@ -26,18 +26,18 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// No-op: SQLite does not support advisory locks
         /// </summary>
-        public override void AcquireAdvisoryLock() { }
+        protected override void AcquireAdvisoryLock() { }
 
         /// <summary>
         /// No-op: SQLite does not support advisory locks
         /// </summary>
-        public override void ReleaseAdvisoryLock() { }
+        protected override void ReleaseAdvisoryLock() { }
 
         /// <summary>
         /// Returns SQL to create the version table
         /// </summary>
         /// <returns>SQL to create the version table</returns>
-        public override string GetCreateVersionTableSql()
+        protected override string GetCreateVersionTableSql()
         {
             return $@"CREATE TABLE IF NOT EXISTS {this.TableName} (
                     Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +51,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// Returns SQL to fetch the current version from the version table
         /// </summary>
         /// <returns>SQL to fetch the current version from the version table</returns>
-        public override string GetCurrentVersionSql()
+        protected override string GetCurrentVersionSql()
         {
             return $@"SELECT Version FROM {this.TableName} ORDER BY Id DESC LIMIT 1";
         }
@@ -60,7 +60,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// Returns SQL to update the current version in the version table
         /// </summary>
         /// <returns>SQL to update the current version in the version table</returns>
-        public override string GetSetVersionSql()
+        protected override string GetSetVersionSql()
         {
             return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)";
         }

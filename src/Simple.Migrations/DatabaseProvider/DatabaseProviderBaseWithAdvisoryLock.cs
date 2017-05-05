@@ -108,11 +108,11 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// Acquires an advisory lock using <see cref="Connection"/>
         /// </summary>
-        public abstract void AcquireAdvisoryLock();
+        protected abstract void AcquireAdvisoryLock();
 
         /// <summary>
         /// Releases the advisory lock held on <see cref="Connection"/>
         /// </summary>
-        public abstract void ReleaseAdvisoryLock();
+        protected abstract void ReleaseAdvisoryLock();
     }
 }
