@@ -193,6 +193,11 @@ namespace SimpleMigrations.DatabaseProvider
                 versionParam.Value = newVersion;
                 command.Parameters.Add(versionParam);
 
+                var oldVersionParam = command.CreateParameter();
+                oldVersionParam.ParameterName = "OldVersion";
+                oldVersionParam.Value = oldVersion;
+                command.Parameters.Add(oldVersionParam);
+
                 var nameParam = command.CreateParameter();
                 nameParam.ParameterName = "Description";
                 nameParam.Value = newDescription;
@@ -224,9 +229,10 @@ namespace SimpleMigrations.DatabaseProvider
         /// Returns SQL which upgrades to a particular version.
         /// </summary>
         /// <remarks>
-        /// The following parameters should be used:
+        /// The following parameters may be used:
         ///  - @Version - the long version to set
         ///  - @Description - the description of the version
+        ///  - @OldVersion - the long version being migrated from
         /// </remarks>
         protected abstract string GetSetVersionSql();
     }
