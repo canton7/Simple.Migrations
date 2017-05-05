@@ -23,7 +23,7 @@ namespace Simple.Migrations.UnitTests
 
         public abstract void EnsureCreated();
 
-        public long EnsureCreatedAndGetCurrentVersion()
+        public long EnsurePrerequisitesCreatedAndGetCurrentVersion()
         {
             return this.CurrentVersion;
         }

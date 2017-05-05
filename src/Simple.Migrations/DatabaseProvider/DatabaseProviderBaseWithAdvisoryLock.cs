@@ -35,7 +35,7 @@ namespace SimpleMigrations.DatabaseProvider
         }
 
         /// <summary>
-        /// Ensures that the version table is created, and returns the current version.
+        /// Ensures that the schema (if appropriate) and version table are created, and returns the current version.
         /// </summary>
         /// <remarks>
         /// This is not surrounded by calls to <see cref="BeginOperation"/> or <see cref="EndOperation"/>, so
@@ -44,13 +44,13 @@ namespace SimpleMigrations.DatabaseProvider
         /// If the version table is empty, this should return 0.
         /// </remarks>
         /// <returns>The current version, or 0</returns>
-        public override long EnsureCreatedAndGetCurrentVersion()
+        public override long EnsurePrerequisitesCreatedAndGetCurrentVersion()
         {
             try
             {
                 this.AcquireAdvisoryLock();
 
-                return this.EnsureCreatedAndGetCurrentVersion(this.Connection, null);
+                return this.EnsurePrerequisitesCreatedAndGetCurrentVersion(this.Connection, null);
             }
             finally
             {

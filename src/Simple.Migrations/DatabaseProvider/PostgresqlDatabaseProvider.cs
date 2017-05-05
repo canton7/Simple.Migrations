@@ -55,6 +55,15 @@ namespace SimpleMigrations.DatabaseProvider
         }
 
         /// <summary>
+        /// Returns SQL to create the schema
+        /// </summary>
+        /// <returns>SQL to create the schema</returns>
+        public override string GetCreateSchemaTableSql()
+        {
+            return $@"CREATE SCHEMA IF NOT EXISTS {this.SchemaName}";
+        }
+
+        /// <summary>
         /// Returns SQL to create the version table
         /// </summary>
         /// <returns>SQL to create the version table</returns>

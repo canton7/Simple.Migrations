@@ -10,7 +10,7 @@ namespace SimpleMigrations
     /// Methods on this interface are called according to a strict sequence.
     /// 
     /// When <see cref="SimpleMigrator{TConnection, TMigrationBase}.Load"/> is called:
-    ///     1. <see cref="EnsureCreatedAndGetCurrentVersion()"/> is invoked
+    ///     1. <see cref="EnsurePrerequisitesCreatedAndGetCurrentVersion()"/> is invoked
     /// 
     /// 
     /// When <see cref="SimpleMigrator{TConnection, TMigrationBase}.MigrateTo(long)"/> or 
@@ -64,7 +64,7 @@ namespace SimpleMigrations
         /// If the version table is empty, this should return 0.
         /// </remarks>
         /// <returns>The current version, or 0</returns>
-        long EnsureCreatedAndGetCurrentVersion();
+        long EnsurePrerequisitesCreatedAndGetCurrentVersion();
 
         /// <summary>
         /// Fetch the current database schema version, or 0.

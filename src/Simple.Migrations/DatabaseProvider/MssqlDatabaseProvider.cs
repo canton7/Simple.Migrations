@@ -56,7 +56,17 @@ namespace SimpleMigrations.DatabaseProvider
                 command.ExecuteNonQuery();
             }
         }
-        
+
+        /// <summary>
+        /// Returns SQL to create the schema
+        /// </summary>
+        /// <returns>SQL to create the schema</returns>
+        public override string GetCreateSchemaTableSql()
+        {
+            return $@"IF NOT EXISTS (select * from sys.schemas WHERE name ='{this.SchemaName}')
+                EXECUTE ('CREATE SCHEMA [{this.SchemaName}]');";
+        }
+
         /// <summary>
         /// Returns SQL to create the version table
         /// </summary>

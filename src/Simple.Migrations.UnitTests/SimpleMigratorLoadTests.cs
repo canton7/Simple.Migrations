@@ -126,7 +126,7 @@ namespace Simple.Migrations.UnitTests
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
 
-            this.databaseProvider.Setup(x => x.EnsureCreatedAndGetCurrentVersion()).Returns(1);
+            this.databaseProvider.Setup(x => x.EnsurePrerequisitesCreatedAndGetCurrentVersion()).Returns(1);
 
             Assert.That(() => this.migrator.Load(), Throws.InstanceOf<MissingMigrationException>());
         }
@@ -140,7 +140,7 @@ namespace Simple.Migrations.UnitTests
                 new MigrationData(2, "Migration 2", typeof(ValidMigration2).GetTypeInfo()),
             };
             this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
-            this.databaseProvider.Setup(x => x.EnsureCreatedAndGetCurrentVersion()).Returns(2);
+            this.databaseProvider.Setup(x => x.EnsurePrerequisitesCreatedAndGetCurrentVersion()).Returns(2);
 
             this.migrator.Load();
 
@@ -173,7 +173,7 @@ namespace Simple.Migrations.UnitTests
 
             this.migrator.Load();
 
-            this.databaseProvider.Verify(x => x.EnsureCreatedAndGetCurrentVersion());
+            this.databaseProvider.Verify(x => x.EnsurePrerequisitesCreatedAndGetCurrentVersion());
         }
     }
 }

@@ -10,7 +10,7 @@ namespace SimpleMigrations.DatabaseProvider
     /// Methods on this class are called according to a strict sequence.
     /// 
     /// When <see cref="SimpleMigrator{TConnection, TMigrationBase}.Load"/> is called:
-    ///     1. <see cref="EnsureCreatedAndGetCurrentVersion()"/> is invoked
+    ///     1. <see cref="EnsurePrerequisitesCreatedAndGetCurrentVersion()"/> is invoked
     /// 
     /// 
     /// When <see cref="SimpleMigrator{TConnection, TMigrationBase}.MigrateTo(long)"/> or 
@@ -50,7 +50,7 @@ namespace SimpleMigrations.DatabaseProvider
         protected int MaxDescriptionLength { get; set; }
 
         /// <summary>
-        /// Ensures that the version table is created, and returns the current version.
+        /// Ensures that the schema (if appropriate) and version table are created, and returns the current version.
         /// </summary>
         /// <remarks>
         /// This is not surrounded by calls to <see cref="BeginOperation"/> or <see cref="EndOperation"/>, so
@@ -59,17 +59,28 @@ namespace SimpleMigrations.DatabaseProvider
         /// If the version table is empty, this should return 0.
         /// </remarks>
         /// <returns>The current version, or 0</returns>
-        public abstract long EnsureCreatedAndGetCurrentVersion();
+        public abstract long EnsurePrerequisitesCreatedAndGetCurrentVersion();
 
         /// <summary>
-        /// Helper method which ensures that the VersionInfo table is created, and fetches the current version from it,
+        /// Helper method which ensures that the schema and VersionInfo table are created, and fetches the current version from it,
         /// using the given connection and transaction.
         /// </summary>
         /// <param name="connection">Connection to use</param>
         /// <param name="transaction">Transaction to use</param>
         /// <returns>The current version, or 0</returns>
-        protected virtual long EnsureCreatedAndGetCurrentVersion(DbConnection connection, DbTransaction transaction)
+        protected virtual long EnsurePrerequisitesCreatedAndGetCurrentVersion(DbConnection connection, DbTransaction transaction)
         {
+            var createSchemaSql = this.GetCreateSchemaTableSql();
+            if (!string.IsNullOrEmpty(createSchemaSql))
+            {
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = createSchemaSql;
+                    command.Transaction = transaction;
+                    command.ExecuteNonQuery();
+                }
+            }
+
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = this.GetCreateVersionTableSql();
@@ -190,6 +201,14 @@ namespace SimpleMigrations.DatabaseProvider
                 command.ExecuteNonQuery();
             }
         }
+
+        /// <summary>
+        /// Should return 'CREATE SCHEMA IF NOT EXISTS', or similar
+        /// </summary>
+        /// <remarks>
+        /// Don't override if the database has no concept of schemas
+        /// </remarks>
+        public virtual string GetCreateSchemaTableSql() => null;
 
         /// <summary>
         /// Should return 'CREATE TABLE IF NOT EXISTS', or similar

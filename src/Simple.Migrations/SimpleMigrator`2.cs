@@ -118,7 +118,7 @@ namespace SimpleMigrations
                 this.FindAndSetMigrations();
             }
 
-            long currentVersion = this.DatabaseProvider.EnsureCreatedAndGetCurrentVersion();
+            long currentVersion = this.DatabaseProvider.EnsurePrerequisitesCreatedAndGetCurrentVersion();
             this.SetCurrentVersion(currentVersion);
 
             this.isLoaded = true;
