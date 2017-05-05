@@ -19,13 +19,13 @@ namespace Simple.Migrations.IntegrationTests.Migrations
             downSql = strings.CreateUsersTableDown;
         }
 
-        public override void Up()
+        protected override void Up()
         {
             this.Execute(upSql);
             Thread.Sleep(200);
         }
 
-        public override void Down()
+        protected override void Down()
         {
             this.Execute(downSql);
             Thread.Sleep(200);

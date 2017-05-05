@@ -32,7 +32,7 @@ namespace Simple.Migrations.UnitTests
                 Callback = null;
             }
 
-            public override void Up()
+            protected override void Up()
             {
                 UpCalled = true;
                 Callback?.Invoke(this);
@@ -42,7 +42,7 @@ namespace Simple.Migrations.UnitTests
                 }
             }
 
-            public override void Down()
+            protected override void Down()
             {
                 DownCalled = true;
                 Callback?.Invoke(this);
@@ -64,8 +64,8 @@ namespace Simple.Migrations.UnitTests
                 DownCalled = false;
             }
 
-            public override void Down() { DownCalled = true; }
-            public override void Up() { UpCalled = true; }
+            protected override void Down() { DownCalled = true; }
+            protected override void Up() { UpCalled = true; }
         }
 
         private Mock<DbConnection> connection;

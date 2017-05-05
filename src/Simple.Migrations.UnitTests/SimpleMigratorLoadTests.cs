@@ -24,14 +24,14 @@ namespace Simple.Migrations.UnitTests
 
         private class ValidMigration1 : Migration
         {
-            public override void Down() { }
-            public override void Up() { }
+            protected override void Down() { }
+            protected override void Up() { }
         }
 
         private class ValidMigration2 : Migration
         {
-            public override void Down() { }
-            public override void Up() { }
+            protected override void Down() { }
+            protected override void Up() { }
         }
 
         private Mock<DbConnection> connection;

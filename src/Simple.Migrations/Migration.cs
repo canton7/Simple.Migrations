@@ -24,15 +24,6 @@ namespace SimpleMigrations
         protected DbConnection Connection { get; private set; }
 
         /// <summary>
-        /// Gets or sets the database to be used by this migration
-        /// </summary>
-        /// <remarks>
-        /// This is obselete - use <see cref="Connection"/> instead
-        /// </remarks>
-        [Obsolete("Use this.Connection instead")]
-        protected DbConnection DB => this.Connection;
-
-        /// <summary>
         /// Gets or sets the logger to be used by this migration
         /// </summary>
         protected IMigrationLogger Logger { get; private set; }
@@ -50,12 +41,12 @@ namespace SimpleMigrations
         /// <summary>
         /// Invoked when this migration should migrate up
         /// </summary>
-        public abstract void Up();
+        protected abstract void Up();
 
         /// <summary>
         /// Invoked when this migration should migrate down
         /// </summary>
-        public abstract void Down();
+        protected abstract void Down();
 
         /// <summary>
         /// Execute and log an SQL query (which returns no data)
