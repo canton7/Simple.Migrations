@@ -1,6 +1,16 @@
 Changelog
 =========
 
+v0.9.10
+-------
+
+**BREAKING CHANGE**: Change access modifiers of Migration.Up() and Migration.Down() to protected. You will need to modify your migrations!
+
+ - Database providers ensure schema is created, if necessary
+ - Add SchemaName property to MssqlDatabaseProvider and PostgresqlDatabaseProvider
+ - GetSetVersionSql() has access to @OldVersion
+ - Remove erroneous dependency on Microsoft.Data.SqlClient
+
 v0.9.9
 ------
 
