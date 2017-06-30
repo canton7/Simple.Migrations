@@ -62,13 +62,13 @@ namespace SimpleMigrations.DatabaseProvider
         /// If the version table is empty, this should return 0.
         /// </remarks>
         /// <returns>The current version, or 0</returns>
-        public override long EnsureCreatedAndGetCurrentVersion()
+        public override long EnsurePrerequisitesCreatedAndGetCurrentVersion()
         {
             using (var connection = this.ConnectionFactory())
             {
                 connection.Open();
 
-                return this.EnsureCreatedAndGetCurrentVersion(connection, null);
+                return this.EnsurePrerequisitesCreatedAndGetCurrentVersion(connection, null);
             }
         }
 

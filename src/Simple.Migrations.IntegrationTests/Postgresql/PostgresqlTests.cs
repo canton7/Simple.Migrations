@@ -25,12 +25,7 @@ namespace Simple.Migrations.IntegrationTests.Postgresql
             var connection = this.CreatePgConnection();
             connection.Open();
 
-            using (var cmd = new NpgsqlCommand(@"drop schema public cascade", connection))
-            {
-                cmd.ExecuteNonQuery();
-            }
-
-            using (var cmd = new NpgsqlCommand(@"create schema public authorization ""SimpleMigrator""", connection))
+            using (var cmd = new NpgsqlCommand(@"DROP SCHEMA IF EXISTS public CASCADE", connection))
             {
                 cmd.ExecuteNonQuery();
             }

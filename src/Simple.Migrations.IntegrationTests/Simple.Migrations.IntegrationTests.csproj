@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net451</TargetFramework>
+    <AssemblyName>Simple.Migrations.IntegrationTests</AssemblyName>
+    <PackageId>Simple.Migrations.IntegrationTests</PackageId>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Simple.Migrations\Simple.Migrations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-preview-20170106-08" />
+    <PackageReference Include="System.Reflection.Extensions" Version="4.0.1" />
+    <PackageReference Include="NUnit" Version="3.5.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.0.0-ci-00457-pr-313" />
+    
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="1.0.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.1.0" />
+    <PackageReference Include="MySql.Data" Version="6.9.9" />
+    <PackageReference Include="Npgsql" Version="3.1.9" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+</Project>

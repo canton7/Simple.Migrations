@@ -11,6 +11,11 @@ namespace SimpleMigrations.DatabaseProvider
     public class PostgresqlDatabaseProvider : DatabaseProviderBaseWithAdvisoryLock
     {
         /// <summary>
+        /// Gets or sets the schema name used to store the version table.
+        /// </summary>
+        public string SchemaName { get; set; } = "public";
+
+        /// <summary>
         /// Gets or sets the key to use when acquiring the advisory lock
         /// </summary>
         public int AdvisoryLockKey { get; set; } = 2609878; // Chosen by fair dice roll
@@ -27,7 +32,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// Acquires an advisory lock using Connection
         /// </summary>
-        public override void AcquireAdvisoryLock()
+        protected override void AcquireAdvisoryLock()
         {
             using (var command = this.Connection.CreateCommand())
             {
@@ -40,7 +45,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// Releases the advisory lock held on Connection
         /// </summary>
-        public override void ReleaseAdvisoryLock()
+        protected override void ReleaseAdvisoryLock()
         {
             using (var command = this.Connection.CreateCommand())
             {
@@ -50,12 +55,21 @@ namespace SimpleMigrations.DatabaseProvider
         }
 
         /// <summary>
+        /// Returns SQL to create the schema
+        /// </summary>
+        /// <returns>SQL to create the schema</returns>
+        protected override string GetCreateSchemaTableSql()
+        {
+            return $@"CREATE SCHEMA IF NOT EXISTS {this.SchemaName}";
+        }
+
+        /// <summary>
         /// Returns SQL to create the version table
         /// </summary>
         /// <returns>SQL to create the version table</returns>
-        public override string GetCreateVersionTableSql()
+        protected override string GetCreateVersionTableSql()
         {
-            return $@"CREATE TABLE IF NOT EXISTS {this.TableName} (
+            return $@"CREATE TABLE IF NOT EXISTS {this.SchemaName}.{this.TableName} (
                     Id SERIAL PRIMARY KEY,
                     Version bigint NOT NULL,
                     AppliedOn timestamp with time zone,
@@ -67,18 +81,18 @@ namespace SimpleMigrations.DatabaseProvider
         /// Returns SQL to fetch the current version from the version table
         /// </summary>
         /// <returns>SQL to fetch the current version from the version table</returns>
-        public override string GetCurrentVersionSql()
+        protected override string GetCurrentVersionSql()
         {
-            return $@"SELECT Version FROM {this.TableName} ORDER BY Id DESC LIMIT 1";
+            return $@"SELECT Version FROM {this.SchemaName}.{this.TableName} ORDER BY Id DESC LIMIT 1";
         }
 
         /// <summary>
         /// Returns SQL to update the current version in the version table
         /// </summary>
         /// <returns>SQL to update the current version in the version table</returns>
-        public override string GetSetVersionSql()
+        protected override string GetSetVersionSql()
         {
-            return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, CURRENT_TIMESTAMP, @Description)";
+            return $@"INSERT INTO {this.SchemaName}.{this.TableName} (Version, AppliedOn, Description) VALUES (@Version, CURRENT_TIMESTAMP, @Description)";
         }
     }
 }
