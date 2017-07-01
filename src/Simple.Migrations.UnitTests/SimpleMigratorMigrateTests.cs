@@ -120,7 +120,7 @@ namespace Simple.Migrations.UnitTests
             this.databaseProvider.Object.CurrentVersion = 0;
             this.migrator.Load();
 
-            Expect(() => this.migrator.Baseline(3), Throws.ArgumentException.With.Property("ParamName").EqualTo("version"));
+            Expect(() => this.migrator.Baseline(3), Throws.InstanceOf<MigrationNotFoundException>().With.Property("Version").EqualTo(3));
         }
 
         [Test]
@@ -139,7 +139,7 @@ namespace Simple.Migrations.UnitTests
         {
             this.LoadMigrator(0);
 
-            Expect(() => this.migrator.MigrateTo(3), Throws.ArgumentException.With.Property("ParamName").EqualTo("newVersion"));
+            Expect(() => this.migrator.MigrateTo(3), Throws.InstanceOf<MigrationNotFoundException>().With.Property("Version").EqualTo(3));
         }
 
         [Test]
