@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v0.9.11
+-------
+
+ - Correctly call Logger.EndSequence and Logger.EndSequenceWithError
+ - Fix the SQLiteNet example, and the README section which documents it
+ - ConsoleRunner shows a nicer error if the requested migration version was not found
+
 v0.9.10
 -------
 

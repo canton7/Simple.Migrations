@@ -214,12 +214,13 @@ namespace SimpleMigrations
 
                 var toMigration = this.Migrations.FirstOrDefault(x => x.Version == newVersion);
                 if (toMigration == null)
-                    throw new ArgumentException($"Could not find migration with version {newVersion}", nameof(newVersion));
+                    throw new MigrationNotFoundException(newVersion);
+                var fromMigration = this.CurrentMigration;
 
                 var direction = newVersion > this.CurrentMigration.Version ? MigrationDirection.Up : MigrationDirection.Down;
                 var migrations = this.FindMigrationsToRun(newVersion, direction);
 
-                this.Logger?.BeginSequence(this.CurrentMigration, toMigration);
+                this.Logger?.BeginSequence(fromMigration, toMigration);
 
                 try
                 {
@@ -242,6 +243,13 @@ namespace SimpleMigrations
                             throw;
                         }
                     }
+
+                    this.Logger?.EndSequence(fromMigration, this.CurrentMigration);
+                }
+                catch (Exception e)
+                {
+                    this.Logger?.EndSequenceWithError(e, fromMigration, this.CurrentMigration);
+                    throw;
                 }
                 finally
                 {
@@ -286,7 +294,7 @@ namespace SimpleMigrations
 
             var migration = this.Migrations.FirstOrDefault(x => x.Version == version);
             if (migration == null)
-                throw new ArgumentException($"Could not find migration with version {version}", nameof(version));
+                throw new MigrationNotFoundException(version);
 
             try
             {

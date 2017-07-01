@@ -145,6 +145,13 @@ namespace SimpleMigrations.Console
             {
                 this.ShowHelp();
             }
+            catch (MigrationNotFoundException e)
+            {
+                var foregroundColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.WriteLine($"Could not find migration with version {e.Version}");
+                Console.ForegroundColor = foregroundColor;
+            }
             catch (Exception e)
             {
                 var foregroundColor = Console.ForegroundColor;

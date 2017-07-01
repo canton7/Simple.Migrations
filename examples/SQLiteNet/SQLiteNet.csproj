@@ -33,10 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Simple.Migrations, Version=0.9.6.99, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Simple.Migrations.0.9.6.99\lib\net45\Simple.Migrations.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -64,6 +60,12 @@
     <Content Include="sqlite3.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Simple.Migrations\Simple.Migrations.csproj">
+      <Project>{43f0c90b-c696-4bc6-b204-480e4eca43cb}</Project>
+      <Name>Simple.Migrations</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
