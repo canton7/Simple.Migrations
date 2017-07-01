@@ -26,33 +26,33 @@ namespace SQLiteNet
             this.Connection.Execute(sql);
         }
 
-        void IMigration<SQLiteConnection>.Execute(SQLiteConnection connection, IMigrationLogger logger, MigrationDirection direction)
+        void IMigration<SQLiteConnection>.RunMigration(MigrationRunData<SQLiteConnection> data)
         {
-            this.Connection = connection;
-            this.Logger = logger;
+            this.Connection = data.Connection;
+            this.Logger = data.Logger;
 
             if (this.UseTransaction)
             {
                 try
                 {
-                    connection.BeginTransaction();
+                    this.Connection.BeginTransaction();
 
-                    if (direction == MigrationDirection.Up)
+                    if (data.Direction == MigrationDirection.Up)
                         this.Up();
                     else
                         this.Down();
 
-                    connection.Commit();
+                    this.Connection.Commit();
                 }
                 catch
                 {
-                    connection.Rollback();
+                    this.Connection.Rollback();
                     throw;
                 }
             }
             else
             {
-                if (direction == MigrationDirection.Up)
+                if (data.Direction == MigrationDirection.Up)
                     this.Up();
                 else
                     this.Down();

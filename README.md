@@ -73,7 +73,7 @@ namespace Migrations
     [Migration(1)]
     public class CreateUsers : Migration
     {
-        public override void Up()
+        protected override void Up()
         {
             Execute(@"CREATE TABLE Users (
                 Id SERIAL NOT NULL PRIMARY KEY,
@@ -81,7 +81,7 @@ namespace Migrations
             )");
         }
 
-        public override void Down()
+        protected override void Down()
         {
             Execute("DROP TABLE Users");
         }
@@ -408,7 +408,6 @@ public class SQLiteNetDatabaseProvider : IDatabaseProvider<SQLiteConnection>
 
     public SQLiteConnection BeginOperation()
     {
-        // This is the connect that will be used for migrations
         return this.connection;
     }
 
@@ -416,7 +415,7 @@ public class SQLiteNetDatabaseProvider : IDatabaseProvider<SQLiteConnection>
     {
     }
 
-    public long EnsureCreatedAndGetCurrentVersion()
+    public long EnsurePrerequisitesCreatedAndGetCurrentVersion()
     {
         this.connection.CreateTable<SchemaVersion>();
         return this.GetCurrentVersion();
@@ -462,26 +461,36 @@ public abstract class SQLiteNetMigration : IMigration<SQLiteConnection>
         this.Connection.Execute(sql);
     }
 
-    void IMigration<SQLiteConnection>.Execute(SQLiteConnection connection, IMigrationLogger logger, MigrationDirection direction)
+    void IMigration<SQLiteConnection>.RunMigration(MigrationRunData<SQLiteConnection> data)
     {
-        this.Connection = connection;
-        this.Logger = logger;
+        this.Connection = data.Connection;
+        this.Logger = data.Logger;
 
-        try
+        if (this.UseTransaction)
         {
-            connection.BeginTransaction();
+            try
+            {
+                this.Connection.BeginTransaction();
 
-            if (direction == MigrationDirection.Up)
+                if (data.Direction == MigrationDirection.Up)
+                    this.Up();
+                else
+                    this.Down();
+
+                this.Connection.Commit();
+            }
+            catch
+            {
+                this.Connection.Rollback();
+                throw;
+            }
+        }
+        else
+        {
+            if (data.Direction == MigrationDirection.Up)
                 this.Up();
             else
                 this.Down();
-
-            connection.Commit();
-        }
-        catch
-        {
-            connection.Rollback();
-            throw;
         }
     }
 }
@@ -495,7 +504,7 @@ We can then create migrations like this:
 [Migration(1)]
 public class CreateUsers : SQLiteNetMigration
 {
-    public override void Up()
+    protected override void Up()
     {
         Execute(@"CREATE TABLE Users (
             Id SERIAL NOT NULL PRIMARY KEY,
@@ -503,7 +512,7 @@ public class CreateUsers : SQLiteNetMigration
         );");
     }
 
-    public override void Down()
+    protected override void Down()
     {
         Execute("DROP TABLE Users");
     }

@@ -28,7 +28,7 @@ namespace SQLiteNet
         {
         }
 
-        public long EnsureCreatedAndGetCurrentVersion()
+        public long EnsurePrerequisitesCreatedAndGetCurrentVersion()
         {
             this.connection.CreateTable<SchemaVersion>();
             return this.GetCurrentVersion();
