@@ -189,12 +189,13 @@ namespace SimpleMigrations.Console
             if (args.Count != 0)
                 throw new HelpNeededException();
 
-            if (this.migrator.CurrentMigration == null)
-                throw new Exception("No migrations have been applied");
-
             var currentVersion = this.migrator.CurrentMigration.Version;
+            var previousVersion = this.migrator.Migrations.TakeWhile(x => x.Version < currentVersion).LastOrDefault();
 
-            this.migrator.MigrateTo(currentVersion - 1);
+            if (previousVersion == null)
+                throw new MigrationException($"The current version {currentVersion} is the lowest, and so cannot be reapplied");
+
+            this.migrator.MigrateTo(previousVersion.Version);
             this.migrator.MigrateTo(currentVersion);
         }
 
