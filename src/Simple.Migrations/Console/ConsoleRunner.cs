@@ -118,6 +118,14 @@ namespace SimpleMigrations.Console
         {
             var argsList = args.ToList();
 
+            void WriteError(string message)
+            {
+                var foregroundColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.WriteLine(message);
+                Console.ForegroundColor = foregroundColor;
+            }
+
             try
             {
                 this.migrator.Load();
@@ -147,17 +155,16 @@ namespace SimpleMigrations.Console
             }
             catch (MigrationNotFoundException e)
             {
-                var foregroundColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine($"Could not find migration with version {e.Version}");
-                Console.ForegroundColor = foregroundColor;
+                WriteError($"Error: could not find migration with version {e.Version}");
+            }
+            catch (MigrationException e)
+            {
+                WriteError($"Error: {e.Message}");
             }
             catch (Exception e)
             {
-                var foregroundColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine($"An error occurred: {e.Message}");
-                Console.ForegroundColor = foregroundColor;
+                WriteError("An unhandled exception occurred:");
+                WriteError(e.ToString());
             }
         }
 
