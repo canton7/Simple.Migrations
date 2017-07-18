@@ -218,43 +218,46 @@ namespace SimpleMigrations
                 var fromMigration = this.CurrentMigration;
 
                 var direction = newVersion > this.CurrentMigration.Version ? MigrationDirection.Up : MigrationDirection.Down;
-                var migrations = this.FindMigrationsToRun(newVersion, direction);
+                var migrations = this.FindMigrationsToRun(newVersion, direction).ToList();
 
-                this.Logger?.BeginSequence(fromMigration, toMigration);
-
-                try
+                if (migrations.Count > 0)
                 {
-                    foreach (var migrationDataPair in migrations)
+                    this.Logger?.BeginSequence(fromMigration, toMigration);
+
+                    try
                     {
-                        var migrationDataToRun = (direction == MigrationDirection.Up) ? migrationDataPair.To : migrationDataPair.From;
-
-                        try
+                        foreach (var migrationDataPair in migrations)
                         {
-                            this.Logger?.BeginMigration(migrationDataToRun, direction);
+                            var migrationDataToRun = (direction == MigrationDirection.Up) ? migrationDataPair.To : migrationDataPair.From;
 
-                            this.RunMigration(direction, migrationDataToRun, migrationsConnection);
-                            this.DatabaseProvider.UpdateVersion(migrationDataPair.From.Version, migrationDataPair.To.Version, migrationDataPair.To.FullName);
+                            try
+                            {
+                                this.Logger?.BeginMigration(migrationDataToRun, direction);
 
-                            this.Logger?.EndMigration(migrationDataToRun, direction);
+                                this.RunMigration(direction, migrationDataToRun, migrationsConnection);
+                                this.DatabaseProvider.UpdateVersion(migrationDataPair.From.Version, migrationDataPair.To.Version, migrationDataPair.To.FullName);
+
+                                this.Logger?.EndMigration(migrationDataToRun, direction);
+                            }
+                            catch (Exception e)
+                            {
+                                this.Logger?.EndMigrationWithError(e, migrationDataToRun, direction);
+                                throw;
+                            }
                         }
-                        catch (Exception e)
-                        {
-                            this.Logger?.EndMigrationWithError(e, migrationDataToRun, direction);
-                            throw;
-                        }
+
+                        this.Logger?.EndSequence(fromMigration, this.CurrentMigration);
                     }
-
-                    this.Logger?.EndSequence(fromMigration, this.CurrentMigration);
-                }
-                catch (Exception e)
-                {
-                    this.Logger?.EndSequenceWithError(e, fromMigration, this.CurrentMigration);
-                    throw;
-                }
-                finally
-                {
-                    long finalVersion = this.DatabaseProvider.GetCurrentVersion();
-                    this.SetCurrentVersion(finalVersion);
+                    catch (Exception e)
+                    {
+                        this.Logger?.EndSequenceWithError(e, fromMigration, this.CurrentMigration);
+                        throw;
+                    }
+                    finally
+                    {
+                        long finalVersion = this.DatabaseProvider.GetCurrentVersion();
+                        this.SetCurrentVersion(finalVersion);
+                    }
                 }
             }
             finally

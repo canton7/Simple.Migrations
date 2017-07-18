@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v0.9.12
+-------
+
+ - Don't log confusing info if there are no migrations to run
+ - ConsoleRunner's reapply command doesn't assume that migrations are numbered sequentially
+ - ConsoleLogger doesn't crash if there's no console window available (#20)
+ - ConsoleRunner displays a stack trace for unexpected errors (#20)
+
 v0.9.11
 -------
 
