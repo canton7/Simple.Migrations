@@ -8,12 +8,28 @@
     /// </summary>
     public class ConsoleLogger : ILogger
     {
+        private const int defaultWindowWidth = 80;
+
         private ConsoleColor foregroundColor;
 
         /// <summary>
         /// Gets or sets a value indicating whether SQL should be logged
         /// </summary>
         public bool EnableSqlLogging { get; set; } = true;
+
+        private static int GetWindowWidth()
+        {
+            // This will fail if there's no window, for example
+
+            int width = defaultWindowWidth;
+            try
+            {
+                width = Console.WindowWidth;
+            }
+            catch { }
+
+            return width;
+        }
 
         /// <summary>
         /// Invoked when a sequence of migrations is started
@@ -104,30 +120,36 @@
 
         private void WriteHeader(string message)
         {
+            var width = GetWindowWidth();
+
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine(new String('-', width - 1));
             Console.WriteLine(message);
-            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine(new String('-', width - 1));
             Console.WriteLine();
             Console.ForegroundColor = this.foregroundColor;
         }
 
         private void WriteError(string message)
         {
+            var width = GetWindowWidth();
+
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine(new String('-', width - 1));
             Console.WriteLine(message);
-            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine(new String('-', width - 1));
             Console.ForegroundColor = this.foregroundColor;
         }
 
         private void WriteWarning(string message)
         {
+            var width = GetWindowWidth();
+
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine(new String('-', width - 1));
             Console.WriteLine(message);
-            Console.WriteLine(new String('-', Console.WindowWidth - 1));
+            Console.WriteLine(new String('-', width - 1));
             Console.ForegroundColor = this.foregroundColor;
         }
     }
