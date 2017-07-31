@@ -34,7 +34,17 @@ namespace SimpleMigrations
         /// <returns>All migration info</returns>
         public IEnumerable<MigrationData> LoadMigrations()
         {
-            var migrations = from type in this.migrationAssembly.DefinedTypes
+            IEnumerable<TypeInfo> definedTypes;
+            try
+            {
+                definedTypes = this.migrationAssembly.DefinedTypes;
+            }
+            catch (ReflectionTypeLoadException e)
+            {
+                definedTypes = e.Types.Where(t => t != null).Select(t => t.GetTypeInfo());
+            }
+
+            var migrations = from type in definedTypes
                              let attribute = type.GetCustomAttribute<MigrationAttribute>()
                              where attribute != null
                              where this.migrationNamespace == null || type.Namespace == this.migrationNamespace
