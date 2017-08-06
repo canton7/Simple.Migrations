@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.15
+-------
+
+ - Handle loading migrations if all types couldn't be loaded
+
 v0.9.13, 0.9.14
 ---------------
 

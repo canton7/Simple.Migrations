@@ -63,6 +63,8 @@ The first task is to create (at least one) migration.
 Migrations are classes which derive from `Migration`, and are decorated with the `[Migration(versionNumber)]` attribute.
 How you number your migrations is up to you: some people like to number them sequentially, while others like to use the current date and time (e.g. `20150105164402`).
 
+You can also provide a description, which will be printed by the default logger.
+
 In `Migrations/01_CreateUsers.cs`:
 
 ```csharp
@@ -70,7 +72,7 @@ using SimpleMigrations;
 
 namespace Migrations
 {
-    [Migration(1)]
+    [Migration(1, "Create Users table")]
     public class CreateUsers : Migration
     {
         protected override void Up()
@@ -501,7 +503,7 @@ public abstract class SQLiteNetMigration : IMigration<SQLiteConnection>
 We can then create migrations like this:
 
 ```csharp
-[Migration(1)]
+[Migration(1, "Create Users table")]
 public class CreateUsers : SQLiteNetMigration
 {
     protected override void Up()
