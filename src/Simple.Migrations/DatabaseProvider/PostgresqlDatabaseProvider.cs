@@ -13,6 +13,12 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// Gets or sets the schema name used to store the version table.
         /// </summary>
+        /// /// <remarks>
+        /// If this is set to an empty string, then no schema is created. It is the user's responsibility to create the schema
+        /// (if necessary) with the correct name and permissions before running the <see cref="SimpleMigrator"/>. This may be
+        /// required if the user which Simple.Migrators is running as does not have the correct permissions to check whether the
+        /// schema has been created.
+        /// </remarks>
         public string SchemaName { get; set; } = "public";
 
         /// <summary>
@@ -60,7 +66,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <returns>SQL to create the schema</returns>
         protected override string GetCreateSchemaTableSql()
         {
-            return $@"CREATE SCHEMA IF NOT EXISTS {this.SchemaName}";
+            return String.IsNullOrWhiteSpace(this.SchemaName) ? String.Empty : $@"CREATE SCHEMA IF NOT EXISTS {this.SchemaName}";
         }
 
         /// <summary>
