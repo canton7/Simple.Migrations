@@ -42,12 +42,26 @@ namespace SimpleMigrations.DatabaseProvider
         public string TableName { get; set; } = "VersionInfo";
 
         /// <summary>
+        /// Flag provided to ensure that the schema (if appropriate) and version table are created
+        /// </summary>
+        public bool EnsurePrerequisitesCreated { get; }
+
+        /// <summary>
         /// If > 0, specifies the maximum length of the 'Description' field. Descriptions longer will be truncated
         /// </summary>
         /// <remarks>
         /// Database providers which put a maximum length on the Description field should set this to that length
         /// </remarks>
         protected int MaxDescriptionLength { get; set; }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="DatabaseProviderBase"/> class
+        /// </summary>
+        /// <param name="ensurePrerequisitesCreated">Flag provided to ensure that the schema (if appropriate) and version table are created</param>
+        protected DatabaseProviderBase(bool ensurePrerequisitesCreated)
+        {
+            this.EnsurePrerequisitesCreated = ensurePrerequisitesCreated;
+        } 
 
         /// <summary>
         /// Ensures that the schema (if appropriate) and version table are created, and returns the current version.

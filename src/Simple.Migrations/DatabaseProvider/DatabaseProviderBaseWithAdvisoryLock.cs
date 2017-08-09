@@ -27,7 +27,9 @@ namespace SimpleMigrations.DatabaseProvider
         /// Initialises a new instance of the <see cref="DatabaseProviderBaseWithAdvisoryLock"/> class
         /// </summary>
         /// <param name="connection">Database connection to use for all operations</param>
-        public DatabaseProviderBaseWithAdvisoryLock(DbConnection connection)
+        /// <param name="ensurePrerequisitesCreated">Flag provided to ensure that the schema (if appropriate) and version table are created</param>
+        public DatabaseProviderBaseWithAdvisoryLock(DbConnection connection, bool ensurePrerequisitesCreated)
+            : base(ensurePrerequisitesCreated)
         {
             this.Connection = connection;
             if (this.Connection.State != ConnectionState.Open)

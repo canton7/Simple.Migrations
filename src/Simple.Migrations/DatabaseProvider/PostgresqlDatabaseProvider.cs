@@ -24,8 +24,9 @@ namespace SimpleMigrations.DatabaseProvider
         /// Initialises a new instance of the <see cref="PostgresqlDatabaseProvider"/> class
         /// </summary>
         /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
-        public PostgresqlDatabaseProvider(DbConnection connection)
-            : base(connection)
+        /// <param name="ensurePrerequisitesCreated">Flag provided to ensure that the schema (if appropriate) and version table are created</param>
+        public PostgresqlDatabaseProvider(DbConnection connection, bool ensurePrerequisitesCreated = true)
+            : base(connection, ensurePrerequisitesCreated)
         {
         }
 
