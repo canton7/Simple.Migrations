@@ -14,7 +14,17 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// Gets or sets the name of the advisory lock to acquire
         /// </summary>
-        public string LockName { get; set; } = "SimpleMigratorExclusiveLock";
+        public string AdvisoryLockName { get; set; } = "SimpleMigratorExclusiveLock";
+
+        /// <summary>
+        /// This property has been obsoleted. Use <see cref="AdvisoryLockName"/> instead
+        /// </summary>
+        [Obsolete("Use AdvisoryLockName instead")]
+        public string LockName
+        {
+            get => this.AdvisoryLockName;
+            set => this.AdvisoryLockName = value;
+        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="MysqlDatabaseProvider"/> class
@@ -32,7 +42,7 @@ namespace SimpleMigrations.DatabaseProvider
         {
             using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"SELECT GET_LOCK('{this.LockName}', {(int)this.LockTimeout.TotalSeconds})";
+                command.CommandText = $"SELECT GET_LOCK('{this.AdvisoryLockName}', {(int)this.LockTimeout.TotalSeconds})";
                 command.CommandTimeout = 0; // The lock will time out by itself
                 command.ExecuteNonQuery();
             }
@@ -45,7 +55,7 @@ namespace SimpleMigrations.DatabaseProvider
         {
             using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"SELECT RELEASE_LOCK('{this.LockName}')";
+                command.CommandText = $"SELECT RELEASE_LOCK('{this.AdvisoryLockName}')";
                 command.ExecuteNonQuery();
             }
         }
