@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.16
+-------
+
+ - Allow schema creation to be disabled (by setting the SchemaName property of a DatabaseProvider to null) (#24)
+
 v0.9.15
 -------
 

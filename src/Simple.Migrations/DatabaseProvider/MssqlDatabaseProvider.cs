@@ -15,12 +15,28 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// Gets or sets the schema name used to store the version table.
         /// </summary>
+        /// <remarks>
+        /// If this is set to an empty string, then no schema is created. It is the user's responsibility to create the schema
+        /// (if necessary) with the correct name and permissions before running the <see cref="SimpleMigrator"/>. This may be
+        /// required if the user which Simple.Migrators is running as does not have the correct permissions to check whether the
+        /// schema has been created.
+        /// </remarks>
         public string SchemaName { get; set; } = "dbo";
 
         /// <summary>
         /// Gets or sets the name of the advisory lock to acquire
         /// </summary>
-        public string LockName { get; set; } = "SimpleMigratorExclusiveLock";
+        public string AdvisoryLockName { get; set; } = "SimpleMigratorExclusiveLock";
+
+        /// <summary>
+        /// This property has been obsoleted. Use <see cref="AdvisoryLockName"/> instead
+        /// </summary>
+        [Obsolete("Use AdvisoryLockName instead")]
+        public string LockName
+        {
+            get => this.AdvisoryLockName;
+            set => this.AdvisoryLockName = value;
+        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="MssqlDatabaseProvider"/> class
@@ -39,7 +55,7 @@ namespace SimpleMigrations.DatabaseProvider
         {
             using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"sp_getapplock @Resource = '{this.LockName}', @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = '{(int)this.LockTimeout.TotalMilliseconds}'";
+                command.CommandText = $"sp_getapplock @Resource = '{this.AdvisoryLockName}', @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = '{(int)this.LockTimeout.TotalMilliseconds}'";
                 command.CommandTimeout = 0; // The lock will time out by itself
                 command.ExecuteNonQuery();
             }
@@ -52,7 +68,7 @@ namespace SimpleMigrations.DatabaseProvider
         {
             using (var command = this.Connection.CreateCommand())
             {
-                command.CommandText = $"sp_releaseapplock @Resource = '{this.LockName}', @LockOwner = 'Session'";
+                command.CommandText = $"sp_releaseapplock @Resource = '{this.AdvisoryLockName}', @LockOwner = 'Session'";
                 command.ExecuteNonQuery();
             }
         }
@@ -63,8 +79,9 @@ namespace SimpleMigrations.DatabaseProvider
         /// <returns>SQL to create the schema</returns>
         protected override string GetCreateSchemaTableSql()
         {
-            return $@"IF NOT EXISTS (select * from sys.schemas WHERE name ='{this.SchemaName}')
-                EXECUTE ('CREATE SCHEMA [{this.SchemaName}]');";
+            return String.IsNullOrWhiteSpace(this.SchemaName) ?
+                String.Empty :
+                $@"IF NOT EXISTS (select * from sys.schemas WHERE name ='{this.SchemaName}') EXECUTE ('CREATE SCHEMA [{this.SchemaName}]');";
         }
 
         /// <summary>
