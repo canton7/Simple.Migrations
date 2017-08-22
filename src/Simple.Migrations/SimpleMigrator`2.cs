@@ -65,13 +65,8 @@ namespace SimpleMigrations
             IDatabaseProvider<TConnection> databaseProvider,
             ILogger logger = null)
         {
-            if (migrationProvider == null)
-                throw new ArgumentNullException(nameof(migrationProvider));
-            if (databaseProvider == null)
-                throw new ArgumentNullException(nameof(databaseProvider));
-
-            this.MigrationProvider = migrationProvider;
-            this.DatabaseProvider = databaseProvider;
+            this.MigrationProvider = migrationProvider ?? throw new ArgumentNullException(nameof(migrationProvider));
+            this.DatabaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
             this.Logger = logger;
         }
 
@@ -164,10 +159,7 @@ namespace SimpleMigrations
         protected virtual void SetCurrentVersion(long currentVersion)
         {
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
-            if (currentMigration == null)
-                throw new MissingMigrationException(currentVersion);
-
-            this.CurrentMigration = currentMigration;
+            this.CurrentMigration = currentMigration ?? throw new MissingMigrationException(currentVersion);
         }
 
         /// <summary>
