@@ -47,7 +47,9 @@ namespace SimpleMigrations.DatabaseProvider
         /// Initialises a new instance of the <see cref="DatabaseProviderBaseWithVersionTableLock"/> class
         /// </summary>
         /// <param name="connectionFactory">Factory to be used to create new connections</param>
-        public DatabaseProviderBaseWithVersionTableLock(Func<DbConnection> connectionFactory)
+        /// <param name="ensurePrerequisitesCreated">Flag provided to ensure that the schema (if appropriate) and version table are created</param>
+        public DatabaseProviderBaseWithVersionTableLock(Func<DbConnection> connectionFactory, bool ensurePrerequisitesCreated)
+            : base(ensurePrerequisitesCreated)
         {
             this.ConnectionFactory = connectionFactory;
         }

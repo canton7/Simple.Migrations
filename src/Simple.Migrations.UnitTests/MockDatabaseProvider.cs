@@ -11,6 +11,8 @@ namespace Simple.Migrations.UnitTests
     {
         public long CurrentVersion;
         public DbConnection Connection;
+        
+        public bool EnsurePrerequisitesCreated { get; }
 
         public DbConnection BeginOperation()
         {

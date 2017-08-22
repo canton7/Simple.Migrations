@@ -46,6 +46,7 @@ namespace Simple.Migrations.UnitTests
             this.connection = new Mock<DbConnection>();
             this.migrationProvider = new Mock<IMigrationProvider>();
             this.databaseProvider = new Mock<IDatabaseProvider<DbConnection>>();
+            this.databaseProvider.SetupGet(x => x.EnsurePrerequisitesCreated).Returns(true);
 
             this.migrator = new SimpleMigrator<DbConnection, Migration>(this.migrationProvider.Object, this.databaseProvider.Object);
         }
@@ -163,7 +164,7 @@ namespace Simple.Migrations.UnitTests
         }
 
         [Test]
-        public void LoadCreatesVersionTable()
+        public void LoadCreatesVersionTableIfProviderEnsuresPrerequisites()
         {
             var migrations = new List<MigrationData>()
             {
@@ -174,6 +175,22 @@ namespace Simple.Migrations.UnitTests
             this.migrator.Load();
 
             this.databaseProvider.Verify(x => x.EnsurePrerequisitesCreatedAndGetCurrentVersion());
+        }
+
+        [Test]
+        public void LoadDoesNotCreateVersionTableIfProviderDoesNotEnsurePrerequisites()
+        {
+            var migrations = new List<MigrationData>()
+            {
+                new MigrationData(1, "Migration 1", typeof(ValidMigration1).GetTypeInfo()),
+            };
+            this.migrationProvider.Setup(x => x.LoadMigrations()).Returns(migrations);
+
+            this.databaseProvider.SetupGet(x => x.EnsurePrerequisitesCreated).Returns(false);
+
+            this.migrator.Load();
+
+            this.databaseProvider.Verify(x => x.GetCurrentVersion());
         }
     }
 }

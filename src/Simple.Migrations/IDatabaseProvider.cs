@@ -38,6 +38,15 @@ namespace SimpleMigrations
     public interface IDatabaseProvider<TConnection>
     {
         /// <summary>
+        /// Flag to ensure that the schema (if appropriate) and version table are created.
+        /// </summary>
+        /// <remarks>
+        /// Setting this to true will make the migrator to create the schema and version table,
+        /// otherwise it will be assumed they exist already.
+        /// </remarks>
+        bool EnsurePrerequisitesCreated { get; }
+
+        /// <summary>
         /// Called when <see cref="SimpleMigrator{TConnection, TMigrationBase}.MigrateTo(long)"/> or <see cref="SimpleMigrator{TConnection, TMigrationBase}.Baseline(long)"/>
         /// is invoked, before any migrations are run. This should create connections and/or transactions and/or locks if necessary,
         /// and return the connection for the migrations to use.
