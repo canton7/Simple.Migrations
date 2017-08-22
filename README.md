@@ -20,8 +20,9 @@ API breakages are documented in [the CHANGELOG](CHANGELOG.md).
 5. [SimpleMigrator](#simplemigrator)
 6. [ConsoleRunner](#consolerunner)
 7. [Finding Migrations](#finding-migrations)
-8. [Writing your own Database Provider](#writing-your-own-database-provider)
-9. [Example: Using sqlite-net](#example-using-sqlite-net)
+8. [Configuring the Database Providers](#configuring-the-database-providers)
+9. [Writing your own Database Provider](#writing-your-own-database-provider)
+10. [Example: Using sqlite-net](#example-using-sqlite-net)
 
 Installation
 ------------
@@ -340,6 +341,19 @@ You can customize how migrations are found by implementing `IMigrationProvider`.
 This returns a collection of `MigrationData` - see `AssemblyMigrationProvider` for an example.
 Then pass your migration provider to the appropriate `SimpleMigrator` constructor.
 
+
+Configuring the Database Providers
+----------------------------------
+
+The DatabaseProviders have various properties which configure how they interact with your database.
+Among them:
+
+ - `TableName`: Set the name of the table used by SimpleMigrations to track the current version of your schema.
+ - `MaxDescriptionLength`: The width of the 'description' column of the SchemaVersion table, for databases which need a fixed width.
+ - `AdvisoryLockName` / `AdvisoryLockKey`: Databases which use a named advisory lock only. This sets the name of the lock.
+ - `LockTimeout`: Databases which use an advisory lock only. This is the timeout after which SimpleMigrator will give up trying to acquire the lock and will abort with an exception.
+ - `SchemaName`: Only applicable to databases which have a schema. This sets the name of the schema to use, and to try and create if it does not already exist. Sometimes this is not possible due to database permissions, in which case set this property to null to disable this behaviour. You will need to make sure that the schema exists with the appropriate permissions before runnig SimpleMigrator!
+ 
 
 Writing your own Database Provider
 ---------------------------------
