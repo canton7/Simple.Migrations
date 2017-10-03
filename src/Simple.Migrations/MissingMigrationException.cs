@@ -14,7 +14,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Gets the version that migration data could not be found for
         /// </summary>
-        public long MissingVersion { get; }
+        public long MissingVersion => (long)this.Data[nameof(this.MissingVersion)];
 
         /// <summary>
         /// Instantiates a new instance of the <see cref="MissingMigrationException"/> class with the given missing version
@@ -23,7 +23,7 @@ namespace SimpleMigrations
         public MissingMigrationException(long missingVersion)
             : base($"Unable to find a migration with the version {missingVersion}")
         {
-            this.MissingVersion = missingVersion;
+            this.Data[nameof(this.MissingVersion)] = missingVersion;
         }
     }
 }
