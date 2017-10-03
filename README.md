@@ -352,7 +352,8 @@ Among them:
  - `MaxDescriptionLength`: The width of the 'description' column of the SchemaVersion table, for databases which need a fixed width.
  - `AdvisoryLockName` / `AdvisoryLockKey`: Databases which use a named advisory lock only. This sets the name of the lock.
  - `LockTimeout`: Databases which use an advisory lock only. This is the timeout after which SimpleMigrator will give up trying to acquire the lock and will abort with an exception.
- - `SchemaName`: Only applicable to databases which have a schema. This sets the name of the schema to use, and to try and create if it does not already exist. Sometimes this is not possible due to database permissions, in which case set this property to null to disable this behaviour. You will need to make sure that the schema exists with the appropriate permissions before runnig SimpleMigrator!
+ - `SchemaName`: Only applicable to databases which have a schema. This sets the name of the schema to use, and to try and create if it does not already exist.
+ - `CreateSchema`: Sometimes it is not possible to create the schema due to database permissions, in which case set this property to false to disable this behaviour. You will need to make sure that the schema exists with the appropriate permissions before runnig SimpleMigrator!
  
 
 Writing your own Database Provider

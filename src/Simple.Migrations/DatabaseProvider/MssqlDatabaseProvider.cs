@@ -15,13 +15,18 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// Gets or sets the schema name used to store the version table.
         /// </summary>
+        public string SchemaName { get; set; } = "dbo";
+
+        /// <summary>
+        /// Controls whether or not to try and create the schema if it does not exist.
+        /// </summary>
         /// <remarks>
-        /// If this is set to an empty string, then no schema is created. It is the user's responsibility to create the schema
+        /// If this is set to false then no schema is created. It is the user's responsibility to create the schema
         /// (if necessary) with the correct name and permissions before running the <see cref="SimpleMigrator"/>. This may be
-        /// required if the user which Simple.Migrators is running as does not have the correct permissions to check whether the
+        /// required if the user which Simple.Migrator is running as does not have the correct permissions to check whether the
         /// schema has been created.
         /// </remarks>
-        public string SchemaName { get; set; } = "dbo";
+        public bool CreateSchema { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the name of the advisory lock to acquire
@@ -79,9 +84,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <returns>SQL to create the schema</returns>
         protected override string GetCreateSchemaTableSql()
         {
-            return String.IsNullOrWhiteSpace(this.SchemaName) ?
-                String.Empty :
-                $@"IF NOT EXISTS (select * from sys.schemas WHERE name ='{this.SchemaName}') EXECUTE ('CREATE SCHEMA [{this.SchemaName}]');";
+            return this.CreateSchema ? $@"IF NOT EXISTS (select * from sys.schemas WHERE name ='{this.SchemaName}') EXECUTE ('CREATE SCHEMA [{this.SchemaName}]');" : String.Empty;
         }
 
         /// <summary>
