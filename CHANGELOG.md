@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.17
+-------
+
+ - Fix the mechanism by which schema creation can be disabled (#27)
+
 v0.9.16
 -------
 
