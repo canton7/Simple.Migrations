@@ -103,7 +103,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <param name="migrationDirection">The direction of the migration which was applied</param>
         public override void UpdateVersion(long oldVersion, long newVersion, string newDescription, MigrationDirection? migrationDirection = null)
         {
-            this.UpdateVersion(oldVersion, newVersion, newDescription, this.Connection, null);
+            this.UpdateVersion(oldVersion, newVersion, newDescription, this.Connection, null, migrationDirection);
         }
 
         /// <summary>

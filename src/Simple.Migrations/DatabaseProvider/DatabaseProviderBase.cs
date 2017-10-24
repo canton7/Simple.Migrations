@@ -207,7 +207,7 @@ namespace SimpleMigrations.DatabaseProvider
 
                 var directionParam = command.CreateParameter();
                 directionParam.ParameterName = "Direction";
-                directionParam.Value = migrationDirection != null ? migrationDirection == MigrationDirection.Up ? "Up" : "Down" : null;
+                directionParam.Value = migrationDirection != null ? (object) (migrationDirection == MigrationDirection.Up ? "Up" : "Down") : DBNull.Value;
                 command.Parameters.Add(directionParam);
 
                 command.ExecuteNonQuery();
