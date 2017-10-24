@@ -100,6 +100,7 @@ namespace SimpleMigrations.DatabaseProvider
                     [Version] [bigint] NOT NULL,
                     [AppliedOn] [datetime] NOT NULL,
                     [Description] [nvarchar]({this.MaxDescriptionLength}) NOT NULL,
+                    [Direction] [varchar](4) NULL
                 )
                 END;";
         }
@@ -119,7 +120,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <returns>SQL to update the current version in the version table</returns>
         protected override string GetSetVersionSql()
         {
-            return $@"INSERT INTO [{this.SchemaName}].[{this.TableName}] ([Version], [AppliedOn], [Description]) VALUES (@Version, GETDATE(), @Description);";
+            return $@"INSERT INTO [{this.SchemaName}].[{this.TableName}] ([Version], [AppliedOn], [Description], [Direction]) VALUES (@Version, GETDATE(), @Description, @Direction);";
         }
     }
 }

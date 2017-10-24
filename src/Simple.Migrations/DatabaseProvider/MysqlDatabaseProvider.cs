@@ -70,7 +70,8 @@ namespace SimpleMigrations.DatabaseProvider
                         `Id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
                         `Version` BIGINT NOT NULL,
                         `AppliedOn` DATETIME NOT NULL,
-                        `Description` TEXT NOT NULL
+                        `Description` TEXT NOT NULL,
+                        `Direction` TEXT NULL
                     )";
         }
 
@@ -89,7 +90,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <returns>SQL to update the current version in the version table</returns>
         protected override string GetSetVersionSql()
         {
-            return $@"INSERT INTO {this.TableName} (`Version`, `AppliedOn`, `Description`) VALUES (@Version, NOW(), @Description)";
+            return $@"INSERT INTO {this.TableName} (`Version`, `AppliedOn`, `Description`, `Direction`) VALUES (@Version, NOW(), @Description, @Direction)";
         }
     }
 }

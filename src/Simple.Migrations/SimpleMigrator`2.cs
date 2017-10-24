@@ -227,7 +227,7 @@ namespace SimpleMigrations
                                 this.Logger?.BeginMigration(migrationDataToRun, direction);
 
                                 this.RunMigration(direction, migrationDataToRun, migrationsConnection);
-                                this.DatabaseProvider.UpdateVersion(migrationDataPair.From.Version, migrationDataPair.To.Version, migrationDataPair.To.FullName);
+                                this.DatabaseProvider.UpdateVersion(migrationDataPair.From.Version, migrationDataPair.To.Version, migrationDataPair.To.FullName, direction);
 
                                 this.Logger?.EndMigration(migrationDataToRun, direction);
                             }
@@ -295,7 +295,7 @@ namespace SimpleMigrations
             {
                 this.DatabaseProvider.BeginOperation();
 
-                this.DatabaseProvider.UpdateVersion(0, version, migration.FullName);
+                this.DatabaseProvider.UpdateVersion(0, version, migration.FullName, null);
             }
             finally
             {

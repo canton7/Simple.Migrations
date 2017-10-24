@@ -86,7 +86,8 @@ namespace SimpleMigrations.DatabaseProvider
                     Id SERIAL PRIMARY KEY,
                     Version bigint NOT NULL,
                     AppliedOn timestamp with time zone,
-                    Description text NOT NULL
+                    Description text NOT NULL,
+                    Direction text NULL
                 )";
         }
 
@@ -105,7 +106,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <returns>SQL to update the current version in the version table</returns>
         protected override string GetSetVersionSql()
         {
-            return $@"INSERT INTO {this.SchemaName}.{this.TableName} (Version, AppliedOn, Description) VALUES (@Version, CURRENT_TIMESTAMP, @Description)";
+            return $@"INSERT INTO {this.SchemaName}.{this.TableName} (Version, AppliedOn, Description, Direction) VALUES (@Version, CURRENT_TIMESTAMP, @Description, @Direction)";
         }
     }
 }
