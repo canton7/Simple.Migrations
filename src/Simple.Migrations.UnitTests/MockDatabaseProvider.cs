@@ -33,7 +33,7 @@ namespace Simple.Migrations.UnitTests
             return this.CurrentVersion;
         }
 
-        public virtual void UpdateVersion(long oldVersion, long newVersion, string newDescription)
+        public virtual void UpdateVersion(long oldVersion, long newVersion, string newDescription, MigrationDirection? migrationDirection = null)
         {
             this.CurrentVersion = newVersion;
         }

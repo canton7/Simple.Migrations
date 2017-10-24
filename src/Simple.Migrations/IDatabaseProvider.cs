@@ -89,6 +89,7 @@ namespace SimpleMigrations
         /// <param name="oldVersion">The previous version of the database schema</param>
         /// <param name="newVersion">The version of the new database schema</param>
         /// <param name="newDescription">The description of the migration which was applied</param>
-        void UpdateVersion(long oldVersion, long newVersion, string newDescription);
+        /// <param name="migrationDirection">The direction of the migration which was applied</param>
+        void UpdateVersion(long oldVersion, long newVersion, string newDescription, MigrationDirection? migrationDirection);
     }
 }

@@ -43,7 +43,8 @@ namespace SimpleMigrations.DatabaseProvider
                     Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     Version INTEGER NOT NULL,
                     AppliedOn DATETIME NOT NULL,
-                    Description TEXT NOT NULL
+                    Description TEXT NOT NULL,
+                    Direction TEXT NULL
                 )";
         }
 
@@ -62,7 +63,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <returns>SQL to update the current version in the version table</returns>
         protected override string GetSetVersionSql()
         {
-            return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description) VALUES (@Version, datetime('now', 'localtime'), @Description)";
+            return $@"INSERT INTO {this.TableName} (Version, AppliedOn, Description, Direction) VALUES (@Version, datetime('now', 'localtime'), @Description, @Direction)";
         }
     }
 }

@@ -165,7 +165,8 @@ namespace SimpleMigrations.DatabaseProvider
         /// <param name="oldVersion">The previous version of the database schema</param>
         /// <param name="newVersion">The version of the new database schema</param>
         /// <param name="newDescription">The description of the migration which was applied</param>
-        public abstract void UpdateVersion(long oldVersion, long newVersion, string newDescription);
+        /// <param name="migrationDirection">The direction of the migration which was applied</param>
+        public abstract void UpdateVersion(long oldVersion, long newVersion, string newDescription, MigrationDirection? migrationDirection = null);
 
         /// <summary>
         /// Helper method to update the VersionInfo table to indicate that the given migration was successfully applied,
@@ -176,7 +177,8 @@ namespace SimpleMigrations.DatabaseProvider
         /// <param name="newDescription">The description of the migration which was applied</param>
         /// <param name="connection">Connection to use</param>
         /// <param name="transaction">Transaction to use, may be null</param>
-        protected virtual void UpdateVersion(long oldVersion, long newVersion, string newDescription, DbConnection connection, DbTransaction transaction)
+        /// <param name="migrationDirection">The direction of the migration which was applied</param>
+        protected virtual void UpdateVersion(long oldVersion, long newVersion, string newDescription, DbConnection connection, DbTransaction transaction, MigrationDirection? migrationDirection = null)
         {
             if (this.MaxDescriptionLength > 0 && newDescription.Length > this.MaxDescriptionLength)
             {
@@ -202,6 +204,11 @@ namespace SimpleMigrations.DatabaseProvider
                 nameParam.ParameterName = "Description";
                 nameParam.Value = newDescription;
                 command.Parameters.Add(nameParam);
+
+                var directionParam = command.CreateParameter();
+                directionParam.ParameterName = "Direction";
+                directionParam.Value = migrationDirection != null ? (object) (migrationDirection == MigrationDirection.Up ? "Up" : "Down") : DBNull.Value;
+                command.Parameters.Add(directionParam);
 
                 command.ExecuteNonQuery();
             }

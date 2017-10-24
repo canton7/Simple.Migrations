@@ -129,7 +129,8 @@ namespace SimpleMigrations.DatabaseProvider
         /// <param name="oldVersion">The previous version of the database schema</param>
         /// <param name="newVersion">The version of the new database schema</param>
         /// <param name="newDescription">The description of the migration which was applied</param>
-        public override void UpdateVersion(long oldVersion, long newVersion, string newDescription)
+        /// <param name="migrationDirection">The direction of the migration which was applied</param>
+        public override void UpdateVersion(long oldVersion, long newVersion, string newDescription, MigrationDirection? migrationDirection = null)
         {
             this.UpdateVersion(oldVersion, newVersion, newDescription, this.VersionTableConnection, this.VersionTableLockTransaction);
         }
