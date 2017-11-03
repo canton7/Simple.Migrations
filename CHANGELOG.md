@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.18
+-------
+
+ - Fix crash in ConsoleLogger when running on .NET Core without a console
+
 v0.9.17
 -------
 
