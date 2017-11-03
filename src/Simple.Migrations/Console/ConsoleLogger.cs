@@ -28,7 +28,8 @@
             }
             catch { }
 
-            return width;
+            // .NET Core apparently returns a width of 0, and when we do 'width - 1' below this crashes
+            return Math.Max(1, width);
         }
 
         /// <summary>
