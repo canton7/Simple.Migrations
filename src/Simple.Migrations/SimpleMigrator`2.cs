@@ -150,7 +150,7 @@ namespace SimpleMigrations
         }
 
         /// <summary>
-        /// Sets <see cref="CurrentMigration"/>, by inspecting the database
+        /// Sets <see cref="CurrentMigration"/> to the given value
         /// </summary>
         /// <exception cref="MissingMigrationException">
         /// No <see cref="IMigration{TConnection}"/> could be found which corresponds to the version in the version table
@@ -160,6 +160,20 @@ namespace SimpleMigrations
         {
             var currentMigration = this.Migrations.FirstOrDefault(x => x.Version == currentVersion);
             this.CurrentMigration = currentMigration ?? throw new MissingMigrationException(currentVersion);
+        }
+
+        /// <summary>
+        /// Sets <see cref="CurrentMigration"/> by inspecting the database. This must be called within a suitable operation on the
+        /// DatabaseProvider!
+        /// </summary>
+        /// <exception cref="MissingMigrationException">
+        /// No <see cref="IMigration{TConnection}"/> could be found which corresponds to the version in the version table
+        /// in your database.
+        /// </exception>
+        protected void SetCurrentVersionFromDatabase()
+        {
+            long currentVersion = this.DatabaseProvider.GetCurrentVersion();
+            this.SetCurrentVersion(currentVersion);
         }
 
         /// <summary>
@@ -201,8 +215,7 @@ namespace SimpleMigrations
                 // Need to fetch the current version again after we've acquired the database lock, since someone else running
                 // concurrently might have changed things.
 
-                long currentVersion = this.DatabaseProvider.GetCurrentVersion();
-                this.SetCurrentVersion(currentVersion);
+                this.SetCurrentVersionFromDatabase();
 
                 var toMigration = this.Migrations.FirstOrDefault(x => x.Version == newVersion);
                 if (toMigration == null)
@@ -238,23 +251,28 @@ namespace SimpleMigrations
                             }
                         }
 
-                        this.Logger?.EndSequence(fromMigration, this.CurrentMigration);
+                        SetCurrentVersionAndEndSequence(fromMigration, null);
                     }
                     catch (Exception e)
                     {
-                        this.Logger?.EndSequenceWithError(e, fromMigration, this.CurrentMigration);
+                        SetCurrentVersionAndEndSequence(fromMigration, e);
                         throw;
-                    }
-                    finally
-                    {
-                        long finalVersion = this.DatabaseProvider.GetCurrentVersion();
-                        this.SetCurrentVersion(finalVersion);
                     }
                 }
             }
             finally
             {
                 this.DatabaseProvider.EndOperation();
+            }
+
+            void SetCurrentVersionAndEndSequence(MigrationData from, Exception e)
+            {
+                this.SetCurrentVersionFromDatabase();
+
+                if (e == null)
+                    this.Logger?.EndSequence(from, this.CurrentMigration);
+                else
+                    this.Logger?.EndSequenceWithError(e, from, this.CurrentMigration);
             }
         }
 
