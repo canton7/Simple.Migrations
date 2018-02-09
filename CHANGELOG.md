@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.19
+-------
+
+ - Fix bug where 'to' MigrationData passed to ILogger.EndSequence and ILogger.EndSequenceWithError was incorrect (#31)
+
 v0.9.18
 -------
 
