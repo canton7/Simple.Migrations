@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-preview-20170106-08" />
+    <PackageReference Include="Oracle.ManagedDataAccess" Version="12.2.1100" />
     <PackageReference Include="System.Reflection.Extensions" Version="4.0.1" />
     <PackageReference Include="NUnit" Version="3.5.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.0.0-ci-00457-pr-313" />
