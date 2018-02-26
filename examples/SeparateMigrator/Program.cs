@@ -8,7 +8,7 @@ namespace SeparateMigrator
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             var migrationsAssembly = typeof(Program).Assembly;
             using (var connection = new SQLiteConnection("DataSource=database.sqlite"))
@@ -18,7 +18,7 @@ namespace SeparateMigrator
                 var migrator = new SimpleMigrator(migrationsAssembly, databaseProvider);
 
                 var runner = new ConsoleRunner(migrator);
-                runner.Run(args);
+                return runner.Run(args);
             }
         }
     }

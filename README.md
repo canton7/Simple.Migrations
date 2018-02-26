@@ -104,7 +104,7 @@ Finally, in your `Program.cs`:
 ```csharp
 class Program
 {
-    static void Main(string[] args)
+    static int Main(string[] args)
     {
         var migrationsAssembly = typeof(Program).Assembly;
         using (var db = new SQLiteConnection("DataSource=database.sqlite"))
@@ -123,7 +123,7 @@ class Program
 
             // Note: ConsoleRunner is only available in .NET Standard 1.3 and .NET 4.5 (not .NET Standard 1.2)
             var consoleRunner = new ConsoleRunner(migrator);
-            consoleRunner.Run(args);
+            return consoleRunner.Run(args);
         }
     }
 }
@@ -322,6 +322,25 @@ You can use it, extend it (look at the `SubCommands` property), or write your ow
 
 This is only available when targetting .NET Standard 1.3 (or above) and .NET 4.5.
 The Console is not available in .NET Standard 1.2.
+
+To use it, instantiate an instance of `ConsoleRunner`, passing in an `ISimpleMigrator` instance.
+You can tweak the `SubCommands` or `DefaultSubCommand` properties, then call `Run(args)`.
+It returns 0 on success or another number on failure, which you can return from your `Main` method.
+
+For example:
+
+```csharp
+static int Main(string[] args)
+{
+    using (var connection = ...)
+    {
+        var databaseProvider = new ...;
+        var migrator = new SimpleMigrator(typeof(Program).Assembly, databaseProvider);
+        var runner = new ConsoleRunner(migrator);
+        return runner.Run(args);
+    }
+}
+```
 
 
 Finding Migrations
