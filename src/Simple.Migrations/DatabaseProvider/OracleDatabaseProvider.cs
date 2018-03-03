@@ -87,7 +87,7 @@ END;
         /// <returns>SQL to fetch the current version from the version table</returns>
         protected override string GetCurrentVersionSql()
         {
-            return $@"select * from (select * from {this.TableName} order by id desc) where rownum=1";
+            return $@"select version from (select version from {this.TableName} order by id desc) where rownum=1";
         }
 
         /// <summary>
