@@ -87,7 +87,7 @@ END;
         /// <returns>SQL to fetch the current version from the version table</returns>
         protected override string GetCurrentVersionSql()
         {
-            return $@"select version from (select version from {this.TableName} order by id desc) where rownum=1";
+            return $@"SELECT VERSION FROM (SELECT VERSION FROM {this.TableName} ORDER BY ID DESC) WHERE ROWNUM=1";
         }
 
         /// <summary>
@@ -96,7 +96,8 @@ END;
         /// <returns>SQL to update the current version in the version table</returns>
         protected override string GetSetVersionSql()
         {
-            return $@"INSERT INTO {this.TableName} (ID, VERSION, APPLIED_ON, DESCRIPTION) VALUES ({this.VersionSequenceName}.NEXTVAL, :Version, CURRENT_TIMESTAMP, :Description)";
+            //RETURNING VERSION INTO :OldVersion - required use of bind variable to aviod oracle error
+            return $@"INSERT INTO {this.TableName} (ID, VERSION, APPLIED_ON, DESCRIPTION) VALUES ({this.VersionSequenceName}.NEXTVAL, :Version, CURRENT_TIMESTAMP, :Description) RETURNING VERSION INTO :OldVersion";
         }
 
         protected override void AcquireVersionTableLock()

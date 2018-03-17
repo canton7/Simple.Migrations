@@ -23,21 +23,29 @@ namespace Simple.Migrations.IntegrationTests.Oracle
             connection.Open();
 
             using (var cmd = new OracleCommand(@"
-begin
-    for curtab in (select table_name from user_tables) loop
-         BEGIN 
+BEGIN
+    FOR CURTAB IN (SELECT TABLE_NAME FROM USER_TABLES) LOOP
+        BEGIN 
                 EXECUTE IMMEDIATE 'DROP TABLE '||curtab.table_name||' PURGE';
-                EXCEPTION WHEN OTHERS THEN
-                IF (SQLCODE = -942) THEN 
-                    NULL;
-                ELSE
-                    RAISE;
-                END IF;
-                END;
-    end loop;
+        EXCEPTION WHEN OTHERS THEN
+            IF (SQLCODE = -942) THEN 
+                NULL;
+            ELSE
+                RAISE;
+            END IF;
+        END;
+    END LOOP;
 
-    execute immediate 'drop sequence SEQ_VERSION_TABLE';
-end;
+    BEGIN 
+        EXECUTE IMMEDIATE 'DROP SEQUENCE SEQ_VERSION_TABLE';
+    EXCEPTION WHEN OTHERS THEN
+            IF (SQLCODE = -2289) THEN 
+                NULL;
+            ELSE
+                RAISE;
+            END IF;
+    END;
+END;
 ", connection))
             {
                 cmd.ExecuteNonQuery();

@@ -193,10 +193,10 @@ namespace SimpleMigrations.DatabaseProvider
                 versionParam.Value = newVersion;
                 command.Parameters.Add(versionParam);
 
-                //var oldVersionParam = command.CreateParameter();
-                //oldVersionParam.ParameterName = "OldVersion";
-                //oldVersionParam.Value = oldVersion;
-                //command.Parameters.Add(oldVersionParam);
+                var oldVersionParam = command.CreateParameter();
+                oldVersionParam.ParameterName = "OldVersion";
+                oldVersionParam.Value = oldVersion;
+                command.Parameters.Add(oldVersionParam);
 
                 var nameParam = command.CreateParameter();
                 nameParam.ParameterName = "Description";

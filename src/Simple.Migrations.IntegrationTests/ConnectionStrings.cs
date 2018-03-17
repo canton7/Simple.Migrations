@@ -13,6 +13,6 @@ namespace Simple.Migrations.IntegrationTests
         public static readonly string MSSQL = @"Server=.;Database=SimpleMigratorTests;Trusted_Connection=True;";
         public static readonly string MySQL = @"Server=localhost;Database=SimpleMigrator;Uid=SimpleMigrator;Pwd=SimpleMigrator;";
         public static readonly string PostgreSQL = @"Server=localhost;Port=5432;Database=SimpleMigrator;User ID=SimpleMigrator;Password=SimpleMigrator";
-        public static readonly string Oracle = @"Data Source=localhost:32769/ORCLPDB1.localdomain;User ID=testmig;Password=testmig";
+        public static readonly string Oracle = @"Data Source=localhost:32769/ORCLPDB1.localdomain;User ID=SimpleMigrator;Password=SimpleMigrator";
     }
 }
