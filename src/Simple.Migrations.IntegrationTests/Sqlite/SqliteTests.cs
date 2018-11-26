@@ -16,7 +16,7 @@ namespace Simple.Migrations.IntegrationTests.Sqlite
     [TestFixture]
     public class SqliteTests : TestsBase
     {
-        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new SqliteDatabaseProvider(this.CreateConnection());
+        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new SqliteDatabaseProvider(this.CreateConnection());
 
         protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new SqliteStringsProvider();
 
@@ -29,6 +29,6 @@ namespace Simple.Migrations.IntegrationTests.Sqlite
                 File.Delete(db);
         }
 
-        protected override DbConnection CreateConnection() => new SqliteConnection(ConnectionStrings.SQLite);
+        protected override IDbConnection CreateConnection() => new SqliteConnection(ConnectionStrings.SQLite);
     }
 }

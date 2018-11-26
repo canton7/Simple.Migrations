@@ -16,7 +16,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <summary>
         /// Gets the connection used for all database operations
         /// </summary>
-        protected DbConnection Connection { get; }
+        protected IDbConnection Connection { get; }
 
         /// <summary>
         /// Gets or sets the timeout when acquiring the advisory lock
@@ -27,7 +27,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// Initialises a new instance of the <see cref="DatabaseProviderBaseWithAdvisoryLock"/> class
         /// </summary>
         /// <param name="connection">Database connection to use for all operations</param>
-        public DatabaseProviderBaseWithAdvisoryLock(DbConnection connection)
+        public DatabaseProviderBaseWithAdvisoryLock(IDbConnection connection)
         {
             this.Connection = connection;
             if (this.Connection.State != ConnectionState.Open)
@@ -63,7 +63,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// is invoked, before any migrations are run. This invokes <see cref="AcquireAdvisoryLock"/> to acquire the advisory lock.
         /// </summary>
         /// <returns>Connection for the migrations to use</returns>
-        public override DbConnection BeginOperation()
+        public override IDbConnection BeginOperation()
         {
             this.AcquireAdvisoryLock();
             return this.Connection;

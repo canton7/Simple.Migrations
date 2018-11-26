@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.Common;
 
 namespace SimpleMigrations.DatabaseProvider
@@ -34,7 +35,7 @@ namespace SimpleMigrations.DatabaseProvider
     /// The subclasses <see cref="DatabaseProviderBaseWithAdvisoryLock"/> and <see cref="DatabaseProviderBaseWithVersionTableLock"/>
     /// encapsulate these concepts.
     /// </remarks>
-    public abstract class DatabaseProviderBase : IDatabaseProvider<DbConnection>
+    public abstract class DatabaseProviderBase : IDatabaseProvider<IDbConnection>
     {
         /// <summary>
         /// Table name used to store version info. Defaults to 'VersionInfo'
@@ -68,7 +69,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <param name="connection">Connection to use</param>
         /// <param name="transaction">Transaction to use</param>
         /// <returns>The current version, or 0</returns>
-        protected virtual long EnsurePrerequisitesCreatedAndGetCurrentVersion(DbConnection connection, DbTransaction transaction)
+        protected virtual long EnsurePrerequisitesCreatedAndGetCurrentVersion(IDbConnection connection, IDbTransaction transaction)
         {
             var createSchemaSql = this.GetCreateSchemaTableSql();
             if (!string.IsNullOrEmpty(createSchemaSql))
@@ -97,7 +98,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// and return the connection for the migrations to use.
         /// </summary>
         /// <returns>Connection for the migrations to use</returns>
-        public abstract DbConnection BeginOperation();
+        public abstract IDbConnection BeginOperation();
 
         /// <summary>
         /// Cleans up any connections and/or transactions and/or locks created by <see cref="BeginOperation"/>
@@ -130,7 +131,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <param name="connection">Connection to use</param>
         /// <param name="transaction">transaction to use, may be null</param>
         /// <returns>The current database schema version, or 0</returns>
-        protected virtual long GetCurrentVersion(DbConnection connection, DbTransaction transaction)
+        protected virtual long GetCurrentVersion(IDbConnection connection, IDbTransaction transaction)
         {
             long version = 0;
             using (var command = connection.CreateCommand())
@@ -176,7 +177,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <param name="newDescription">The description of the migration which was applied</param>
         /// <param name="connection">Connection to use</param>
         /// <param name="transaction">Transaction to use, may be null</param>
-        protected virtual void UpdateVersion(long oldVersion, long newVersion, string newDescription, DbConnection connection, DbTransaction transaction)
+        protected virtual void UpdateVersion(long oldVersion, long newVersion, string newDescription, IDbConnection connection, IDbTransaction transaction)
         {
             if (this.MaxDescriptionLength > 0 && newDescription.Length > this.MaxDescriptionLength)
             {

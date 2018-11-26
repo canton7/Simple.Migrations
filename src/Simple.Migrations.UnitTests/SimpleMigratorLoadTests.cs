@@ -36,18 +36,18 @@ namespace Simple.Migrations.UnitTests
 
         private Mock<DbConnection> connection;
         private Mock<IMigrationProvider> migrationProvider;
-        private Mock<IDatabaseProvider<DbConnection>> databaseProvider;
+        private Mock<IDatabaseProvider<IDbConnection>> databaseProvider;
 
-        private SimpleMigrator<DbConnection, Migration> migrator;
+        private SimpleMigrator<IDbConnection, Migration> migrator;
 
         [SetUp]
         public void SetUp()
         {
             this.connection = new Mock<DbConnection>();
             this.migrationProvider = new Mock<IMigrationProvider>();
-            this.databaseProvider = new Mock<IDatabaseProvider<DbConnection>>();
+            this.databaseProvider = new Mock<IDatabaseProvider<IDbConnection>>();
 
-            this.migrator = new SimpleMigrator<DbConnection, Migration>(this.migrationProvider.Object, this.databaseProvider.Object);
+            this.migrator = new SimpleMigrator<IDbConnection, Migration>(this.migrationProvider.Object, this.databaseProvider.Object);
         }
 
         [Test]

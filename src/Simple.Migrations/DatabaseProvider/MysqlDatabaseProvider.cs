@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.Common;
 
 namespace SimpleMigrations.DatabaseProvider
@@ -30,7 +31,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// Initialises a new instance of the <see cref="MysqlDatabaseProvider"/> class
         /// </summary>
         /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
-        public MysqlDatabaseProvider(DbConnection connection)
+        public MysqlDatabaseProvider(IDbConnection connection)
             : base(connection)
         {
         }

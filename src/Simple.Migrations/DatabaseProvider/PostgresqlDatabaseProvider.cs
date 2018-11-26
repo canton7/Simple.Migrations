@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.Common;
 
 namespace SimpleMigrations.DatabaseProvider
@@ -37,7 +38,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// Initialises a new instance of the <see cref="PostgresqlDatabaseProvider"/> class
         /// </summary>
         /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
-        public PostgresqlDatabaseProvider(DbConnection connection)
+        public PostgresqlDatabaseProvider(IDbConnection connection)
             : base(connection)
         {
         }

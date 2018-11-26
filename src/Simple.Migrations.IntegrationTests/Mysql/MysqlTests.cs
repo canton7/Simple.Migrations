@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,9 +16,9 @@ namespace Simple.Migrations.IntegrationTests.Mysql
     {
         protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new MysqlStringsProvider();
 
-        protected override DbConnection CreateConnection() => new MySqlConnection(ConnectionStrings.MySQL);
+        protected override IDbConnection CreateConnection() => new MySqlConnection(ConnectionStrings.MySQL);
 
-        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MysqlDatabaseProvider(this.CreateConnection());
+        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new MysqlDatabaseProvider(this.CreateConnection());
 
         protected override bool SupportConcurrentMigrators => true;
 
