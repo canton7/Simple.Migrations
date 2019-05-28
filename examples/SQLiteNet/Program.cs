@@ -12,7 +12,7 @@ namespace SQLiteNet
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             using (var connection = new SQLiteConnection("SQLiteNetdatabase.sqlite"))
             {
@@ -21,7 +21,7 @@ namespace SQLiteNet
                 var migrator = new SimpleMigrator<SQLiteConnection, SQLiteNetMigration>(
                     Assembly.GetEntryAssembly(), databaseProvider);
                 var runner = new ConsoleRunner(migrator);
-                runner.Run(args);
+                return runner.Run(args);
             }
         }
     }

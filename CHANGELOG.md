@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.20
+-------
+
+ - ConsoleRunner returns a suitable exit status (#33)
+
 v0.9.19
 -------
 

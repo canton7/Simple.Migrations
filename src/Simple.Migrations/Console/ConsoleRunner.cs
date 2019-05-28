@@ -114,7 +114,8 @@ namespace SimpleMigrations.Console
         /// Run the <see cref="ConsoleRunner"/> with the given command-line arguments
         /// </summary>
         /// <param name="args">Command-line arguments to use</param>
-        public virtual void Run(string[] args)
+        /// <returns>An exit status: 0 on success, another number on failure</returns>
+        public virtual int Run(string[] args)
         {
             var argsList = args.ToList();
 
@@ -148,10 +149,13 @@ namespace SimpleMigrations.Console
 
                     subCommand.Action(argsList);
                 }
+
+                return 0;
             }
             catch (HelpNeededException)
             {
                 this.ShowHelp();
+                return 0;
             }
             catch (MigrationNotFoundException e)
             {
@@ -166,6 +170,8 @@ namespace SimpleMigrations.Console
                 WriteError("An unhandled exception occurred:");
                 WriteError(e.ToString());
             }
+
+            return 1;
         }
 
         private void MigrateUp(List<string> args)
