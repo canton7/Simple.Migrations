@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.9.21
+-------
+
+ - Add netstandard2.0 target
+
 v0.9.20
 -------
 
