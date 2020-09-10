@@ -37,7 +37,7 @@ PM> Install-Package Simple.Migrations
 
 Or right-click your project -> Manage NuGet Packages... -> Online -> search for Simple.Migrations in the top right.
 
-I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to RestEase's source when debugging.
+I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to the source when debugging.
 If you haven't yet set up Visual Studio to use SymbolSource, do that now:
 
 1. Go to Tools -> Options -> Debugger -> General.
