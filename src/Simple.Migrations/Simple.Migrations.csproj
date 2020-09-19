@@ -16,6 +16,16 @@
     <RepositoryUrl>https://github.com/canton7/Simple.Migrations</RepositoryUrl>
     <Description>Simple but flexible migrations library</Description>
     <Authors>Antony Male</Authors>
+  
+    <!-- Just embed all sources in the PDB: snupkg files don't support bare .cs files, and SourceLink is annoying -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedAllSources>true</EmbedAllSources>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <DebugType>full</DebugType>
   </PropertyGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.2' OR '$(TargetFramework)' == 'netstandard1.3' ">

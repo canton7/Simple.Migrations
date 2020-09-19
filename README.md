@@ -28,26 +28,7 @@ Installation
 ------------
 
 [Simple.Migrations is available on NuGet](https://www.nuget.org/packages/Simple.Migrations).
-
-Either open the package console and type:
-
-```
-PM> Install-Package Simple.Migrations
-```
-
-Or right-click your project -> Manage NuGet Packages... -> Online -> search for Simple.Migrations in the top right.
-
-I also publish symbols on [SymbolSource](http://www.symbolsource.org/Public), so you can use the NuGet package but still have access to the source when debugging.
-If you haven't yet set up Visual Studio to use SymbolSource, do that now:
-
-1. Go to Tools -> Options -> Debugger -> General.
-2. Uncheck "Enable Just My Code (Managed only)".
-3. Uncheck "Enable .NET Framework source stepping". Yes, it is misleading, but if you don't, then Visual Studio will ignore your custom server order (see further on) and only use it's own servers.
-4. Check "Enable source server support".
-5. Uncheck "Require source files to exactly match the original version"
-6. Go to Tools -> Options -> Debugger -> Symbols.
-7. Select a folder for the local symbol/source cache. You may experience silent failures in getting symbols if it doesn't exist or is read-only for some reason.
-8. Add `http://srv.symbolsource.org/pdb/Public` under "Symbol file (.pdb) locations".
+See that page for installation instructions.
 
 
 Quick Start
