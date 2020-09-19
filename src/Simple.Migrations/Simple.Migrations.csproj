@@ -9,9 +9,9 @@
     <PackageId>Simple.Migrations</PackageId>
     <PackageTags>SQL;Migration</PackageTags>
     <Copyright>Copyright 2015-2017 Antony Male</Copyright>
-    <PackageIconUrl>https://raw.githubusercontent.com/canton7/Simple.Migrations/master/icon.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/canton7/Simple.Migrations</PackageProjectUrl>
-    <PackageLicenseUrl>http://github.com/canton7/Simple.Migrations/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/canton7/Simple.Migrations</RepositoryUrl>
     <Description>Simple but flexible migrations library</Description>
@@ -52,6 +52,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>
