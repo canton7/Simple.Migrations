@@ -13,8 +13,8 @@ namespace Simple.Migrations.IntegrationTests
 {
     public abstract class TestsBase
     {
-        protected abstract DbConnection CreateConnection();
-        protected abstract IDatabaseProvider<DbConnection> CreateDatabaseProvider();
+        protected abstract IDbConnection CreateConnection();
+        protected abstract IDatabaseProvider<IDbConnection> CreateDatabaseProvider();
         protected abstract IMigrationStringsProvider MigrationStringsProvider { get; }
         protected abstract void Clean();
 

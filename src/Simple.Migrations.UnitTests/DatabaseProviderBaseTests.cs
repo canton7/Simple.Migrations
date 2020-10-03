@@ -31,7 +31,7 @@
 //            public string SetVersionSql = "Set Version SQL";
 //            public override string GetSetVersionSql() => this.SetVersionSql;
 
-//            public override DbConnection BeginOperation()
+//            public override IDbConnection BeginOperation()
 //            {
 //                throw new NotImplementedException();
 //            }

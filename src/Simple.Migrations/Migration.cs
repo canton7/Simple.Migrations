@@ -8,7 +8,7 @@ namespace SimpleMigrations
     /// Base class, intended to be used by all migrations (although you may implement <see cref="IMigration{TDatabase}"/> directly if you wish).
     /// Migrations MUST apply the <see cref="MigrationAttribute"/> attribute
     /// </summary>
-    public abstract class Migration : IMigration<DbConnection>
+    public abstract class Migration : IMigration<IDbConnection>
     {
         /// <summary>
         /// Gets or sets a value indicating whether calls to <see cref="Execute(string, int?)"/> should be run inside of a transaction.
@@ -21,7 +21,7 @@ namespace SimpleMigrations
         /// <summary>
         /// Gets or sets the database to be used by this migration
         /// </summary>
-        protected DbConnection Connection { get; private set; }
+        protected IDbConnection Connection { get; private set; }
 
         /// <summary>
         /// Gets or sets the logger to be used by this migration
@@ -34,7 +34,7 @@ namespace SimpleMigrations
         /// <remarks>
         /// This is set only if <see cref="UseTransaction"/> is true.
         /// </remarks>
-        protected DbTransaction Transaction { get; private set; }
+        protected IDbTransaction Transaction { get; private set; }
 
         // Up and Down should really be 'protected', but in the name of backwards compatibility...
 
@@ -79,7 +79,7 @@ namespace SimpleMigrations
         /// A <see cref="DbCommand"/> which is configured with the <see cref="DbCommand.CommandText"/>, <see cref="DbCommand.Transaction"/>,
         /// and <see cref="DbCommand.CommandTimeout"/> properties set.
         /// </returns>
-        protected virtual DbCommand CreateCommand(string sql, int? commandTimeout)
+        protected virtual IDbCommand CreateCommand(string sql, int? commandTimeout)
         {
             if (this.Connection == null)
                 throw new InvalidOperationException("this.Connection has not yet been set. This should have been set by Execute(DbConnection, IMigrationLogger, MigrationDirection)");
@@ -94,7 +94,7 @@ namespace SimpleMigrations
             return command;
         }
 
-        void IMigration<DbConnection>.RunMigration(MigrationRunData<DbConnection> data)
+        void IMigration<IDbConnection>.RunMigration(MigrationRunData<IDbConnection> data)
         {
             this.Connection = data.Connection;
             this.Logger = data.Logger;

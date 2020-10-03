@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.Common;
 
 namespace SimpleMigrations.DatabaseProvider
@@ -25,7 +26,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <remarks>
         /// This is set by <see cref="BeginOperation"/>, and cleated by <see cref="EndOperation"/>.
         /// </remarks>
-        protected DbConnection VersionTableConnection { get; set; }
+        protected IDbConnection VersionTableConnection { get; set; }
 
         /// <summary>
         /// Gets or sets the transaction on the <see cref="VersionTableConnection"/> used to lock it.
@@ -33,7 +34,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <remarks>
         /// This is set by <see cref="BeginOperation"/>, and cleated by <see cref="EndOperation"/>.
         /// </remarks>
-        protected DbTransaction VersionTableLockTransaction { get; set; }
+        protected IDbTransaction VersionTableLockTransaction { get; set; }
 
         /// <summary>
         /// Gets or sets the connection to be used by migrations.
@@ -41,7 +42,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <remarks>
         /// This is set by <see cref="BeginOperation"/>, and cleated by <see cref="EndOperation"/>.
         /// </remarks>
-        protected DbConnection MigrationsConnection { get; set; }
+        protected IDbConnection MigrationsConnection { get; set; }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="DatabaseProviderBaseWithVersionTableLock"/> class
@@ -78,7 +79,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// <see cref="MigrationsConnection"/>, and invokes <see cref="AcquireVersionTableLock"/> to acquire the VersionInfo table lock.
         /// </summary>
         /// <returns>Connection for the migrations to use</returns>
-        public override DbConnection BeginOperation()
+        public override IDbConnection BeginOperation()
         {
             this.VersionTableConnection = this.ConnectionFactory();
             this.VersionTableConnection.Open();

@@ -4,15 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using SimpleMigrations;
 using System.Data.Common;
+using System.Data;
 
 namespace Simple.Migrations.UnitTests
 {
-    public abstract class MockDatabaseProvider : IDatabaseProvider<DbConnection>
+    public abstract class MockDatabaseProvider : IDatabaseProvider<IDbConnection>
     {
         public long CurrentVersion;
-        public DbConnection Connection;
+        public IDbConnection Connection;
 
-        public DbConnection BeginOperation()
+        public IDbConnection BeginOperation()
         {
             return this.Connection;
         }

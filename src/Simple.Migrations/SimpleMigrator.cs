@@ -8,7 +8,7 @@ namespace SimpleMigrations
     /// <summary>
     /// Migrator which uses <see cref="IDbConnection"/> connections
     /// </summary>
-    public class SimpleMigrator : SimpleMigrator<DbConnection, IMigration<DbConnection>>
+    public class SimpleMigrator : SimpleMigrator<IDbConnection, IMigration<IDbConnection>>
     {
         /// <summary>
         /// Instantiates a new instance of the <see cref="SimpleMigrator"/> class
@@ -18,7 +18,7 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress</param>
         public SimpleMigrator(
             IMigrationProvider migrationProvider,
-            IDatabaseProvider<DbConnection> databaseProvider,
+            IDatabaseProvider<IDbConnection> databaseProvider,
             ILogger logger = null)
             : base(migrationProvider, databaseProvider, logger)
         {
@@ -32,7 +32,7 @@ namespace SimpleMigrations
         /// <param name="logger">Logger to use to log progress</param>
         public SimpleMigrator(
             Assembly migrationsAssembly,
-            IDatabaseProvider<DbConnection> databaseProvider,
+            IDatabaseProvider<IDbConnection> databaseProvider,
             ILogger logger = null)
             : base(migrationsAssembly, databaseProvider, logger)
         {

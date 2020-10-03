@@ -14,7 +14,7 @@ namespace Simple.Migrations.IntegrationTests.Postgresql
     [TestFixture]
     public class PostgresqlTests : TestsBase
     {
-        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new PostgresqlDatabaseProvider(this.CreateConnection());
+        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new PostgresqlDatabaseProvider(this.CreateConnection());
 
         protected override IMigrationStringsProvider MigrationStringsProvider { get; } = new PostgresqlStringsProvider();
 
@@ -33,6 +33,6 @@ namespace Simple.Migrations.IntegrationTests.Postgresql
 
         private NpgsqlConnection CreatePgConnection() => new NpgsqlConnection(ConnectionStrings.PostgreSQL);
 
-        protected override DbConnection CreateConnection() => this.CreatePgConnection();
+        protected override IDbConnection CreateConnection() => this.CreatePgConnection();
     }
 }

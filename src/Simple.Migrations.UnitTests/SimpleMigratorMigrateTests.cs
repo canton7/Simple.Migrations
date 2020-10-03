@@ -3,6 +3,7 @@ using NUnit.Framework;
 using SimpleMigrations;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
@@ -21,7 +22,7 @@ namespace Simple.Migrations.UnitTests
             public static Exception Exception;
             public static Action<Migration1> Callback;
 
-            public new DbConnection Connection => base.Connection;
+            public new IDbConnection Connection => base.Connection;
             public new IMigrationLogger Logger => base.Logger;
 
             public static void Reset()
@@ -75,7 +76,7 @@ namespace Simple.Migrations.UnitTests
 
         private List<MigrationData> migrations;
 
-        private SimpleMigrator<DbConnection, Migration> migrator;
+        private SimpleMigrator<IDbConnection, Migration> migrator;
 
         [SetUp]
         public void SetUp()
@@ -96,7 +97,7 @@ namespace Simple.Migrations.UnitTests
 
             this.logger = new Mock<ILogger>();
 
-            this.migrator = new SimpleMigrator<DbConnection, Migration>(this.migrationProvider.Object, this.databaseProvider.Object, this.logger.Object);
+            this.migrator = new SimpleMigrator<IDbConnection, Migration>(this.migrationProvider.Object, this.databaseProvider.Object, this.logger.Object);
 
             this.migrations = new List<MigrationData>()
             {

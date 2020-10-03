@@ -18,9 +18,9 @@ namespace Simple.Migrations.IntegrationTests.Mssql
 
         protected override bool SupportConcurrentMigrators => true;
 
-        protected override DbConnection CreateConnection() => new SqlConnection(ConnectionStrings.MSSQL);
+        protected override IDbConnection CreateConnection() => new SqlConnection(ConnectionStrings.MSSQL);
 
-        protected override IDatabaseProvider<DbConnection> CreateDatabaseProvider() => new MssqlDatabaseProvider(this.CreateConnection());
+        protected override IDatabaseProvider<IDbConnection> CreateDatabaseProvider() => new MssqlDatabaseProvider(this.CreateConnection());
 
         protected override void Clean()
         {

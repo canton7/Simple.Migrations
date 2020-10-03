@@ -47,7 +47,7 @@ namespace SimpleMigrations.DatabaseProvider
         /// Initialises a new instance of the <see cref="MssqlDatabaseProvider"/> class
         /// </summary>
         /// <param name="connection">Connection to use to run migrations. The caller is responsible for closing this.</param>
-        public MssqlDatabaseProvider(DbConnection connection)
+        public MssqlDatabaseProvider(IDbConnection connection)
             : base(connection)
         {
             this.MaxDescriptionLength = 256;
