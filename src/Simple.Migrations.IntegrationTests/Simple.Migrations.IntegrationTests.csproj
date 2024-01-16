@@ -18,7 +18,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.0.0-ci-00457-pr-313" />
     
     <PackageReference Include="Microsoft.Data.Sqlite" Version="1.0.1" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.1.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="MySql.Data" Version="6.9.9" />
     <PackageReference Include="Npgsql" Version="3.1.9" />
   </ItemGroup>
